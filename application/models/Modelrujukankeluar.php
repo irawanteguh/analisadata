@@ -9,7 +9,7 @@
                         WHERE A.TGL_MASUK IS NOT NULL
                         AND   A.STATUS_EPISODE IN ('00','55')
                         AND   TO_CHAR(A.TGL_MASUK,'YYYY-MM-DD') NOT IN (SELECT PERIODE FROM SR01_PERIODE_RUJUKAN )
-                        ORDER BY TO_CHAR(A.TGL_MASUK,'YYYY-MM-DD') DESC
+                        ORDER BY TO_CHAR(A.TGL_MASUK,'YYYY-MM-DD') ASC
                         FETCH FIRST 1 ROW ONLY
                     ";
 
