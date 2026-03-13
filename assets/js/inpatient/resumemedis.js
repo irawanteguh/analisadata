@@ -67,7 +67,7 @@ function resumemedis(){
                     chartDataHarian,
                     [
                         { name: "Resume > 48 Jam", field: "lebih48" },
-                        { name: "Resume = 48 Jam", field: "kurang48" }
+                        { name: "Resume <= 48 Jam", field: "kurang48" }
                     ],
                     "Tanggal Pulang Rawat Inap",
                     "Persentase",
