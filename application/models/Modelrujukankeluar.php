@@ -14,7 +14,7 @@
                             SELECT PERIODE 
                             FROM SR01_PERIODE_RUJUKAN
                         )
-                        ORDER BY TO_CHAR(A.TGL_MASUK,'YYYY-MM-DD') DESC
+                        ORDER BY TO_CHAR(A.TGL_MASUK,'YYYY-MM-DD') ASC
                         FETCH FIRST 1 ROW ONLY
                     ";
 
