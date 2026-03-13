@@ -17,7 +17,7 @@ for (const iface of Object.values(interfaces)) {
     }
 }
 
-const BASE_URL = process.env.BASE_URL || `http://${host}/rsudpasarminggu/prod/analisadata/index.php/`;
+const BASE_URL = process.env.BASE_URL || `http://${host}/analisadata/index.php/`;
 
 function getTimeStamp() {
   const now = new Date();
