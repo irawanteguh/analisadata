@@ -1,0 +1,1 @@
+<a class="btn btn-success btn-sm" href="#" onclick="exportTableToExcel('tabletrujukankeluar', 'List Pasien Rujukan Keluar')"><i class="bi bi-file-earmark-excel"></i> Download Excel</a>
