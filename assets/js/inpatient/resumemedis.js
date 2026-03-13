@@ -32,25 +32,30 @@ function resumemedis(){
             $('#pendingresumelebih').html('Pending Resume > 48 Jam : 0 Px');
         },
         success:function(data){
-            let   totalResume       = 0;
-            let   resumekurang48jam = 0;
-            let   resumelebih48jam  = 0;
-            let   tableresult       = "";
-            const result            = data.responResult || [];
+
+            let totalResume       = 0;
+            let resumekurang48jam = 0;
+            let resumelebih48jam  = 0;
+
+            const result = data.responResult || [];
+
+            let tableBulanan = {
+                "01":{}, "02":{}, "03":{}, "04":{}, "05":{}, "06":{},
+                "07":{}, "08":{}, "09":{}, "10":{}, "11":{}, "12":{}
+            };
 
             if(data.responCode==="00"){    
-                
+
                 const chartDataBulanan = aggregateBulanResume(result,"TGL_KELUAR");
                 const chartDataHarian  = aggregateHarianResumeLAST30(result,"TGL_KELUAR");
                 const chartDataGlobal  = aggregateResumeGlobal(result);
-
 
                 renderchartbar(
                     "grafikresumemedis",
                     chartDataBulanan,
                     [
                         { name: "Resume > 48 Jam", field: "lebih48" },
-                        { name: "Resume ≤ 48 Jam", field: "kurang48" }
+                        { name: "Resume = 48 Jam", field: "kurang48" }
                     ],
                     "Periode Tanggal Pulang Rawat Inap",
                     "Persentase",
@@ -62,69 +67,149 @@ function resumemedis(){
                     chartDataHarian,
                     [
                         { name: "Resume > 48 Jam", field: "lebih48" },
-                        { name: "Resume ≤ 48 Jam", field: "kurang48" }
+                        { name: "Resume = 48 Jam", field: "kurang48" }
                     ],
                     "Tanggal Pulang Rawat Inap",
                     "Persentase",
                     true
                 );
+
                 renderchartpie("grafikresumemedisglobal",chartDataGlobal);
 
-                if(data.responCode==="00"){
-                    for(var i in result){
-                        if(result[i].TRANSCORESUME !== null && result[i].TRANSCORESUME !== ""){
-                            totalResume++;
-                        }else{
-                            if(parseInt(result[i].DURASI) > 2){
-                                resumelebih48jam++;
-                            } else {
-                                resumekurang48jam++;
-                            }
-                        }
+                // LOOP DATA
+                for(let i in result){
 
-                        btnaction  = "<a class='dropdown-item btn btn-sm' href='#' onclick=\"openSejarah('" + result[i].PASIEN_ID + "')\"><i class='bi bi-clock-history text-primary pe-4'></i>Sejarah</a>";
+                    let item = result[i];
 
-                        tableresult +="<tr>";
-                        tableresult +="<td class='ps-4'>"+(parseInt(i)+1)+"</td>";
-                        tableresult +="<td>"+(result[i].MRPAS || "")+"</td>";
-                        tableresult +="<td>"+(result[i].NAMAPASIEN || "")+"</td>";
-                        tableresult +="<td>"+(result[i].SEXID || "")+"</td>";
-                        tableresult +="<td>"+(result[i].RUANGRWT_ID || "")+"</td>";
-                        tableresult +="<td>"+(result[i].KELAS_ID || "")+"</td>";
-                        tableresult +="<td>"+(result[i].DPJP || "")+"</td>";
-                        tableresult +="<td>"+(result[i].TGLMASUK || "")+"</td>";
-                        tableresult +="<td>"+(result[i].TGLKELUAR || "")+"</td>";
-                        tableresult +="<td>"+(result[i].PROVIDER || "")+"</td>";
-                        tableresult +="<td>"+(result[i].CARAPULANG || "")+"</td>";
-                        if(result[i].TRANSCORESUME!=null){
-                            tableresult +="<td><span class='badge badge-light-success'>Resume Sudah Dibuat</span></td>";
+                    if(item.TRANSCORESUME !== null && item.TRANSCORESUME !== ""){
+                        totalResume++;
+                    }else{
+                        if(parseInt(item.DURASI) > 2){
+                            resumelebih48jam++;
                         }else{
-                            if(parseInt(result[i].DURASI) > 2){
-                                tableresult +="<td><span class='badge badge-light-danger'>Resume Belum Dibuat > 48 Jam</span></td>";
-                            }else{
-                                tableresult +="<td><span class='badge badge-light-warning'>Resume Belum Dibuat <= 48 Jam</span></td>";         
-                            }
+                            resumekurang48jam++;
                         }
-                        tableresult +="<td>"+(result[i].CREATEDDATERESUME || "")+"</td>";
-                        tableresult += "<td class='text-end'>";
-                            tableresult += "<div class='btn-group' role='group'>";
-                                tableresult += "<button id='btnGroupDrop1' type='button' class='btn btn-light-primary dropdown-toggle btn-sm' data-bs-toggle='dropdown' aria-expanded='false'>Actions</button>";
-                                tableresult += "<div class='dropdown-menu' aria-labelledby='btnGroupDrop1'>";
-                                    tableresult += btnaction;
-                                tableresult += "</div>";
-                            tableresult += "</div>";
-                        tableresult += "</td>";
-                        tableresult +="</tr>";
                     }
+
+                    // =========================
+                    // GROUPING PER TANGGAL
+                    // =========================
+
+                    if(!item.TGLKELUAR) continue;
+
+                    let splitTgl;
+
+                    if(item.TGLKELUAR.includes(".")){
+                        splitTgl = item.TGLKELUAR.split(".");
+                    }else{
+                        splitTgl = item.TGLKELUAR.split("-");
+                    }
+
+                    let bulan   = splitTgl[1];
+                    let tanggal = item.TGLKELUAR;
+
+                    if(!tableBulanan[bulan][tanggal]){
+                        tableBulanan[bulan][tanggal] = {
+                            total:0,
+                            selesai:0,
+                            belum:0
+                        };
+                    }
+
+                    tableBulanan[bulan][tanggal].total++;
+
+                    if(item.TRANSCORESUME != null){
+                        tableBulanan[bulan][tanggal].selesai++;
+                    }else{
+                        tableBulanan[bulan][tanggal].belum++;
+                    }
+
+                }
+
+                result.forEach(item => {
+
+                    if(!item.TGLKELUAR) return;
+
+                    let splitTgl = item.TGLKELUAR.includes(".")
+                        ? item.TGLKELUAR.split(".")
+                        : item.TGLKELUAR.split("-");
+
+                    let bulan   = splitTgl[1];
+                    let tanggal = item.TGLKELUAR;
+
+                    if(!tableBulanan[bulan][tanggal]){
+                        tableBulanan[bulan][tanggal] = {
+                            total:0,
+                            selesai:0,
+                            belum:0
+                        };
+                    }
+
+                    tableBulanan[bulan][tanggal].total++;
+
+                    if(item.TRANSCORESUME != null){
+                        tableBulanan[bulan][tanggal].selesai++;
+                        totalResume++;
+                    }else{
+                        tableBulanan[bulan][tanggal].belum++;
+
+                        if(parseInt(item.DURASI) > 2){
+                            resumelebih48jam++;
+                        }else{
+                            resumekurang48jam++;
+                        }
+                    }
+
+                });
+
+                // =========================
+                // RENDER TABLE BULANAN
+                // =========================
+
+                for(let bulan in tableBulanan){
+
+                    let html = "";
+                    let no   = 1;
+
+                    let tanggalSorted = Object.keys(tableBulanan[bulan]).sort((a,b)=>{
+
+                        let da = a.includes(".") ? a.split(".").reverse().join("-") : a;
+                        let db = b.includes(".") ? b.split(".").reverse().join("-") : b;
+
+                        return new Date(da) - new Date(db);
+
+                    });
+
+                    tanggalSorted.forEach(tanggal => {
+
+                        let row = tableBulanan[bulan][tanggal];
+
+                        let persen = 0;
+                        if(row.total > 0){
+                            persen = (row.selesai / row.total) * 100;
+                        }
+
+                        html += "<tr>";
+                        html += "<td class='text-center'>"+no+"</td>";
+                        html += "<td class='text-center'>"+tanggal+"</td>";
+                        html += "<td class='text-center'>"+todesimal(row.belum)+"</td>";
+                        html += "<td class='text-center'>"+todesimal(row.selesai)+"</td>";
+                        html += "<td class='text-center'>"+todesimal(row.total)+"</td>";
+                        html += "<td class='text-end pe-4'>"+persen.toFixed(2)+" %</td>";
+                        html += "</tr>";
+
+                        no++;
+                    });
+
+                    $("#resultdatabln"+bulan).html(html);
                 }
             }
 
-            // Masukkan hasil ke elemen HTML
-            $("#resultdatapendingresume").html(tableresult);
             $("#totalpasienpulang").html("Total Pasien Pulang Rawat Inap : " + todesimal(result.length) + " Px");
             $("#totalresume").html("Total Resume Yang Telah Di Buat : " + todesimal(totalResume) + " Px");
             $("#pendingresumekurang").html("Pending Resume Medis <= 48 Jam : " + todesimal(resumekurang48jam) + " Px");
             $("#pendingresumelebih").html("Pending Resume Medis > 48 Jam : " + todesimal(resumelebih48jam) + " Px");
+
         },
         complete: function () {
             Swal.close();
