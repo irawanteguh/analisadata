@@ -79,8 +79,6 @@
                                 $datadetail = [];
                                 $datadetail = isset($detailResponse['response']['rujukan']) ? $detailResponse['response']['rujukan'] : [];
 
-                                
-
                                 $datasimpandetail = [
                                     'NO_RUJUKAN'            => $datadetail['noRujukan'] ?? null,
                                     'NO_SEP'                => $datadetail['noSep'] ?? null,
