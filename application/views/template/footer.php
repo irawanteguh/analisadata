@@ -12,13 +12,13 @@
                 2026 &copy; Copyright Infinite For Use
 
                 <?php if (!empty($hospital)) : ?>
-                    <a href="<?= htmlspecialchars($website); ?>" target="_blank">
-                        <?= htmlspecialchars($hospital); ?>
+                    <a href="<?php echo htmlspecialchars($website); ?>" target="_blank">
+                        <?php echo htmlspecialchars($hospital); ?>
                     </a> |
                 <?php endif; ?>
 
                 Page rendered in <strong>{elapsed_time}</strong> seconds.
-                | IP Address : <strong><?= htmlspecialchars($ipAddress); ?></strong>
+                | IP Address : <strong><?php echo htmlspecialchars($ipAddress); ?></strong>
             </div>
         </div>
 
