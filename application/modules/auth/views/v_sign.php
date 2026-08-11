@@ -5,7 +5,6 @@
         $background = 'morning-rsudpm.png';
         $cardShadow = 'login-morning-shadow';
     } elseif ($hour >= 12 && $hour < 16) {
-        echo "Selamat Siang";
         $background = 'sunrise-rsudpm.png';
         $cardShadow = 'login-sunrise-shadow';
     } elseif ($hour >= 16 && $hour < 19) {
