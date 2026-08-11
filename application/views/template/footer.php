@@ -1,7 +1,7 @@
 <?php
     $website     = 'https://rsudpasarminggu.jakarta.go.id/';
     $hospital    = 'RSUD Pasar Minggu';
-    $ipAddress   = $_SERVER['REMOTE_ADDR'] ?? '-';
+    $ipAddress   = $_SERVER['REMOTE_ADDR'];
 ?>
 
 <div class="footer py-4 d-flex flex-lg-column" id="kt_footer">
