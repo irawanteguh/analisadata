@@ -10,9 +10,9 @@
         public static $resultmenu = [];
         public static $activeMenu = [];
 
-        private static array $children = [];
-        private static array $activeCache = [];
-        private static array $publicRoutes = [
+        private static  $children = [];
+        private static  $activeCache = [];
+        private static  $publicRoutes = [
             '',
             'auth',
             'booking',
