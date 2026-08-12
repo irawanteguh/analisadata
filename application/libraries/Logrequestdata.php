@@ -11,35 +11,92 @@ class Logrequestdata {
     }
 
     public function simpanrequestdata($data){
-        if(empty($data)){
+        if (empty($data)) {
             return false;
         }
 
+        // Jangan simpan request dari Role Access
+        $controller = strtolower($this->CI->router->fetch_class());
+        $method     = strtolower($this->CI->router->fetch_method());
+
+        $requestRoleAccess = array(
+            'roleaccess/datamodules',
+            'roleaccess/datauser'
+        );
+
+        $currentRequest = $controller . '/' . $method;
+
+        if (in_array($currentRequest, $requestRoleAccess, true)) {
+            return false;
+        }
+
+
+        // Cek IP localhost
         $ip = $this->CI->input->ip_address();
 
-        if($ip == '::1' || $ip == '127.0.0.1'){
+        if ($ip == '::1' || $ip == '127.0.0.1') {
             return false;
         }
 
-        $durasi = isset($data->durasi) ? (float)$data->durasi : 0;
-        $userid = isset($_SESSION['userid']) ? $_SESSION['userid'] : '';
-        $waktusekarang = date('Y-m-d H:i:s');
-        $tglmulai = date('Y-m-d H:i:s', strtotime($waktusekarang) - ($durasi / 1000));
 
-        $datasimpan['TUJUAN']              = "Permohonan Pengambilan Data : ".$data->jenisdata." Periode : ".$data->periode;
-        $datasimpan['KETERANGAN_SELESAI']  = "Permohonan Pengambilan Data : ".$data->jenisdata." Periode : ".$data->periode." Sudah Di Tindaklanjuti";
+        // Durasi request dalam milliseconds
+        $durasi = isset($data->durasi)
+            ? (float) $data->durasi
+            : 0;
+
+
+        // User login
+        $userid = isset($_SESSION['userid'])
+            ? $_SESSION['userid']
+            : '';
+
+
+        // Waktu sekarang
+        $waktusekarang = date('Y-m-d H:i:s');
+
+
+        // Waktu mulai berdasarkan durasi request
+        $tglmulai = date(
+            'Y-m-d H:i:s',
+            strtotime($waktusekarang) - ($durasi / 1000)
+        );
+
+
+        // Data yang akan disimpan
+        $datasimpan['TUJUAN'] =
+            "Permohonan Pengambilan Data : "
+            . $data->jenisdata
+            . " Periode : "
+            . $data->periode;
+
+
+        $datasimpan['KETERANGAN_SELESAI'] =
+            "Permohonan Pengambilan Data : "
+            . $data->jenisdata
+            . " Periode : "
+            . $data->periode
+            . " Sudah Di Tindaklanjuti";
+
+
         $datasimpan['BIDANG_ID']           = 'B04';
         $datasimpan['JENIS_LAPORAN']       = 'J31';
         $datasimpan['FAKTOR_LAPORAN']      = 'F01';
         $datasimpan['STATUS_LAPORAN']      = '01';
-        $datasimpan['CREATED_BY']          = 'SIRS01_'.$userid;
+        $datasimpan['CREATED_BY']          = 'SIRS01_' . $userid;
         $datasimpan['TGL_TL']              = $tglmulai;
         $datasimpan['TGL_MULAI_LAPORAN']   = $tglmulai;
         $datasimpan['TGL_SELESAI_LAPORAN'] = $waktusekarang;
         $datasimpan['TGL_VALIDASI']        = $waktusekarang;
-        $datasimpan['USER_IT']             = mt_rand(0, 1) ? '1521027' : '2511259';
-        $datasimpan['CREATED_DATE']        = $tglmulai;
 
+        $datasimpan['USER_IT'] =
+            mt_rand(0, 1)
+                ? '1521027'
+                : '2511259';
+
+        $datasimpan['CREATED_DATE'] = $tglmulai;
+
+
+        // Insert
         $sql = "INSERT INTO SR01_ETICKET_MS (
             TUJUAN,
             KETERANGAN_SELESAI,
@@ -69,6 +126,7 @@ class Logrequestdata {
             ?,
             TO_DATE(?, 'YYYY-MM-DD HH24:MI:SS')
         )";
+
 
         return $this->CI->db->query($sql, array(
             $datasimpan['TUJUAN'],
