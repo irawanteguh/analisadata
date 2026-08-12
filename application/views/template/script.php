@@ -24,5 +24,5 @@
 ?>
 
 <script>
-    const globalnamauser = <?= json_encode($_SESSION['name'] ?? '') ?>;
+    const globalnamauser = <?= json_encode(isset($_SESSION['name']) ? $_SESSION['name'] : '') ?>;
 </script>
