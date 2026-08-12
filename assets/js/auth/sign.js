@@ -56,6 +56,7 @@ $(function () {
                 showConfirmButton: false,
                 allowOutsideClick: false,
                 allowEscapeKey: false,
+
                 timer: code === "00" ? 3000 : undefined,
                 timerProgressBar: code === "00",
 
@@ -69,6 +70,13 @@ $(function () {
                             window.location.href = response.url;
                         }
                     });
+                },
+
+                didClose: function () {
+                    // Redirect otomatis setelah timer selesai
+                    if (code === "00" && response.url) {
+                        window.location.href = response.url;
+                    }
                 }
             });
         })
