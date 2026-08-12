@@ -51,14 +51,13 @@ $(function () {
             }
 
             Swal.fire({
-                icon: icon,
-                text: message,
+                icon             : icon,
+                text             : message,
                 showConfirmButton: false,
                 allowOutsideClick: false,
-                allowEscapeKey: false,
-
-                timer: code === "00" ? 3000 : undefined,
-                timerProgressBar: code === "00",
+                allowEscapeKey   : false,
+                timer            : code === "00" ? 3000: undefined,
+                timerProgressBar : code === "00",
 
                 didOpen: function () {
                     Swal.showLoading();

@@ -150,9 +150,10 @@ function datajumlahpasien(startDate, endDate){
         },
         error: function () {
             Swal.fire({
-                icon : 'error',
-                title: 'Error',
-                text : 'Unable to retrieve visit data.'
+                icon: "error",
+                title: "Request Failed",
+                text: "We were unable to process your request due to a server error. Please try again later. If the problem persists, contact your system administrator.",
+                confirmButtonText: "OK"
             });
         }
     });
@@ -211,9 +212,10 @@ function dataaktifitasdokter(startDate, endDate){
         },
         error: function () {
             Swal.fire({
-                icon : 'error',
-                title: 'Error',
-                text : 'Unable to retrieve visit data.'
+                icon: "error",
+                title: "Request Failed",
+                text: "We were unable to process your request due to a server error. Please try again later. If the problem persists, contact your system administrator.",
+                confirmButtonText: "OK"
             });
         }
     });
