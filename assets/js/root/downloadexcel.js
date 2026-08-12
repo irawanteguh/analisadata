@@ -182,3 +182,73 @@ function exportToExcel(data, sheetName, fileName, config = {}) {
     XLSX.writeFile(workbook, finalFileName);
 
 }
+
+function exportTableToExcel(tableID, options = {}) {
+
+    // 🔥 support legacy string filename
+    if (typeof options === 'string') {
+        options = { filename: options };
+    }
+
+    const {
+        filename = 'export',
+        excludeColumns = [],
+        excludeClass = '.excludeThisClass',
+        removeLastColumn = false,
+        onlyVisible = true   // ✔ NEW FEATURE
+    } = options;
+
+    // 🔥 validasi table
+    if ($("#" + tableID).length === 0) {
+        console.error("Table tidak ditemukan:", tableID);
+        return;
+    }
+
+    let $table = $("#" + tableID).clone();
+
+    // 🔥 FIX UTAMA: hanya ambil row yang visible
+    if (onlyVisible) {
+        $table.find("tr").each(function () {
+            if ($(this).css("display") === "none") {
+                $(this).remove();
+            }
+        });
+    }
+
+    // 🔹 Hapus kolom tertentu
+    if (excludeColumns.length > 0) {
+        $table.find("tr").each(function () {
+            $(this).find("th, td").each(function (i) {
+                if (excludeColumns.includes(i)) {
+                    $(this).remove();
+                }
+            });
+        });
+    }
+
+    // 🔹 Hapus berdasarkan class
+    if (excludeClass) {
+        $table.find(excludeClass).remove();
+    }
+
+    // 🔹 Hapus kolom terakhir
+    if (removeLastColumn) {
+        $table.find("tr").each(function () {
+            $(this).find("td:last, th:last").remove();
+        });
+    }
+
+    // 🔹 bersihkan UI element
+    $table.find("button, .dropdown-menu, .no-export, .filtered-hidden").remove();
+
+    // 🔹 sanitize filename
+    const safeFilename = filename.replace(/[\\/:*?"<>|]/g, '_');
+
+    // 🔥 EXPORT
+    $table.table2excel({
+        exclude: excludeClass,
+        name: "Worksheet",
+        filename: safeFilename + ".xls",
+        preserveColors: false
+    });
+}

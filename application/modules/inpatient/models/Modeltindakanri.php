@@ -21,6 +21,9 @@
                         SELECT
                             LAYAN_ID,
                             NAMA_LAYAN1,
+                            ICD_ID,
+                            KODE_ICD,
+                            LONG_DESCRIPTION,
                             UPPER(KETERANGAN) KETERANGAN,
                             NVL(JAN, 0) AS JAN,
                             NVL(FEB, 0) AS FEB,
@@ -40,9 +43,10 @@
                                 A.LAYAN_ID,
                                 A.QTY,
                                 TO_CHAR(A.CREATED_DATE, 'MM') AS BULAN,
-                                MSLAYAN.NAMA_LAYAN1,
-                                MSKAT.KETERANGAN
-                                
+                                MSLAYAN.NAMA_LAYAN1, MSLAYAN.ICD_ID,
+                                MSKAT.KETERANGAN,
+                                ICD.KODE_ICD, ICD.LONG_DESCRIPTION
+                                                        
                             FROM SR01_KEU_TRANSCTR_IT A
                             LEFT JOIN SR01_KEU_LAYAN_MS MSLAYAN
                             ON MSLAYAN.LOKASI_ID = '001'
@@ -50,7 +54,10 @@
                             LEFT JOIN SR01_KEU_JENISTR_MS MSKAT
                             ON MSKAT.LOKASI_ID = '001'
                             AND MSKAT.KATLYN_ID = MSLAYAN.KATEGORI_ID
-                                                    
+                            LEFT JOIN SR01_MED_ICD9_MS ICD
+                            ON ICD.SHOW_ITEM = '1'
+                            AND ICD.KODE = MSLAYAN.ICD_ID
+                                                                            
                             WHERE A.LOKASI_ID = '001'
                             AND A.AKTIF = '1'
                             AND TO_CHAR(A.CREATED_DATE, 'YYYY') = '".$periode."'

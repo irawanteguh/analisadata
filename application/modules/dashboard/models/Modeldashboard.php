@@ -131,7 +131,7 @@
             $query = "
                         SELECT *
                         FROM (
-                            SELECT
+                            SELECT A.POLI_ID,
                                 (SELECT KETERANGAN
                                 FROM SR01_MED_POLI_MS P
                                 WHERE P.POLI_ID = A.POLI_ID) AS POLIKLINIK,
@@ -327,6 +327,95 @@
                             )
                         )
                         ORDER BY NAMADOKTER
+            ";
+
+            $recordset = $this->db->query($query);
+            $recordset = $recordset->result();
+            return $recordset;
+        }
+
+        function datapaketmcu($periode){
+            $query = "
+                        SELECT
+                            NAMAPAKET,
+                            JAN,
+                            FEB,
+                            MAR,
+                            APR,
+                            MEI,
+                            JUN,
+                            JUL,
+                            AGU,
+                            SEP,
+                            OKT,
+                            NOV,
+                            DES
+                        FROM (
+                            SELECT
+                                TO_CHAR(A.TGL_MASUK, 'MM') AS BULAN,
+                                NVL(
+                                    (
+                                        SELECT L.NAMA_LAYAN1
+                                        FROM SR01_KEU_LAYAN_MS L
+                                        WHERE L.LAYAN_ID = (
+                                            SELECT M.LAYAN_ID_MCU
+                                            FROM SR01_KEU_TRANSCTR_MCU M
+                                            WHERE M.LOKASI_ID = '001'
+                                            AND M.AKTIF = '1'
+                                            AND M.PASIEN_ID = A.PASIEN_ID
+                                            AND M.EPISODE_ID = A.EPISODE_ID
+                                            AND EXISTS (
+                                                SELECT 1
+                                                FROM SR01_KEU_LAYAN_MS LM
+                                                WHERE LM.LAYAN_ID = M.LAYAN_ID_MCU
+                                                    AND LM.KATEGORI_ID = 'JKL-MCU'
+                                            )
+                                            AND ROWNUM = 1
+                                        )
+                                    ),
+                                    'NON PAKET'
+                                ) AS NAMAPAKET
+                            FROM SR01_KEU_EPISODE A
+                            WHERE A.LOKASI_ID = '001'
+                            AND A.AKTIF = '1'
+                            AND A.JENIS_EPISODE = 'O'
+                            AND A.STATUS_EPISODE <> '99'
+                            AND A.POLI_ID = 'MEDIC0000000000'
+                            AND TO_CHAR(A.TGL_MASUK,'YYYY') = '".$periode."'
+                            AND EXISTS (
+                                SELECT 1
+                                FROM SR01_MED_PRWT_TR T
+                                WHERE T.LOKASI_ID = '001'
+                                    AND T.AKTIF = '1'
+                                    AND T.DONE_STATUS = '01'
+                                    AND T.STATUS = '1'
+                                    AND T.PASIEN_ID = A.PASIEN_ID
+                                    AND T.EPISODE_ID = A.EPISODE_ID
+                            )
+                        )
+                        PIVOT (
+                            COUNT(*)
+                            FOR BULAN IN (
+                                '01' AS JAN,
+                                '02' AS FEB,
+                                '03' AS MAR,
+                                '04' AS APR,
+                                '05' AS MEI,
+                                '06' AS JUN,
+                                '07' AS JUL,
+                                '08' AS AGU,
+                                '09' AS SEP,
+                                '10' AS OKT,
+                                '11' AS NOV,
+                                '12' AS DES
+                            )
+                        )
+                        ORDER BY
+                            CASE
+                                WHEN NAMAPAKET = 'NON PAKET' THEN 1
+                                ELSE 0
+                            END,
+                            NAMAPAKET ASC
             ";
 
             $recordset = $this->db->query($query);

@@ -105,6 +105,8 @@ function datatindakanri(){
                 tableresult += "<tr>";
                 tableresult += "<td class='ps-4'>" + (parseInt(i)+1) + "</td>";
                 tableresult += "<td>"+(result[i].NAMA_LAYAN1||"")+"</td>";
+                tableresult += "<td>"+(result[i].KODE_ICD||"")+"</td>";
+                tableresult += "<td>"+(result[i].LONG_DESCRIPTION||"")+"</td>";
                 tableresult += "<td>"+(result[i].KETERANGAN||"")+"</td>";
                 tableresult += "<td class='text-end'>"+(todesimal(result[i].JAN)||"")+"</td>";
                 tableresult += "<td class='text-end'>"+(todesimal(result[i].FEB)||"")+"</td>";

@@ -1,6 +1,7 @@
 <script src="<?= base_url('assets/routingsystem/global/plugins.bundle.js') ?>"></script>
 <script src="<?= base_url('assets/routingsystem/custom/datatables/datatables.bundle.js') ?>"></script>
 <script src="<?= base_url('assets/routingsystem/scripts.bundle.js') ?>"></script>
+<script src="<?= base_url('assets/plugins/table2excel/jquery.table2excel.min.js') ?>"></script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
 
 <?php

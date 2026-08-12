@@ -51,11 +51,16 @@ $(function () {
             }
 
             Swal.fire({
-                icon             : icon,
-                text             : message,
-                confirmButtonText: "OK",
-                timer            : code === "00" ? 3000: undefined,
-                timerProgressBar : code === "00"
+                icon: icon,
+                text: message,
+                showConfirmButton: false,
+                allowOutsideClick: false,
+                allowEscapeKey: false,
+                timer: code === "00" ? 3000 : undefined,
+                timerProgressBar: code === "00",
+                didOpen: function () {
+                    Swal.showLoading();
+                }
             }).then(function () {
                 if ((code === "00" || code === "02") && response.url) {
                     window.location.href = response.url;

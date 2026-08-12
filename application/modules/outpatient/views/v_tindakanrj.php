@@ -42,6 +42,8 @@
                         <tr class="fw-bolder text-muted bg-light">
                             <th class="ps-4 rounded-start">#</th>
                             <th>NAMA PELAYANAN</th>
+                            <th>KODE ICD IX</th>
+                            <th>ICD IX DESC</th>
                             <th>KATEGORI</th>
                             <th class="text-end">JAN</th>
                             <th class="text-end">FEB</th>

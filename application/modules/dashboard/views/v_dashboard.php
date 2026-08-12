@@ -21,6 +21,9 @@
 							<a class="nav-link justify-content-center text-active-gray-800" data-bs-toggle="tab" role="tab" href="#tabexecutive">Rawat Jalan Executive</a>
 						</li>
 						<li class="nav-item" role="presentation">
+							<a class="nav-link justify-content-center text-active-gray-800" data-bs-toggle="tab" role="tab" href="#tabmcu">MCU</a>
+						</li>
+						<li class="nav-item" role="presentation">
 							<a class="nav-link justify-content-center text-active-gray-800" data-bs-toggle="tab" role="tab" href="#tabri">Rawat Inap</a>
 						</li>
 					</ul>
@@ -59,6 +62,9 @@
 					</div>
 					<div id="tabexecutive" class="card-body p-0 tab-pane fade" role="tabpanel">
 						<div class="card-rounded-bottom" id="grafikkunjunganexecutive"></div>
+					</div>
+					<div id="tabmcu" class="card-body p-0 tab-pane fade" role="tabpanel">
+						<div class="card-rounded-bottom" id="grafikkunjunganmcu"></div>
 					</div>
 					<div id="tabri" class="card-body p-0 tab-pane fade" role="tabpanel">
 						<div class="card-rounded-bottom" id="grafikkunjunganri"></div>
@@ -242,6 +248,9 @@
 					<li class="nav-item" role="presentation">
 						<a class="nav-link justify-content-center text-active-gray-800" data-bs-toggle="tab" role="tab" href="#tabprovider">Provider</a>
 					</li>
+					<li class="nav-item" role="presentation">
+						<a class="nav-link justify-content-center text-active-gray-800" data-bs-toggle="tab" role="tab" href="#tabpaketmcu">Paket MCU</a>
+					</li>
 				</ul>
 				<button type="button" class="btn btn-clean btn-sm btn-icon btn-icon-primary btn-active-light-primary me-n3" data-kt-menu-trigger="click" data-kt-menu-placement="bottom-end">
 					<span class="svg-icon svg-icon-3 svg-icon-primary">
@@ -345,6 +354,33 @@
 							</thead>
 							<tbody class="text-gray-600 fw-bold" id="resultdataprovider"></tbody>
 							<tfoot id="footerdataprovider"></tfoot>
+						</table>
+					</div>
+				</div>
+				<div id="tabpaketmcu" class="card-body p-0 tab-pane fade" role="tabpanel">
+					<div class="table-responsive">
+						<table class="table align-middle table-row-dashed fs-8 gy-2" id="datapaketmcu_table">
+							<thead class="align-middle">
+								<tr class="fw-bolder text-muted bg-light">
+									<th class="ps-4 rounded-start">#</th>
+									<th>NAMA PAKET</th>
+									<th>JAN</th>
+									<th>FEB</th>
+									<th>MAR</th>
+									<th>APR</th>
+									<th>MEI</th>
+									<th>JUN</th>
+									<th>JUL</th>
+									<th>AUG</th>
+									<th>SEP</th>
+									<th>OKT</th>
+									<th>NOV</th>
+									<th>DES</th>	
+									<th class="pe-4 rounded-end text-end">TOTAL</th>
+								</tr>
+							</thead>
+							<tbody class="text-gray-600 fw-bold" id="resultdatapaketmcu"></tbody>
+							<tfoot id="footerdatapaketmcu"></tfoot>
 						</table>
 					</div>
 				</div>
