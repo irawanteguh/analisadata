@@ -22,11 +22,11 @@
                 $datasession = $this->md->datasession($checkauth->USER_ID);
         
                 $sessiondata = array(
-                    "userid"    => $datasession->USER_ID,
-                    "name"      => $datasession->NAMA,
-                    "dokter_id" => $datasession->DOKTER_ID,
-                    "loggedin"  => true,
-                    "timeout"   => false
+                    "userid"   => $datasession->USER_ID,
+                    "name"     => $datasession->NAMA,
+                    "dokterid" => $datasession->DOKTER_ID,
+                    "loggedin" => true,
+                    "timeout"  => false
                 );
         
                 $this->session->set_userdata($sessiondata);

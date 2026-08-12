@@ -31,10 +31,9 @@
         }
 
         public function dataaktifitasdokter(){
-			$dokterid  = "DR. B0000000000";
 			$startdate = $this->input->post("startDate");
 			$endate    = $this->input->post("endDate");
-			$result    = $this->md->dataaktifitasdokter($dokterid,$startdate,$endate);
+			$result    = $this->md->dataaktifitasdokter($_SESSION['dokterid'],$startdate,$endate);
             
 			if(!empty($result)){
 				$json["responCode"]   = "00";
