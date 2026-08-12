@@ -58,12 +58,17 @@ $(function () {
                 allowEscapeKey: false,
                 timer: code === "00" ? 3000 : undefined,
                 timerProgressBar: code === "00",
+
                 didOpen: function () {
                     Swal.showLoading();
-                }
-            }).then(function () {
-                if ((code === "00" || code === "02") && response.url) {
-                    window.location.href = response.url;
+
+                    Swal.getPopup().style.cursor = "pointer";
+
+                    Swal.getPopup().addEventListener("click", function () {
+                        if ((code === "00" || code === "02") && response.url) {
+                            window.location.href = response.url;
+                        }
+                    });
                 }
             });
         })

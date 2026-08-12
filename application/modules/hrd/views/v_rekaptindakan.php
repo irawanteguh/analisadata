@@ -32,6 +32,7 @@
 					</div>
 					<div class="menu-item px-3">
 						<a href="#" class="menu-link px-3" id="btndownloaddataaktifitasdokter_table">Download Excel</a>
+						<a href="#" class="menu-link px-3" id="btndownloaddataaktifitasdokterpdf_table">Download Pdf</a>
 					</div>
 				</div>
 			</div>

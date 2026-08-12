@@ -71,14 +71,19 @@ $("#btndownloaddataaktifitasdokter_table").on("click", function () {
 
 });
 
+$("#btndownloaddataaktifitasdokterpdf_table").on("click", function () {
+    exportLaporanKinerjaDokterPDF();
+});
+
 flatpickr('[name="dateperiode"]', {
     mode      : "range",
     enableTime: false,
     dateFormat: "d.m.Y",
     maxDate   : "today",
     onChange  : function (selectedDates, dateStr, instance) {
-        startDate = selectedDates[0] ? selectedDates[0].toLocaleDateString('en-CA') : null;
-        endDate   = selectedDates[1]  ? selectedDates[1].toLocaleDateString('en-CA') : null;
+        startDate     = selectedDates[0] ? selectedDates[0].toLocaleDateString('en-CA') : null;
+        endDate       = selectedDates[1]  ? selectedDates[1].toLocaleDateString('en-CA') : null;
+        globalperiode = selectedDates.length === 2 ? flatpickr.formatDate(selectedDates[0], "d.m.Y") + " - " + flatpickr.formatDate(selectedDates[1], "d.m.Y") : selectedDates.length === 1 ? flatpickr.formatDate(selectedDates[0], "d.m.Y") : "";
     }
 });
 

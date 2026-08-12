@@ -996,7 +996,7 @@ function renderBarHorizontal(name, seriesConfig, data, categoryField = 'kategori
     const chartEl = document.querySelector(`#${name}`);
 
     if (!chartEl) {
-        console.warn(`Element #${name} tidak ditemukan.`);
+        // console.warn(`Element #${name} tidak ditemukan.`);
         return;
     }
 
