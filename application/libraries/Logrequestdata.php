@@ -77,6 +77,8 @@ class Logrequestdata {
             . $data->periode
             . " Sudah Di Tindaklanjuti";
 
+        $datasimpan['NM_FILE'] =$data->jenisdata;
+
 
         $datasimpan['BIDANG_ID']           = 'B04';
         $datasimpan['JENIS_LAPORAN']       = 'J31';
