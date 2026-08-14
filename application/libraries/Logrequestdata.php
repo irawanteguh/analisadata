@@ -89,13 +89,8 @@ class Logrequestdata {
         $datasimpan['TGL_MULAI_LAPORAN']   = $tglmulai;
         $datasimpan['TGL_SELESAI_LAPORAN'] = $waktusekarang;
         $datasimpan['TGL_VALIDASI']        = $waktusekarang;
-
-        $datasimpan['USER_IT'] =
-            mt_rand(0, 1)
-                ? '1521027'
-                : '2511259';
-
-        $datasimpan['CREATED_DATE'] = $tglmulai;
+        $datasimpan['USER_IT']             = mt_rand(0, 1) ? '1521027' : '2511259';
+        $datasimpan['CREATED_DATE']        = $tglmulai;
 
 
         // Insert

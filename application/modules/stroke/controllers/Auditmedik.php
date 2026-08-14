@@ -17,7 +17,7 @@
 
 			$periode="";
             foreach($resultperiode as $a ){
-                $periode.="<option value='".$a->PERIODE."'>".$a->PERIODE."</option>";
+                $periode.="<option value='".$a->PERIODE_KEY."'>".$a->PERIODE."</option>";
             }
 
 			$data['periode'] = $periode;

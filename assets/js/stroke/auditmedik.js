@@ -1,121 +1,113 @@
+let globaldataauditmedik = [];
+
 dataauditmedik();
 
 $('#selectperiode').on('change', function () {
     dataauditmedik();
 });
 
+$("#btndownloaddataauditmedik_table").on("click", function () {
+    exportToExcel(
+        globaldataauditmedik,
+        "Audit Medik",
+        "Audit_Medik_Stroke.xlsx",
+        {
+            formatter: (item, index) => ({
+                "No"                         : index + 1,
+                "Mr Pasien"                  : item.MRPAS || "",
+                "Nama Pasien"                : item.NAMAPASIEN || "",
+                "Jenis Kelamin"              : item.SEX_ID || "",
+                "Tempat Lahir"               : item.TEMPAT_LAHIR_TXT || "",
+                "Tgl Lahir"                  : item.TGLLAHIR || "",
+                "Umur"                       : item.UMUR || "",
+                "Tgl Masuk"                  : item.TGLMASUK || "",
+                "Tgl Regis IGD"              : item.REGISTRASIIGD || "",
+                "Tgl Code Stroke"            : item.CODECREATEDATE || "",
+                "Jml Order CT Scan"          : item.JMLORDERCT || "",
+                "First Order CT Scan"        : item.ORDERFIRST || "",
+                "Last Order CT Scan"         : item.ORDERLAST || "",
+                "First Radiografer CT Scan"  : item.RADIOGRAFERSTARTFIRST || "",
+                "Last Radiografer CT Scan"   : item.RADIOGRAFERSTARTLAST || "",
+                "First Radiolog CT Scan"     : item.RADIOLOGTFIRST || "",
+                "Last Radiolog CT Scan"      : item.RADIOLOGLAST || ""
+            })
+        }
+    );
+});
+
 function dataauditmedik() {
-    let selectperiode   = $("select[name='selectperiode']").val();
+    const selectperiode = $("select[name='selectperiode']").val();
     $.ajax({
-        url     : url + "index.php/stroke/auditmedik/dataauditmedik",
-        type    : "POST",
-        dataType: "JSON",
-        data    : {selectperiode:selectperiode},
-
+        url       : url + "index.php/stroke/auditmedik/dataauditmedik",
+        data      : { selectperiode: selectperiode },
+        type      : "POST",
+        dataType  : "JSON",
         beforeSend: function () {
-
             Swal.fire({
-                title: "Processing",
-                html: "Please wait while the system retrieves the requested data.",
+                title            : 'Processing',
+                html             : 'Please wait while the system displays the requested data.',
                 allowOutsideClick: false,
-                allowEscapeKey: false,
+                allowEscapeKey   : false,
                 showConfirmButton: false,
-                didOpen: () => Swal.showLoading()
+                didOpen          : () => Swal.showLoading()
             });
 
-            // kosongkan seluruh tbody
-            $("[id^='resultdatabln']").empty();
-
+            $("#resultdataauditmedik").empty();
         },
+        success: function (response) {
 
-        success: function (data) {
-            Swal.close();
-
-            if (data.responCode !== "00") {
-
+            if (response.responCode !== "00") {
                 Swal.fire({
-                    icon: "warning",
-                    title: "No Records Found",
-                    text: "No records are available."
+                    icon             : 'warning',
+                    title            : 'No Records Found',
+                    text             : 'No records are available for the selected period.',
+                    showConfirmButton: false,
+                    timer            : 2000
                 });
-
                 return;
             }
 
-            const result = data.responResult || [];
-            const html = {};
+            const result = Array.isArray(response.responResult) ? response.responResult : [];
+            globaldataauditmedik = result;
 
-            for (let i = 1; i <= 12; i++) {
-                html[String(i).padStart(2, "0")] = "";
+            var tableresult = "";
+            for (var i in result) {
+
+                tableresult += "<tr>";
+                tableresult += "<td class='ps-4'>" + (parseInt(i) + 1) + "</td>";
+                tableresult += "<td>" + (result[i].MRPAS || "") + "</td>";
+                tableresult += "<td>" + (result[i].NAMAPASIEN || "") + "</td>";
+                tableresult += "<td>" + (result[i].SEX_ID || "") + "</td>";
+                tableresult += "<td>" + (result[i].TEMPAT_LAHIR_TXT || "") + "</td>";
+                tableresult += "<td>" + (result[i].TGLLAHIR || "") + "</td>";
+                tableresult += "<td>" + (result[i].UMUR || "") + "</td>";
+                tableresult += "<td>" + (result[i].TGLMASUK || "") + "</td>";
+                tableresult += "<td>" + (result[i].REGISTRASIIGD || "") + "</td>";
+                tableresult += "<td>" + (result[i].CODECREATEDATE || "") + "</td>";
+                tableresult += "<td>" + (result[i].JMLORDERCT || "") + "</td>";
+                tableresult += "<td>" + (result[i].ORDERFIRST || "") + "</td>";
+                tableresult += "<td>" + (result[i].ORDERLAST || "") + "</td>";
+                tableresult += "<td>" + (result[i].RADIOGRAFERSTARTFIRST || "") + "</td>";
+                tableresult += "<td>" + (result[i].RADIOGRAFERSTARTLAST || "") + "</td>";
+                tableresult += "<td>" + (result[i].RADIOLOGTFIRST || "") + "</td>";
+                tableresult += "<td class='pe-4 text-end'>" + (result[i].RADIOLOGLAST || "") + "</td>";
+                tableresult += "</tr>";
             }
 
-            // nomor urut tiap bulan
-            const nomor = {};
-
-            for (let i = 1; i <= 12; i++) {
-                nomor[String(i).padStart(2, "0")] = 1;
-            }
-
-            result.forEach(function (item) {
-                const bulan = item.TGLMASUK.substring(3, 5);
-
-                html[bulan] += `
-                    <tr>
-                        <td class="ps-4">${nomor[bulan]++}</td>
-                        <td>${item.MRPAS ?? "-"}</td>
-                        <td>${item.NAMAPASIEN ?? "-"}</td>
-                        <td>${item.SEX_ID ?? "-"}</td>
-                        <td>${item.TEMPAT_LAHIR_TXT ?? "-"}</td>
-                        <td>${item.TGLLAHIR ?? "-"}</td>
-                        <td>${item.UMUR ?? "-"}</td>
-                        <td>${item.TGLMASUK ?? "-"}</td>
-                        <td>${item.REGISTRASIIGD ?? "-"}</td>
-                        <td>${item.CODECREATEDATE ?? "-"}</td>
-                        <td>${item.JMLORDERCT ?? "-"}</td>
-                        <td>${item.ORDERFIRST ?? "-"}</td>
-                        <td>${item.ORDERLAST ?? "-"}</td>
-                        <td>${item.RADIOGRAFERSTARTFIRST ?? "-"}</td>
-                        <td>${item.RADIOGRAFERSTARTLAST ?? "-"}</td>
-                        <td>${item.RADIOLOGTFIRST ?? "-"}</td>
-                        <td>${item.RADIOLOGLAST ?? "-"}</td>
-
-                        <td class="text-end pe-4">
-
-                            <button class="btn btn-sm btn-light-primary"
-                                onclick="detail('${item.EPISODE_ID}')">
-
-                                Detail
-
-                            </button>
-
-                        </td>
-
-                    </tr>
-                `;
-
-            });
-
-            // tampilkan ke masing-masing tabel
-            Object.keys(html).forEach(function (bulan) {
-
-                $("#resultdatabln" + bulan).html(html[bulan]);
-
-            });
+            $("#resultdataauditmedik").html(tableresult);
+            const table = initDataTable("#dataauditmedik_table", "#searchtable");
 
         },
-
-        error: function () {
-
+        complete: function () {
             Swal.close();
-
+        },
+        error: function () {
             Swal.fire({
                 icon: "error",
-                title: "Error",
-                text: "Unable to retrieve data."
+                title: "Request Failed",
+                text: "We were unable to process your request due to a server error. Please try again later. If the problem persists, contact your system administrator.",
+                confirmButtonText: "OK"
             });
-
         }
-
     });
-
-}
+};

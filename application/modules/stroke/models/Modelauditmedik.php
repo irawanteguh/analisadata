@@ -4,11 +4,15 @@
         function periode(){
             $query =
                     "
-                        SELECT (2014 + LEVEL) AS PERIODE
-                        FROM DUAL
-                        CONNECT BY LEVEL <= EXTRACT(YEAR FROM SYSDATE) - 2014
-                        ORDER BY PERIODE DESC
-
+                        SELECT 
+                            TO_CHAR(dt,'FMMonth YYYY','NLS_DATE_LANGUAGE=INDONESIAN') AS PERIODE,
+                            TO_CHAR(dt, 'MM.YYYY') AS PERIODE_KEY
+                        FROM (
+                            SELECT ADD_MONTHS(DATE '2015-01-01', LEVEL-1) dt
+                            FROM DUAL
+                            CONNECT BY ADD_MONTHS(DATE '2015-01-01', LEVEL-1) < TRUNC(SYSDATE, 'MM')
+                        )
+                        ORDER BY dt DESC
                     ";
 
             $recordset = $this->db->query($query);
@@ -130,7 +134,7 @@
                         AND A.AKTIF='1'
                         AND A.STATUS_EPISODE<>'99'
                         AND C.CODE_ID IS NOT NULL
-                        AND TO_CHAR(A.TGL_MASUK,'YYYY') = '".$periode."'
+                        AND TO_CHAR(A.TGL_MASUK,'MM.YYYY') = '".$periode."'
                         ORDER BY A.TGL_MASUK ASC
                 ";
 
