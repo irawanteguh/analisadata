@@ -83,7 +83,7 @@ class Logrequestdata {
         $datasimpan['BIDANG_ID']           = 'B04';
         $datasimpan['JENIS_LAPORAN']       = 'J31';
         $datasimpan['FAKTOR_LAPORAN']      = 'F01';
-        $datasimpan['STATUS_LAPORAN']      = '01';
+        $datasimpan['STATUS_LAPORAN']      = '05';
         $datasimpan['CREATED_BY']          = 'SIRS01_' . $userid;
         $datasimpan['TGL_TL']              = $tglmulai;
         $datasimpan['TGL_MULAI_LAPORAN']   = $tglmulai;
