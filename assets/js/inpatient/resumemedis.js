@@ -35,36 +35,42 @@ $("#btndownloaddatapendingresume_table").on("click", function () {
         "Monitoring_Penyelesaian_Resume_Medis.xlsx",
         {
             formatter: (item, index) => {
-                var status = "";
+                let durasi    = parseInt(item.DURASI) || 0;
+                let adaResume = item.PENDINGRESUMELEBIH48;
 
-                // Tentukan status sesuai logic pada tabel
-                if (item.adaResume === "N") {
-                    if (parseFloat(item.durasi || 0) > 2) {
+                let status = "";
+
+                if (adaResume === "N") {
+
+                    if (durasi > 2) {
                         status = "Resume Sudah Dibuat > 48 Jam";
                     } else {
                         status = "Resume Sudah Dibuat <= 48 Jam";
                     }
+
                 } else {
-                    if (item.adaResume === ">48") {
+
+                    if (adaResume === ">48") {
                         status = "Resume Belum Dibuat > 48 Jam";
                     } else {
                         status = "Resume Belum Dibuat <= 48 Jam";
                     }
+
                 }
 
                 return {
-                    "No": index + 1,
-                    "No. RM": item.MRPAS || "",
-                    "Nama Pasien": item.NAMAPASIEN || "",
-                    "Sex": item.SEXID || "",
-                    "Ruangan": item.RUANGRWT_ID || "",
-                    "Kelas": item.KELAS_ID || "",
-                    "Nama Dokter": item.DPJP || "",
-                    "Tgl Masuk": item.TGLMASUK || "",
-                    "Tgl Keluar": item.TGLKELUAR || "",
-                    "Provider": item.PROVIDER || "",
-                    "Cara Pulang": item.CARAPULANG || "",
-                    "Status": status,
+                    "No"            : index + 1,
+                    "No. RM"        : item.MRPAS || "",
+                    "Nama Pasien"   : item.NAMAPASIEN || "",
+                    "Sex"           : item.SEXID || "",
+                    "Ruangan"       : item.RUANGRWT_ID || "",
+                    "Kelas"         : item.KELAS_ID || "",
+                    "Nama Dokter"   : item.DPJP || "",
+                    "Tgl Masuk"     : item.TGLMASUK || "",
+                    "Tgl Keluar"    : item.TGLKELUAR || "",
+                    "Provider"      : item.PROVIDER || "",
+                    "Cara Pulang"   : item.CARAPULANG || "",
+                    "Status"        : status,
                     "Tanggal Resume": item.CREATEDDATERESUME || ""
                 };
             }
