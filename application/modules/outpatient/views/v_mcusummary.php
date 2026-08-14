@@ -104,6 +104,9 @@
 					<li class="nav-item" role="presentation">
                         <a class="nav-link justify-content-center text-active-gray-800" data-bs-toggle="tab" role="tab" href="#tabprovidermcu">Provider</a>
                     </li>
+					<li class="nav-item" role="presentation">
+                        <a class="nav-link justify-content-center text-active-gray-800" data-bs-toggle="tab" role="tab" href="#tabrawdata">Raw Data MCU</a>
+                    </li>
 				</ul>
 				<button type="button" class="btn btn-clean btn-sm btn-icon btn-icon-primary btn-active-light-primary me-n3" data-kt-menu-trigger="click" data-kt-menu-placement="bottom-end">
 					<span class="svg-icon svg-icon-3 svg-icon-primary">
@@ -180,6 +183,23 @@
                             </thead>
                             <tbody class="text-gray-600 fw-bold" id="resultdataprovidermcu"></tbody>
                             <tfoot id="footerdataprovidermcu"></tfoot>
+                        </table>
+                    </div>
+                </div>
+				<div id="tabrawdata" class="card-body p-0 tab-pane fade" role="tabpanel">
+                    <div class="table-responsive">
+                        <table class="table align-middle table-row-dashed fs-8 gy-2" id="datamcudetail_table">
+                            <thead class="align-middle">
+                                <tr class="fw-bolder text-muted bg-light">
+                                    <th class="ps-4 rounded-start">#</th>
+                                    <th>MR PASIEN</th>
+                                    <th>NAMA PASIEN</th>
+                                    <th>TGL MASUK</th>
+                                    <th>PROVIDER</th>
+                                    <th class="pe-4 rounded-end text-end">NAMA PAKET MCU</th>
+                                </tr>
+                            </thead>
+                            <tbody class="text-gray-600 fw-bold" id="resultdatamcudetail"></tbody>
                         </table>
                     </div>
                 </div>

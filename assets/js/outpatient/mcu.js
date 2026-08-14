@@ -1,5 +1,6 @@
-let globaldatakunjunganrjpaketmcu   = [];
+let globaldatakunjunganrjpaketmcu    = [];
 let globaldatakunjunganrjprovidermcu = [];
+let globaldatakunjunganrjdetail      = [];
 
 loaddata();
 
@@ -7,9 +8,113 @@ $('#selectperiode').on('change', function () {
     loaddata();
 });
 
+$("#btndownloaddatadetailmcu_table").on("click", function () {
+    exportToExcel(
+        null,
+        null,
+        "Kunjungan_MCU.xlsx",
+        {
+            multiSheet: [
+                {
+                    name: "Paket MCU",
+                    data: globaldatakunjunganrjpaketmcu,
+                    formatter: (item, index) => {
+
+                        const jan = Number(item.JAN ?? 0);
+                        const feb = Number(item.FEB ?? 0);
+                        const mar = Number(item.MAR ?? 0);
+                        const apr = Number(item.APR ?? 0);
+                        const mei = Number(item.MEI ?? 0);
+                        const jun = Number(item.JUN ?? 0);
+                        const jul = Number(item.JUL ?? 0);
+                        const agu = Number(item.AGU ?? 0);
+                        const sep = Number(item.SEP ?? 0);
+                        const okt = Number(item.OKT ?? 0);
+                        const nov = Number(item.NOV ?? 0);
+                        const des = Number(item.DES ?? 0);
+
+                        return {
+                            "No": index + 1,
+                            "Nama Paket": item.NAMAPAKET ?? "",
+                            "Jan": jan,
+                            "Feb": feb,
+                            "Mar": mar,
+                            "Apr": apr,
+                            "Mei": mei,
+                            "Jun": jun,
+                            "Jul": jul,
+                            "Agu": agu,
+                            "Sep": sep,
+                            "Okt": okt,
+                            "Nov": nov,
+                            "Des": des,
+                            "Total": jan + feb + mar + apr + mei + jun + jul + agu + sep + okt + nov + des
+                        };
+
+                    }
+                },
+                {
+                    name: "Provider",
+                    data: globaldatakunjunganrjprovidermcu,
+                    formatter: (item, index) => {
+
+                        const jan = Number(item.JAN ?? 0);
+                        const feb = Number(item.FEB ?? 0);
+                        const mar = Number(item.MAR ?? 0);
+                        const apr = Number(item.APR ?? 0);
+                        const mei = Number(item.MEI ?? 0);
+                        const jun = Number(item.JUN ?? 0);
+                        const jul = Number(item.JUL ?? 0);
+                        const agu = Number(item.AGU ?? 0);
+                        const sep = Number(item.SEP ?? 0);
+                        const okt = Number(item.OKT ?? 0);
+                        const nov = Number(item.NOV ?? 0);
+                        const des = Number(item.DES ?? 0);
+
+                        return {
+                            "No": index + 1,
+                            "Provider": item.PROVIDER ?? "",
+                            "Jan": jan,
+                            "Feb": feb,
+                            "Mar": mar,
+                            "Apr": apr,
+                            "Mei": mei,
+                            "Jun": jun,
+                            "Jul": jul,
+                            "Agu": agu,
+                            "Sep": sep,
+                            "Okt": okt,
+                            "Nov": nov,
+                            "Des": des,
+                            "Total": jan + feb + mar + apr + mei + jun + jul + agu + sep + okt + nov + des
+                        };
+
+                    }
+                },
+                {
+                    name: "Detail Pasien",
+                    data: globaldatakunjunganrjdetail,
+                    formatter: (item, index) => {
+                        return {
+                            "No": index + 1,
+                            "MR Pasien": item.MRPAS ?? "",
+                            "Nama Pasien": item.NAMAPASIEN ?? "",
+                            "Tgl Masuk": item.TGLMASUK ?? "",
+                            "Provider": item.PROVIDER ?? "",
+                            "Nama Paket MCU": item.NAMAPAKET ?? ""
+                        };
+                    }
+                }
+            ]
+        }
+    );
+
+});
+
 function loaddata(){
     datapaketmcu();
     datakunjunganmcuprovider();
+    datamcudetail();
 };
 
 function datapaketmcu() {
@@ -181,95 +286,6 @@ function datapaketmcu() {
         }
     });
 };
-
-$("#btndownloaddatadetailmcu_table").on("click", function () {
-    exportToExcel(
-        null,
-        null,
-        "Kunjungan_MCU.xlsx",
-        {
-            multiSheet: [
-                {
-                    name: "Paket MCU",
-                    data: globaldatakunjunganrjpaketmcu,
-                    formatter: (item, index) => {
-
-                        const jan = Number(item.JAN ?? 0);
-                        const feb = Number(item.FEB ?? 0);
-                        const mar = Number(item.MAR ?? 0);
-                        const apr = Number(item.APR ?? 0);
-                        const mei = Number(item.MEI ?? 0);
-                        const jun = Number(item.JUN ?? 0);
-                        const jul = Number(item.JUL ?? 0);
-                        const agu = Number(item.AGU ?? 0);
-                        const sep = Number(item.SEP ?? 0);
-                        const okt = Number(item.OKT ?? 0);
-                        const nov = Number(item.NOV ?? 0);
-                        const des = Number(item.DES ?? 0);
-
-                        return {
-                            "No": index + 1,
-                            "Nama Paket": item.NAMAPAKET ?? "",
-                            "Jan": jan,
-                            "Feb": feb,
-                            "Mar": mar,
-                            "Apr": apr,
-                            "Mei": mei,
-                            "Jun": jun,
-                            "Jul": jul,
-                            "Agu": agu,
-                            "Sep": sep,
-                            "Okt": okt,
-                            "Nov": nov,
-                            "Des": des,
-                            "Total": jan + feb + mar + apr + mei + jun + jul + agu + sep + okt + nov + des
-                        };
-
-                    }
-                },
-                {
-                    name: "Provider",
-                    data: globaldatakunjunganrjprovidermcu,
-                    formatter: (item, index) => {
-
-                        const jan = Number(item.JAN ?? 0);
-                        const feb = Number(item.FEB ?? 0);
-                        const mar = Number(item.MAR ?? 0);
-                        const apr = Number(item.APR ?? 0);
-                        const mei = Number(item.MEI ?? 0);
-                        const jun = Number(item.JUN ?? 0);
-                        const jul = Number(item.JUL ?? 0);
-                        const agu = Number(item.AGU ?? 0);
-                        const sep = Number(item.SEP ?? 0);
-                        const okt = Number(item.OKT ?? 0);
-                        const nov = Number(item.NOV ?? 0);
-                        const des = Number(item.DES ?? 0);
-
-                        return {
-                            "No": index + 1,
-                            "Provider": item.PROVIDER ?? "",
-                            "Jan": jan,
-                            "Feb": feb,
-                            "Mar": mar,
-                            "Apr": apr,
-                            "Mei": mei,
-                            "Jun": jun,
-                            "Jul": jul,
-                            "Agu": agu,
-                            "Sep": sep,
-                            "Okt": okt,
-                            "Nov": nov,
-                            "Des": des,
-                            "Total": jan + feb + mar + apr + mei + jun + jul + agu + sep + okt + nov + des
-                        };
-
-                    }
-                }
-            ]
-        }
-    );
-
-});
 
 function datakunjunganmcuprovider() {
     let selectperiode = $("select[name='selectperiode']").val();
@@ -460,6 +476,77 @@ function datakunjunganmcuprovider() {
                 icon: "error",
                 title: "Request Failed",
                 text: "We were unable to process your request due to a server error. Please try again later. If the problem persists, contact your system administrator.",
+                confirmButtonText: "OK"
+            });
+        }
+    });
+};
+
+function datamcudetail() {
+    let selectperiode = $("select[name='selectperiode']").val();
+    $.ajax({
+        url       : url + "index.php/outpatient/mcu/datamcudetail",
+        data      : {selectperiode: selectperiode},
+        type      : "POST",
+        dataType  : "JSON",
+
+        beforeSend: function () {
+
+            Swal.fire({
+                title            : 'Processing',
+                html             : 'Please wait while the system retrieves the requested data.',
+                allowOutsideClick: false,
+                allowEscapeKey   : false,
+                showConfirmButton: false,
+                didOpen          : () => Swal.showLoading()
+            });
+
+            $("#resultdatamcudetail").empty();
+        },
+
+        success: function (response) {
+
+            if (response.responCode !== "00") {
+                Swal.fire({
+                    icon             : 'warning',
+                    title            : 'No Records Found',
+                    text             : 'No records are available for the selected period.',
+                    showConfirmButton: false,
+                    timer            : 2000
+                });
+                return;
+            }
+            
+            const result = Array.isArray(response.responResult) ? response.responResult : [];
+            globaldatakunjunganrjdetail = result;
+
+            let tableresult = "";
+            for (let i in result) {
+
+                tableresult += `
+                    <tr>
+                        <td class="ps-4">${parseInt(i) + 1}</td>
+                        <td>${result[i].MRPAS}</td>
+                        <td>${result[i].NAMAPASIEN}</td>
+                        <td>${result[i].TGLMASUK}</td>
+                        <td>${result[i].PROVIDER}</td>
+                        <td class="text-end pe-4 fw-bold">${result[i].NAMAPAKET}</td>
+                    </tr>
+                `;
+            }
+
+            $("#resultdatamcudetail").html(tableresult);
+            
+            const table = initDataTable("#datamcudetail_table","#searchtable");
+        },
+        complete: function () {
+            Swal.close();
+        },
+        error: function () {
+            Swal.fire({
+                icon             : "error",
+                title            : "Request Failed",
+                text             : "We were unable to process your request due to a server error. Please try again later. If the problem persists, contact your system administrator.",
                 confirmButtonText: "OK"
             });
         }

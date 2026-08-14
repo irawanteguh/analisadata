@@ -25,9 +25,9 @@
             return $data;
 		}
 
-        public function datapaketmcu(){
+        public function datamcudetail(){
             $periode = $this->input->post("selectperiode");
-            $result  = $this->md->datapaketmcu($periode);
+            $result  = $this->md->datamcudetail($periode);
             
 			if(!empty($result)){
 				$json["responCode"]   = "00";
