@@ -629,6 +629,9 @@
 					<li class="nav-item" role="presentation">
 						<a class="nav-link justify-content-center text-active-gray-800 active" data-bs-toggle="tab" role="tab" href="#tabpaketmcu">Paket MCU</a>
 					</li>
+					<li class="nav-item" role="presentation">
+                        <a class="nav-link justify-content-center text-active-gray-800" data-bs-toggle="tab" role="tab" href="#tabprovidermcu">Provider</a>
+                    </li>
 				</ul>
 				<button type="button" class="btn btn-clean btn-sm btn-icon btn-icon-primary btn-active-light-primary me-n3" data-kt-menu-trigger="click" data-kt-menu-placement="bottom-end">
 					<span class="svg-icon svg-icon-3 svg-icon-primary">
@@ -681,6 +684,33 @@
 						</table>
 					</div>
 				</div>
+				<div id="tabprovidermcu" class="card-body p-0 tab-pane fade" role="tabpanel">
+                    <div class="table-responsive">
+                        <table class="table align-middle table-row-dashed fs-8 gy-2" id="dataprovidermcu_table">
+                            <thead class="align-middle">
+                                <tr class="fw-bolder text-muted bg-light">
+                                    <th class="ps-4 rounded-start">#</th>
+                                    <th>PROVIDER</th>
+                                    <th>JAN</th>
+                                    <th>FEB</th>
+                                    <th>MAR</th>
+                                    <th>APR</th>
+                                    <th>MEI</th>
+                                    <th>JUN</th>
+                                    <th>JUL</th>
+                                    <th>AUG</th>
+                                    <th>SEP</th>
+                                    <th>OKT</th>
+                                    <th>NOV</th>
+                                    <th>DES</th>
+                                    <th class="pe-4 rounded-end text-end">TOTAL</th>
+                                </tr>
+                            </thead>
+                            <tbody class="text-gray-600 fw-bold" id="resultdataprovidermcu"></tbody>
+                            <tfoot id="footerdataprovidermcu"></tfoot>
+                        </table>
+                    </div>
+                </div>
 			</div>
 		</div>
 	</div>

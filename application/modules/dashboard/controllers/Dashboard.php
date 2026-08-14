@@ -225,6 +225,23 @@
             echo json_encode($json);
         }
 
+        public function datakunjunganmcuprovider(){
+            $periode = $this->input->post("selectperiode");
+            $result  = $this->md->datakunjunganmcuprovider($periode);
+            
+			if(!empty($result)){
+				$json["responCode"]   = "00";
+				$json["responHead"]   = "success";
+				$json["responDesc"]   = "Data Di Temukan";
+				$json['responResult'] = $result;
+            }else{
+                $json["responCode"] = "01";
+                $json["responHead"] = "info";
+                $json["responDesc"] = "Data Tidak Di Temukan";
+            }
+
+            echo json_encode($json);
+        }
 
         public function datakunjunganriprovider(){
             $periode = $this->input->post("selectperiode");
