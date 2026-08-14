@@ -1069,6 +1069,12 @@ function renderchartpie(name, data) {
     };
 
     const chartContainer = document.querySelector(`#${name}`);
+
+    if (!chartContainer) {
+        // console.warn(`Element #${name} tidak ditemukan.`);
+        return;
+    }
+
     chartContainer.innerHTML = "";
 
     chartInstances[name] = new ApexCharts(chartContainer, options);

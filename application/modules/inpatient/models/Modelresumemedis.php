@@ -16,7 +16,7 @@
             return $recordset;
         }
 
-        function resumemedis($periode){
+        function resumemedis($variable){
             $query =
                     "
                         WITH RESUMEMEDIS AS (
@@ -126,7 +126,7 @@
                         AND A.AKTIF = '1'
                         AND A.JENIS_EPISODE = 'I'
                         AND A.STATUS_EPISODE = '55'
-                        AND   TO_CHAR(A.TGL_KELUAR,'YYYY')='".$periode."'
+                        ".$variable."
 
                         ORDER BY A.TGL_KELUAR DESC
                     ";

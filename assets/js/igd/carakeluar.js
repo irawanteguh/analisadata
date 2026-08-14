@@ -25,7 +25,6 @@ $("#btndownloaddatacarakeluar_table").on("click", function () {
             })
         }
     );
-
 });
 
 function datacarakeluar(){
