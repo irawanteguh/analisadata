@@ -2,6 +2,14 @@ let globaldatakunjunganrjpoliklinik = [];
 let globaldatakunjunganrjdokter     = [];
 let globaldatakunjunganrjprovider   = [];
 
+let globaldatakunjunganrjpolikliniknonexecutive = [];
+let globaldatakunjunganrjdokternonexecutive     = [];
+let globaldatakunjunganrjprovidernonexecutive   = [];
+
+let globaldatakunjunganrjpoliklinikexecutive = [];
+let globaldatakunjunganrjdokterexecutive     = [];
+let globaldatakunjunganrjproviderexecutive   = [];
+
 loaddata();
 
 $('#selectperiode').on('change', function () {
@@ -183,7 +191,7 @@ $("#btndownloaddatadetailrj_table").on("click", function () {
     exportToExcel(
         null,
         null,
-        "Kunjungan_Rawat_Jalan.xlsx",
+        "Kunjungan_Rawat_Jalan_Non_Executive_dan_Executive.xlsx",
         {
             multiSheet: [
                 {
@@ -306,12 +314,276 @@ $("#btndownloaddatadetailrj_table").on("click", function () {
 
 });
 
+$("#btndownloaddatadetailrjnonexecutive_table").on("click", function () {
+    exportToExcel(
+        null,
+        null,
+        "Kunjungan_Rawat_Jalan_Non_Executive.xlsx",
+        {
+            multiSheet: [
+                {
+                    name: "Poliklinik",
+                    data: globaldatakunjunganrjpolikliniknonexecutive,
+                    formatter: (item, index) => {
+
+                        const jan = Number(item.JAN ?? 0);
+                        const feb = Number(item.FEB ?? 0);
+                        const mar = Number(item.MAR ?? 0);
+                        const apr = Number(item.APR ?? 0);
+                        const mei = Number(item.MEI ?? 0);
+                        const jun = Number(item.JUN ?? 0);
+                        const jul = Number(item.JUL ?? 0);
+                        const agu = Number(item.AGU ?? 0);
+                        const sep = Number(item.SEP ?? 0);
+                        const okt = Number(item.OKT ?? 0);
+                        const nov = Number(item.NOV ?? 0);
+                        const des = Number(item.DES ?? 0);
+
+                        return {
+                            "No": index + 1,
+                            "Poliklinik": item.POLIKLINIK ?? "",
+                            "Jan": jan,
+                            "Feb": feb,
+                            "Mar": mar,
+                            "Apr": apr,
+                            "Mei": mei,
+                            "Jun": jun,
+                            "Jul": jul,
+                            "Agu": agu,
+                            "Sep": sep,
+                            "Okt": okt,
+                            "Nov": nov,
+                            "Des": des,
+                            "Total": jan + feb + mar + apr + mei + jun + jul + agu + sep + okt + nov + des
+                        };
+
+                    }
+                },
+                {
+                    name: "Dokter",
+                    data: globaldatakunjunganrjdokternonexecutive,
+                    formatter: (item, index) => {
+
+                        const jan = Number(item.JAN ?? 0);
+                        const feb = Number(item.FEB ?? 0);
+                        const mar = Number(item.MAR ?? 0);
+                        const apr = Number(item.APR ?? 0);
+                        const mei = Number(item.MEI ?? 0);
+                        const jun = Number(item.JUN ?? 0);
+                        const jul = Number(item.JUL ?? 0);
+                        const agu = Number(item.AGU ?? 0);
+                        const sep = Number(item.SEP ?? 0);
+                        const okt = Number(item.OKT ?? 0);
+                        const nov = Number(item.NOV ?? 0);
+                        const des = Number(item.DES ?? 0);
+
+                        return {
+                            "No": index + 1,
+                            "Nama Dokter": item.NAMADOKTER ?? "",
+                            "Jan": jan,
+                            "Feb": feb,
+                            "Mar": mar,
+                            "Apr": apr,
+                            "Mei": mei,
+                            "Jun": jun,
+                            "Jul": jul,
+                            "Agu": agu,
+                            "Sep": sep,
+                            "Okt": okt,
+                            "Nov": nov,
+                            "Des": des,
+                            "Total": jan + feb + mar + apr + mei + jun + jul + agu + sep + okt + nov + des
+                        };
+
+                    }
+                },
+                {
+                    name: "Provider",
+                    data: globaldatakunjunganrjprovidernonexecutive,
+                    formatter: (item, index) => {
+
+                        const jan = Number(item.JAN ?? 0);
+                        const feb = Number(item.FEB ?? 0);
+                        const mar = Number(item.MAR ?? 0);
+                        const apr = Number(item.APR ?? 0);
+                        const mei = Number(item.MEI ?? 0);
+                        const jun = Number(item.JUN ?? 0);
+                        const jul = Number(item.JUL ?? 0);
+                        const agu = Number(item.AGU ?? 0);
+                        const sep = Number(item.SEP ?? 0);
+                        const okt = Number(item.OKT ?? 0);
+                        const nov = Number(item.NOV ?? 0);
+                        const des = Number(item.DES ?? 0);
+
+                        return {
+                            "No": index + 1,
+                            "Provider": item.PROVIDER ?? "",
+                            "Jan": jan,
+                            "Feb": feb,
+                            "Mar": mar,
+                            "Apr": apr,
+                            "Mei": mei,
+                            "Jun": jun,
+                            "Jul": jul,
+                            "Agu": agu,
+                            "Sep": sep,
+                            "Okt": okt,
+                            "Nov": nov,
+                            "Des": des,
+                            "Total": jan + feb + mar + apr + mei + jun + jul + agu + sep + okt + nov + des
+                        };
+
+                    }
+                }
+            ]
+        }
+    );
+
+});
+
+$("#btndownloaddatadetailrjexecutive_table").on("click", function () {
+    exportToExcel(
+        null,
+        null,
+        "Kunjungan_Rawat_Jalan_Executive.xlsx",
+        {
+            multiSheet: [
+                {
+                    name: "Poliklinik",
+                    data: globaldatakunjunganrjpoliklinikexecutive,
+                    formatter: (item, index) => {
+
+                        const jan = Number(item.JAN ?? 0);
+                        const feb = Number(item.FEB ?? 0);
+                        const mar = Number(item.MAR ?? 0);
+                        const apr = Number(item.APR ?? 0);
+                        const mei = Number(item.MEI ?? 0);
+                        const jun = Number(item.JUN ?? 0);
+                        const jul = Number(item.JUL ?? 0);
+                        const agu = Number(item.AGU ?? 0);
+                        const sep = Number(item.SEP ?? 0);
+                        const okt = Number(item.OKT ?? 0);
+                        const nov = Number(item.NOV ?? 0);
+                        const des = Number(item.DES ?? 0);
+
+                        return {
+                            "No": index + 1,
+                            "Poliklinik": item.POLIKLINIK ?? "",
+                            "Jan": jan,
+                            "Feb": feb,
+                            "Mar": mar,
+                            "Apr": apr,
+                            "Mei": mei,
+                            "Jun": jun,
+                            "Jul": jul,
+                            "Agu": agu,
+                            "Sep": sep,
+                            "Okt": okt,
+                            "Nov": nov,
+                            "Des": des,
+                            "Total": jan + feb + mar + apr + mei + jun + jul + agu + sep + okt + nov + des
+                        };
+
+                    }
+                },
+                {
+                    name: "Dokter",
+                    data: globaldatakunjunganrjdokterexecutive,
+                    formatter: (item, index) => {
+
+                        const jan = Number(item.JAN ?? 0);
+                        const feb = Number(item.FEB ?? 0);
+                        const mar = Number(item.MAR ?? 0);
+                        const apr = Number(item.APR ?? 0);
+                        const mei = Number(item.MEI ?? 0);
+                        const jun = Number(item.JUN ?? 0);
+                        const jul = Number(item.JUL ?? 0);
+                        const agu = Number(item.AGU ?? 0);
+                        const sep = Number(item.SEP ?? 0);
+                        const okt = Number(item.OKT ?? 0);
+                        const nov = Number(item.NOV ?? 0);
+                        const des = Number(item.DES ?? 0);
+
+                        return {
+                            "No": index + 1,
+                            "Nama Dokter": item.NAMADOKTER ?? "",
+                            "Jan": jan,
+                            "Feb": feb,
+                            "Mar": mar,
+                            "Apr": apr,
+                            "Mei": mei,
+                            "Jun": jun,
+                            "Jul": jul,
+                            "Agu": agu,
+                            "Sep": sep,
+                            "Okt": okt,
+                            "Nov": nov,
+                            "Des": des,
+                            "Total": jan + feb + mar + apr + mei + jun + jul + agu + sep + okt + nov + des
+                        };
+
+                    }
+                },
+                {
+                    name: "Provider",
+                    data: globaldatakunjunganrjproviderexecutive,
+                    formatter: (item, index) => {
+
+                        const jan = Number(item.JAN ?? 0);
+                        const feb = Number(item.FEB ?? 0);
+                        const mar = Number(item.MAR ?? 0);
+                        const apr = Number(item.APR ?? 0);
+                        const mei = Number(item.MEI ?? 0);
+                        const jun = Number(item.JUN ?? 0);
+                        const jul = Number(item.JUL ?? 0);
+                        const agu = Number(item.AGU ?? 0);
+                        const sep = Number(item.SEP ?? 0);
+                        const okt = Number(item.OKT ?? 0);
+                        const nov = Number(item.NOV ?? 0);
+                        const des = Number(item.DES ?? 0);
+
+                        return {
+                            "No": index + 1,
+                            "Provider": item.PROVIDER ?? "",
+                            "Jan": jan,
+                            "Feb": feb,
+                            "Mar": mar,
+                            "Apr": apr,
+                            "Mei": mei,
+                            "Jun": jun,
+                            "Jul": jul,
+                            "Agu": agu,
+                            "Sep": sep,
+                            "Okt": okt,
+                            "Nov": nov,
+                            "Des": des,
+                            "Total": jan + feb + mar + apr + mei + jun + jul + agu + sep + okt + nov + des
+                        };
+
+                    }
+                }
+            ]
+        }
+    );
+
+});
+
 function loaddata(){
+
     datakunjunganrjpoliklinik();
     datakunjunganrjdokter();
     datakunjunganrjprovider();
+
+    datakunjunganrjnonexecutivepoliklinik();
+    datakunjunganrjdokternonexecutive();
+    datakunjunganrjnonexecutiveprovider();
+
+    datakunjunganrjexecutivepoliklinik();
+    datakunjunganrjexecutiveprovider();
+    datakunjunganrjdokterexecutive();
 };
 
+//All
 function datakunjunganrjpoliklinik() {
     let selectperiode = $("select[name='selectperiode']").val();
     $.ajax({
@@ -446,6 +718,26 @@ function datakunjunganrjpoliklinik() {
             $("#footerdatapoliklinik").html(footer);
 
             const table = initDataTable("#datapoliklinik_table","#searchtable");
+
+            const bulanField = ["JAN","FEB","MAR","APR","MEI","JUN","JUL","AGU","SEP","OKT","NOV","DES"];
+            const namaBulan  = ["Jan","Feb","Mar","Apr","Mei","Jun","Jul","Agu","Sep","Okt","Nov","Des"];
+
+            const chartdata = bulanField.map((field, index) => {
+                let all          = 0;
+
+                result.forEach(item => {
+                    const value = Number(item[field] || 0);
+                    all += value;
+                });
+
+                return {
+                    periode: namaBulan[index],
+                    all
+                };
+
+            });
+
+            renderchartarea("grafikkunjunganrjall",chartdata,"Periode Pelayanan","Jumlah Kunjungan","Jumlah Kunjungan","all",null,"","all");
         },
         complete: function () {
             Swal.close();
@@ -751,25 +1043,15 @@ function datakunjunganrjprovider() {
 
             const chartdata = bulanField.map((field, index) => {
                 let all          = 0;
-                let executive    = 0;
-                let nonexecutive = 0;
 
                 result.forEach(item => {
                     const value = Number(item[field] || 0);
                     all += value;
-
-                    if(item.REKANAN_ID === "EXECU0000000001"){
-                        executive += value;
-                    }else{
-                        nonexecutive += value;
-                    }
                 });
 
                 return {
                     periode: namaBulan[index],
-                    all,
-                    executive,
-                    nonexecutive
+                    all
                 };
 
             });
@@ -827,9 +1109,947 @@ function datakunjunganrjprovider() {
             dataProvider.sort((a, b) => b.value - a.value);
 
             renderchartarea("grafikkunjunganrjall",chartdata,"Periode Pelayanan","Jumlah Kunjungan","Jumlah Kunjungan","all",null,"","all");
-            renderchartarea("grafikkunjunganrjnonexecutive",chartdata,"Periode Pelayanan","Jumlah Kunjungan","Jumlah Kunjungan","nonexecutive",null,"","nonexecutive");
-            renderchartarea("grafikkunjunganexecutive",chartdata,"Periode Pelayanan","Jumlah Kunjungan","Jumlah Kunjungan","executive",null,"","executive");
+            // renderchartarea("grafikkunjunganrjnonexecutive",chartdata,"Periode Pelayanan","Jumlah Kunjungan","Jumlah Kunjungan","nonexecutive",null,"","nonexecutive");
+            // renderchartarea("grafikkunjunganexecutive",chartdata,"Periode Pelayanan","Jumlah Kunjungan","Jumlah Kunjungan","executive",null,"","executive");
             renderchartpie("grafikkunjunganrjprovider", dataProvider);
+        },
+        complete: function () {
+            Swal.close();
+        },
+        error: function () {
+            Swal.fire({
+                icon: "error",
+                title: "Request Failed",
+                text: "We were unable to process your request due to a server error. Please try again later. If the problem persists, contact your system administrator.",
+                confirmButtonText: "OK"
+            });
+        }
+    });
+};
+
+//Non Executive
+function datakunjunganrjnonexecutivepoliklinik() {
+    let selectperiode = $("select[name='selectperiode']").val();
+    $.ajax({
+        url       : url + "index.php/dashboard/dashboard/datakunjunganrjnonexecutivepoliklinik",
+        data      : {selectperiode: selectperiode},
+        type      : "POST",
+        dataType  : "JSON",
+
+        beforeSend: function () {
+
+            Swal.fire({
+                title            : 'Processing',
+                html             : 'Please wait while the system retrieves the requested data.',
+                allowOutsideClick: false,
+                allowEscapeKey   : false,
+                showConfirmButton: false,
+                didOpen          : () => Swal.showLoading()
+            });
+
+            $("#resultdatapolikliniknonexecutive").empty();
+            $("#footerdatapolikliniknonexecutive").empty();
+        },
+
+        success: function (response) {
+
+            if (response.responCode !== "00") {
+                Swal.fire({
+                    icon             : 'warning',
+                    title            : 'No Records Found',
+                    text             : 'No records are available for the selected period.',
+                    showConfirmButton: false,
+                    timer            : 2000
+                });
+                return;
+            }
+
+            let totalJan = 0;
+            let totalFeb = 0;
+            let totalMar = 0;
+            let totalApr = 0;
+            let totalMei = 0;
+            let totalJun = 0;
+            let totalJul = 0;
+            let totalAug = 0;
+            let totalSep = 0;
+            let totalOkt = 0;
+            let totalNov = 0;
+            let totalDes = 0;
+            let grandTotal = 0;
+
+            const result = Array.isArray(response.responResult) ? response.responResult : [];
+            globaldatakunjunganrjpoliklinikexecutive = result;
+
+            let tableresult = "";
+            for (let i in result) {
+
+                let jan = parseInt(result[i].JAN) || 0;
+                let feb = parseInt(result[i].FEB) || 0;
+                let mar = parseInt(result[i].MAR) || 0;
+                let apr = parseInt(result[i].APR) || 0;
+                let mei = parseInt(result[i].MEI) || 0;
+                let jun = parseInt(result[i].JUN) || 0;
+                let jul = parseInt(result[i].JUL) || 0;
+                let aug = parseInt(result[i].AGU) || 0;
+                let sep = parseInt(result[i].SEP) || 0;
+                let okt = parseInt(result[i].OKT) || 0;
+                let nov = parseInt(result[i].NOV) || 0;
+                let des = parseInt(result[i].DES) || 0;
+
+                let total = jan + feb + mar + apr + mei + jun + jul + aug + sep + okt + nov + des;
+
+                totalJan += jan;
+                totalFeb += feb;
+                totalMar += mar;
+                totalApr += apr;
+                totalMei += mei;
+                totalJun += jun;
+                totalJul += jul;
+                totalAug += aug;
+                totalSep += sep;
+                totalOkt += okt;
+                totalNov += nov;
+                totalDes += des;
+
+                grandTotal += total;
+
+                tableresult += `
+                    <tr>
+                        <td class="ps-4">${parseInt(i) + 1}</td>
+                        <td>${result[i].POLIKLINIK}</td>
+                        <td class="text-end">${todesimal(jan)}</td>
+                        <td class="text-end">${todesimal(feb)}</td>
+                        <td class="text-end">${todesimal(mar)}</td>
+                        <td class="text-end">${todesimal(apr)}</td>
+                        <td class="text-end">${todesimal(mei)}</td>
+                        <td class="text-end">${todesimal(jun)}</td>
+                        <td class="text-end">${todesimal(jul)}</td>
+                        <td class="text-end">${todesimal(aug)}</td>
+                        <td class="text-end">${todesimal(sep)}</td>
+                        <td class="text-end">${todesimal(okt)}</td>
+                        <td class="text-end">${todesimal(nov)}</td>
+                        <td class="text-end">${todesimal(des)}</td>
+                        <td class="text-end pe-4 fw-bold">${todesimal(total)}</td>
+                    </tr>
+                `;
+            }
+
+            let footer = `
+                <tr class="fw-bolder text-muted bg-light">
+                    <td colspan="2" class="text-center">
+                        TOTAL
+                    </td>
+                    <td class="text-end">${todesimal(totalJan)}</td>
+                    <td class="text-end">${todesimal(totalFeb)}</td>
+                    <td class="text-end">${todesimal(totalMar)}</td>
+                    <td class="text-end">${todesimal(totalApr)}</td>
+                    <td class="text-end">${todesimal(totalMei)}</td>
+                    <td class="text-end">${todesimal(totalJun)}</td>
+                    <td class="text-end">${todesimal(totalJul)}</td>
+                    <td class="text-end">${todesimal(totalAug)}</td>
+                    <td class="text-end">${todesimal(totalSep)}</td>
+                    <td class="text-end">${todesimal(totalOkt)}</td>
+                    <td class="text-end">${todesimal(totalNov)}</td>
+                    <td class="text-end">${todesimal(totalDes)}</td>
+                    <td class="text-end pe-4">
+                        ${todesimal(grandTotal)}
+                    </td>
+                </tr>
+            `;
+
+            $("#resultdatapolikliniknonexecutive").html(tableresult);
+            $("#footerdatapolikliniknonexecutive").html(footer);
+
+            const table = initDataTable("#datapolikliniknonexecutive_table","#searchtable");
+
+            const bulanField = ["JAN","FEB","MAR","APR","MEI","JUN","JUL","AGU","SEP","OKT","NOV","DES"];
+            const namaBulan  = ["Jan","Feb","Mar","Apr","Mei","Jun","Jul","Agu","Sep","Okt","Nov","Des"];
+
+            const chartdata = bulanField.map((field, index) => {
+                let all          = 0;
+
+                result.forEach(item => {
+                    const value = Number(item[field] || 0);
+                    all += value;
+                });
+
+                return {
+                    periode: namaBulan[index],
+                    all
+                };
+
+            });
+
+            renderchartarea("grafikkunjunganrjnonexecutive",chartdata,"Periode Pelayanan","Jumlah Kunjungan","Jumlah Kunjungan","all",null,"","all");
+        },
+        complete: function () {
+            Swal.close();
+        },
+        error: function () {
+            Swal.fire({
+                icon: "error",
+                title: "Request Failed",
+                text: "We were unable to process your request due to a server error. Please try again later. If the problem persists, contact your system administrator.",
+                confirmButtonText: "OK"
+            });
+        }
+    });
+};
+
+function datakunjunganrjdokternonexecutive() {
+    let selectperiode = $("select[name='selectperiode']").val();
+    $.ajax({
+        url       : url + "index.php/dashboard/dashboard/datakunjunganrjdokternonexecutive",
+        data      : {selectperiode: selectperiode},
+        type      : "POST",
+        dataType  : "JSON",
+
+        beforeSend: function () {
+
+            Swal.fire({
+                title            : 'Processing',
+                html             : 'Please wait while the system retrieves the requested data.',
+                allowOutsideClick: false,
+                allowEscapeKey   : false,
+                showConfirmButton: false,
+                didOpen          : () => Swal.showLoading()
+            });
+
+            $("#resultdatadokternonexecutive").empty();
+            $("#footerdatadokternonexecutive").empty();
+        },
+
+        success: function (response) {
+
+            if (response.responCode !== "00") {
+                Swal.fire({
+                    icon             : 'warning',
+                    title            : 'No Records Found',
+                    text             : 'No records are available for the selected period.',
+                    showConfirmButton: false,
+                    timer            : 2000
+                });
+                return;
+            }
+
+            let totalJan = 0;
+            let totalFeb = 0;
+            let totalMar = 0;
+            let totalApr = 0;
+            let totalMei = 0;
+            let totalJun = 0;
+            let totalJul = 0;
+            let totalAug = 0;
+            let totalSep = 0;
+            let totalOkt = 0;
+            let totalNov = 0;
+            let totalDes = 0;
+            let grandTotal = 0;
+
+            
+            const result = Array.isArray(response.responResult) ? response.responResult : [];
+            globaldatakunjunganrjdokternonexecutive = result;
+
+            let tableresult = "";
+            for (let i in result) {
+
+                let jan = parseInt(result[i].JAN) || 0;
+                let feb = parseInt(result[i].FEB) || 0;
+                let mar = parseInt(result[i].MAR) || 0;
+                let apr = parseInt(result[i].APR) || 0;
+                let mei = parseInt(result[i].MEI) || 0;
+                let jun = parseInt(result[i].JUN) || 0;
+                let jul = parseInt(result[i].JUL) || 0;
+                let aug = parseInt(result[i].AGU) || 0;
+                let sep = parseInt(result[i].SEP) || 0;
+                let okt = parseInt(result[i].OKT) || 0;
+                let nov = parseInt(result[i].NOV) || 0;
+                let des = parseInt(result[i].DES) || 0;
+
+                let total = jan + feb + mar + apr + mei + jun + jul + aug + sep + okt + nov + des;
+
+                totalJan += jan;
+                totalFeb += feb;
+                totalMar += mar;
+                totalApr += apr;
+                totalMei += mei;
+                totalJun += jun;
+                totalJul += jul;
+                totalAug += aug;
+                totalSep += sep;
+                totalOkt += okt;
+                totalNov += nov;
+                totalDes += des;
+
+                grandTotal += total;
+
+                tableresult += `
+                    <tr>
+                        <td class="ps-4">${parseInt(i) + 1}</td>
+                        <td>${result[i].NAMADOKTER}</td>
+                        <td class="text-end">${todesimal(jan)}</td>
+                        <td class="text-end">${todesimal(feb)}</td>
+                        <td class="text-end">${todesimal(mar)}</td>
+                        <td class="text-end">${todesimal(apr)}</td>
+                        <td class="text-end">${todesimal(mei)}</td>
+                        <td class="text-end">${todesimal(jun)}</td>
+                        <td class="text-end">${todesimal(jul)}</td>
+                        <td class="text-end">${todesimal(aug)}</td>
+                        <td class="text-end">${todesimal(sep)}</td>
+                        <td class="text-end">${todesimal(okt)}</td>
+                        <td class="text-end">${todesimal(nov)}</td>
+                        <td class="text-end">${todesimal(des)}</td>
+                        <td class="text-end pe-4 fw-bold">${todesimal(total)}</td>
+                    </tr>
+                `;
+            }
+
+            let footer = `
+                <tr class="fw-bolder text-muted bg-light">
+                    <td colspan="2" class="text-center">
+                        TOTAL
+                    </td>
+                    <td class="text-end">${todesimal(totalJan)}</td>
+                    <td class="text-end">${todesimal(totalFeb)}</td>
+                    <td class="text-end">${todesimal(totalMar)}</td>
+                    <td class="text-end">${todesimal(totalApr)}</td>
+                    <td class="text-end">${todesimal(totalMei)}</td>
+                    <td class="text-end">${todesimal(totalJun)}</td>
+                    <td class="text-end">${todesimal(totalJul)}</td>
+                    <td class="text-end">${todesimal(totalAug)}</td>
+                    <td class="text-end">${todesimal(totalSep)}</td>
+                    <td class="text-end">${todesimal(totalOkt)}</td>
+                    <td class="text-end">${todesimal(totalNov)}</td>
+                    <td class="text-end">${todesimal(totalDes)}</td>
+                    <td class="text-end pe-4">
+                        ${todesimal(grandTotal)}
+                    </td>
+                </tr>
+            `;
+
+            $("#resultdatadokternonexecutive").html(tableresult);
+            $("#footerdatadokternonexecutive").html(footer);
+
+            const table = initDataTable("#datadokternonexecutive_table","#searchtable");
+        },
+        complete: function () {
+            Swal.close();
+        },
+        error: function () {
+            Swal.fire({
+                icon: "error",
+                title: "Request Failed",
+                text: "We were unable to process your request due to a server error. Please try again later. If the problem persists, contact your system administrator.",
+                confirmButtonText: "OK"
+            });
+        }
+    });
+};
+
+function datakunjunganrjnonexecutiveprovider() {
+    let selectperiode = $("select[name='selectperiode']").val();
+    $.ajax({
+        url       : url + "index.php/dashboard/dashboard/datakunjunganrjnonexecutiveprovider",
+        data      : {selectperiode: selectperiode},
+        type      : "POST",
+        dataType  : "JSON",
+
+        beforeSend: function () {
+
+            Swal.fire({
+                title            : 'Processing',
+                html             : 'Please wait while the system retrieves the requested data.',
+                allowOutsideClick: false,
+                allowEscapeKey   : false,
+                showConfirmButton: false,
+                didOpen          : () => Swal.showLoading()
+            });
+
+            $("#resultdataprovidernonexecutive").empty();
+            $("#footerdataprovidernonexecutive").empty();
+        },
+        success: function (response) {
+
+            if (response.responCode !== "00") {
+                Swal.fire({
+                    icon             : 'warning',
+                    title            : 'No Records Found',
+                    text             : 'No records are available for the selected period.',
+                    showConfirmButton: false,
+                    timer            : 2000
+                });
+                return;
+            }
+
+            let totalJan   = 0;
+            let totalFeb   = 0;
+            let totalMar   = 0;
+            let totalApr   = 0;
+            let totalMei   = 0;
+            let totalJun   = 0;
+            let totalJul   = 0;
+            let totalAug   = 0;
+            let totalSep   = 0;
+            let totalOkt   = 0;
+            let totalNov   = 0;
+            let totalDes   = 0;
+            let grandTotal = 0;
+
+            
+            const result = Array.isArray(response.responResult) ? response.responResult : [];
+            globaldatakunjunganrjproviderexecutive = result;
+
+            let tableresult = "";
+            for (let i in result) {
+
+                let jan = parseInt(result[i].JAN) || 0;
+                let feb = parseInt(result[i].FEB) || 0;
+                let mar = parseInt(result[i].MAR) || 0;
+                let apr = parseInt(result[i].APR) || 0;
+                let mei = parseInt(result[i].MEI) || 0;
+                let jun = parseInt(result[i].JUN) || 0;
+                let jul = parseInt(result[i].JUL) || 0;
+                let aug = parseInt(result[i].AGU) || 0;
+                let sep = parseInt(result[i].SEP) || 0;
+                let okt = parseInt(result[i].OKT) || 0;
+                let nov = parseInt(result[i].NOV) || 0;
+                let des = parseInt(result[i].DES) || 0;
+
+                let total = jan + feb + mar + apr + mei + jun + jul + aug + sep + okt + nov + des;
+
+                totalJan += jan;
+                totalFeb += feb;
+                totalMar += mar;
+                totalApr += apr;
+                totalMei += mei;
+                totalJun += jun;
+                totalJul += jul;
+                totalAug += aug;
+                totalSep += sep;
+                totalOkt += okt;
+                totalNov += nov;
+                totalDes += des;
+
+                grandTotal += total;
+
+                tableresult += `
+                    <tr>
+                        <td class="ps-4">${parseInt(i) + 1}</td>
+                        <td>${result[i].PROVIDER}</td>
+                        <td class="text-end">${todesimal(jan)}</td>
+                        <td class="text-end">${todesimal(feb)}</td>
+                        <td class="text-end">${todesimal(mar)}</td>
+                        <td class="text-end">${todesimal(apr)}</td>
+                        <td class="text-end">${todesimal(mei)}</td>
+                        <td class="text-end">${todesimal(jun)}</td>
+                        <td class="text-end">${todesimal(jul)}</td>
+                        <td class="text-end">${todesimal(aug)}</td>
+                        <td class="text-end">${todesimal(sep)}</td>
+                        <td class="text-end">${todesimal(okt)}</td>
+                        <td class="text-end">${todesimal(nov)}</td>
+                        <td class="text-end">${todesimal(des)}</td>
+                        <td class="text-end pe-4 fw-bold">${todesimal(total)}</td>
+                    </tr>
+                `;
+            }
+
+            let footer = `
+                <tr class="fw-bolder text-muted bg-light">
+                    <td colspan="2" class="text-center">
+                        TOTAL
+                    </td>
+                    <td class="text-end">${todesimal(totalJan)}</td>
+                    <td class="text-end">${todesimal(totalFeb)}</td>
+                    <td class="text-end">${todesimal(totalMar)}</td>
+                    <td class="text-end">${todesimal(totalApr)}</td>
+                    <td class="text-end">${todesimal(totalMei)}</td>
+                    <td class="text-end">${todesimal(totalJun)}</td>
+                    <td class="text-end">${todesimal(totalJul)}</td>
+                    <td class="text-end">${todesimal(totalAug)}</td>
+                    <td class="text-end">${todesimal(totalSep)}</td>
+                    <td class="text-end">${todesimal(totalOkt)}</td>
+                    <td class="text-end">${todesimal(totalNov)}</td>
+                    <td class="text-end">${todesimal(totalDes)}</td>
+                    <td class="text-end pe-4">
+                        ${todesimal(grandTotal)}
+                    </td>
+                </tr>
+            `;
+
+            $("#resultdataprovidernonexecutive").html(tableresult);
+            $("#footerdataprovidernonexecutive").html(footer);
+
+            const table = initDataTable("#dataprovidernonexecutive_table","#searchtable");
+        },
+        complete: function () {
+            Swal.close();
+        },
+        error: function () {
+            Swal.fire({
+                icon: "error",
+                title: "Request Failed",
+                text: "We were unable to process your request due to a server error. Please try again later. If the problem persists, contact your system administrator.",
+                confirmButtonText: "OK"
+            });
+        }
+    });
+};
+
+//Executive
+function datakunjunganrjexecutivepoliklinik() {
+    let selectperiode = $("select[name='selectperiode']").val();
+    $.ajax({
+        url       : url + "index.php/dashboard/dashboard/datakunjunganrjexecutivepoliklinik",
+        data      : {selectperiode: selectperiode},
+        type      : "POST",
+        dataType  : "JSON",
+
+        beforeSend: function () {
+
+            Swal.fire({
+                title            : 'Processing',
+                html             : 'Please wait while the system retrieves the requested data.',
+                allowOutsideClick: false,
+                allowEscapeKey   : false,
+                showConfirmButton: false,
+                didOpen          : () => Swal.showLoading()
+            });
+
+            $("#resultdatapoliklinikexecutive").empty();
+            $("#footerdatapoliklinikexecutive").empty();
+        },
+
+        success: function (response) {
+
+            if (response.responCode !== "00") {
+                Swal.fire({
+                    icon             : 'warning',
+                    title            : 'No Records Found',
+                    text             : 'No records are available for the selected period.',
+                    showConfirmButton: false,
+                    timer            : 2000
+                });
+                return;
+            }
+
+            let totalJan = 0;
+            let totalFeb = 0;
+            let totalMar = 0;
+            let totalApr = 0;
+            let totalMei = 0;
+            let totalJun = 0;
+            let totalJul = 0;
+            let totalAug = 0;
+            let totalSep = 0;
+            let totalOkt = 0;
+            let totalNov = 0;
+            let totalDes = 0;
+            let grandTotal = 0;
+
+            const result = Array.isArray(response.responResult) ? response.responResult : [];
+            globaldatakunjunganrjpoliklinikexecutive = result;
+
+            let tableresult = "";
+            for (let i in result) {
+
+                let jan = parseInt(result[i].JAN) || 0;
+                let feb = parseInt(result[i].FEB) || 0;
+                let mar = parseInt(result[i].MAR) || 0;
+                let apr = parseInt(result[i].APR) || 0;
+                let mei = parseInt(result[i].MEI) || 0;
+                let jun = parseInt(result[i].JUN) || 0;
+                let jul = parseInt(result[i].JUL) || 0;
+                let aug = parseInt(result[i].AGU) || 0;
+                let sep = parseInt(result[i].SEP) || 0;
+                let okt = parseInt(result[i].OKT) || 0;
+                let nov = parseInt(result[i].NOV) || 0;
+                let des = parseInt(result[i].DES) || 0;
+
+                let total = jan + feb + mar + apr + mei + jun + jul + aug + sep + okt + nov + des;
+
+                totalJan += jan;
+                totalFeb += feb;
+                totalMar += mar;
+                totalApr += apr;
+                totalMei += mei;
+                totalJun += jun;
+                totalJul += jul;
+                totalAug += aug;
+                totalSep += sep;
+                totalOkt += okt;
+                totalNov += nov;
+                totalDes += des;
+
+                grandTotal += total;
+
+                tableresult += `
+                    <tr>
+                        <td class="ps-4">${parseInt(i) + 1}</td>
+                        <td>${result[i].POLIKLINIK}</td>
+                        <td class="text-end">${todesimal(jan)}</td>
+                        <td class="text-end">${todesimal(feb)}</td>
+                        <td class="text-end">${todesimal(mar)}</td>
+                        <td class="text-end">${todesimal(apr)}</td>
+                        <td class="text-end">${todesimal(mei)}</td>
+                        <td class="text-end">${todesimal(jun)}</td>
+                        <td class="text-end">${todesimal(jul)}</td>
+                        <td class="text-end">${todesimal(aug)}</td>
+                        <td class="text-end">${todesimal(sep)}</td>
+                        <td class="text-end">${todesimal(okt)}</td>
+                        <td class="text-end">${todesimal(nov)}</td>
+                        <td class="text-end">${todesimal(des)}</td>
+                        <td class="text-end pe-4 fw-bold">${todesimal(total)}</td>
+                    </tr>
+                `;
+            }
+
+            let footer = `
+                <tr class="fw-bolder text-muted bg-light">
+                    <td colspan="2" class="text-center">
+                        TOTAL
+                    </td>
+                    <td class="text-end">${todesimal(totalJan)}</td>
+                    <td class="text-end">${todesimal(totalFeb)}</td>
+                    <td class="text-end">${todesimal(totalMar)}</td>
+                    <td class="text-end">${todesimal(totalApr)}</td>
+                    <td class="text-end">${todesimal(totalMei)}</td>
+                    <td class="text-end">${todesimal(totalJun)}</td>
+                    <td class="text-end">${todesimal(totalJul)}</td>
+                    <td class="text-end">${todesimal(totalAug)}</td>
+                    <td class="text-end">${todesimal(totalSep)}</td>
+                    <td class="text-end">${todesimal(totalOkt)}</td>
+                    <td class="text-end">${todesimal(totalNov)}</td>
+                    <td class="text-end">${todesimal(totalDes)}</td>
+                    <td class="text-end pe-4">
+                        ${todesimal(grandTotal)}
+                    </td>
+                </tr>
+            `;
+
+            $("#resultdatapoliklinikexecutive").html(tableresult);
+            $("#footerdatapoliklinikexecutive").html(footer);
+
+            const table = initDataTable("#datapoliklinikexecutive_table","#searchtable");
+
+            const bulanField = ["JAN","FEB","MAR","APR","MEI","JUN","JUL","AGU","SEP","OKT","NOV","DES"];
+            const namaBulan  = ["Jan","Feb","Mar","Apr","Mei","Jun","Jul","Agu","Sep","Okt","Nov","Des"];
+
+            const chartdata = bulanField.map((field, index) => {
+                let all          = 0;
+
+                result.forEach(item => {
+                    const value = Number(item[field] || 0);
+                    all += value;
+                });
+
+                return {
+                    periode: namaBulan[index],
+                    all
+                };
+
+            });
+
+            renderchartarea("grafikkunjunganexecutive",chartdata,"Periode Pelayanan","Jumlah Kunjungan","Jumlah Kunjungan","all",null,"","all");
+        },
+        complete: function () {
+            Swal.close();
+        },
+        error: function () {
+            Swal.fire({
+                icon: "error",
+                title: "Request Failed",
+                text: "We were unable to process your request due to a server error. Please try again later. If the problem persists, contact your system administrator.",
+                confirmButtonText: "OK"
+            });
+        }
+    });
+};
+
+function datakunjunganrjdokterexecutive() {
+    let selectperiode = $("select[name='selectperiode']").val();
+    $.ajax({
+        url       : url + "index.php/dashboard/dashboard/datakunjunganrjdokterexecutive",
+        data      : {selectperiode: selectperiode},
+        type      : "POST",
+        dataType  : "JSON",
+
+        beforeSend: function () {
+
+            Swal.fire({
+                title            : 'Processing',
+                html             : 'Please wait while the system retrieves the requested data.',
+                allowOutsideClick: false,
+                allowEscapeKey   : false,
+                showConfirmButton: false,
+                didOpen          : () => Swal.showLoading()
+            });
+
+            $("#resultdatadokterexecutive").empty();
+            $("#footerdatadokterexecutive").empty();
+        },
+
+        success: function (response) {
+
+            if (response.responCode !== "00") {
+                Swal.fire({
+                    icon             : 'warning',
+                    title            : 'No Records Found',
+                    text             : 'No records are available for the selected period.',
+                    showConfirmButton: false,
+                    timer            : 2000
+                });
+                return;
+            }
+
+            let totalJan = 0;
+            let totalFeb = 0;
+            let totalMar = 0;
+            let totalApr = 0;
+            let totalMei = 0;
+            let totalJun = 0;
+            let totalJul = 0;
+            let totalAug = 0;
+            let totalSep = 0;
+            let totalOkt = 0;
+            let totalNov = 0;
+            let totalDes = 0;
+            let grandTotal = 0;
+
+            
+            const result = Array.isArray(response.responResult) ? response.responResult : [];
+            globaldatakunjunganrjdokterexecutive = result;
+
+            let tableresult = "";
+            for (let i in result) {
+
+                let jan = parseInt(result[i].JAN) || 0;
+                let feb = parseInt(result[i].FEB) || 0;
+                let mar = parseInt(result[i].MAR) || 0;
+                let apr = parseInt(result[i].APR) || 0;
+                let mei = parseInt(result[i].MEI) || 0;
+                let jun = parseInt(result[i].JUN) || 0;
+                let jul = parseInt(result[i].JUL) || 0;
+                let aug = parseInt(result[i].AGU) || 0;
+                let sep = parseInt(result[i].SEP) || 0;
+                let okt = parseInt(result[i].OKT) || 0;
+                let nov = parseInt(result[i].NOV) || 0;
+                let des = parseInt(result[i].DES) || 0;
+
+                let total = jan + feb + mar + apr + mei + jun + jul + aug + sep + okt + nov + des;
+
+                totalJan += jan;
+                totalFeb += feb;
+                totalMar += mar;
+                totalApr += apr;
+                totalMei += mei;
+                totalJun += jun;
+                totalJul += jul;
+                totalAug += aug;
+                totalSep += sep;
+                totalOkt += okt;
+                totalNov += nov;
+                totalDes += des;
+
+                grandTotal += total;
+
+                tableresult += `
+                    <tr>
+                        <td class="ps-4">${parseInt(i) + 1}</td>
+                        <td>${result[i].NAMADOKTER}</td>
+                        <td class="text-end">${todesimal(jan)}</td>
+                        <td class="text-end">${todesimal(feb)}</td>
+                        <td class="text-end">${todesimal(mar)}</td>
+                        <td class="text-end">${todesimal(apr)}</td>
+                        <td class="text-end">${todesimal(mei)}</td>
+                        <td class="text-end">${todesimal(jun)}</td>
+                        <td class="text-end">${todesimal(jul)}</td>
+                        <td class="text-end">${todesimal(aug)}</td>
+                        <td class="text-end">${todesimal(sep)}</td>
+                        <td class="text-end">${todesimal(okt)}</td>
+                        <td class="text-end">${todesimal(nov)}</td>
+                        <td class="text-end">${todesimal(des)}</td>
+                        <td class="text-end pe-4 fw-bold">${todesimal(total)}</td>
+                    </tr>
+                `;
+            }
+
+            let footer = `
+                <tr class="fw-bolder text-muted bg-light">
+                    <td colspan="2" class="text-center">
+                        TOTAL
+                    </td>
+                    <td class="text-end">${todesimal(totalJan)}</td>
+                    <td class="text-end">${todesimal(totalFeb)}</td>
+                    <td class="text-end">${todesimal(totalMar)}</td>
+                    <td class="text-end">${todesimal(totalApr)}</td>
+                    <td class="text-end">${todesimal(totalMei)}</td>
+                    <td class="text-end">${todesimal(totalJun)}</td>
+                    <td class="text-end">${todesimal(totalJul)}</td>
+                    <td class="text-end">${todesimal(totalAug)}</td>
+                    <td class="text-end">${todesimal(totalSep)}</td>
+                    <td class="text-end">${todesimal(totalOkt)}</td>
+                    <td class="text-end">${todesimal(totalNov)}</td>
+                    <td class="text-end">${todesimal(totalDes)}</td>
+                    <td class="text-end pe-4">
+                        ${todesimal(grandTotal)}
+                    </td>
+                </tr>
+            `;
+
+            $("#resultdatadokterexecutive").html(tableresult);
+            $("#footerdatadokterexecutive").html(footer);
+
+            const table = initDataTable("#datadokterexecutive_table","#searchtable");
+        },
+        complete: function () {
+            Swal.close();
+        },
+        error: function () {
+            Swal.fire({
+                icon: "error",
+                title: "Request Failed",
+                text: "We were unable to process your request due to a server error. Please try again later. If the problem persists, contact your system administrator.",
+                confirmButtonText: "OK"
+            });
+        }
+    });
+};
+
+function datakunjunganrjexecutiveprovider() {
+    let selectperiode = $("select[name='selectperiode']").val();
+    $.ajax({
+        url       : url + "index.php/dashboard/dashboard/datakunjunganrjexecutiveprovider",
+        data      : {selectperiode: selectperiode},
+        type      : "POST",
+        dataType  : "JSON",
+
+        beforeSend: function () {
+
+            Swal.fire({
+                title            : 'Processing',
+                html             : 'Please wait while the system retrieves the requested data.',
+                allowOutsideClick: false,
+                allowEscapeKey   : false,
+                showConfirmButton: false,
+                didOpen          : () => Swal.showLoading()
+            });
+
+            $("#resultdataproviderexecutive").empty();
+            $("#footerdataproviderexecutive").empty();
+        },
+        success: function (response) {
+
+            if (response.responCode !== "00") {
+                Swal.fire({
+                    icon             : 'warning',
+                    title            : 'No Records Found',
+                    text             : 'No records are available for the selected period.',
+                    showConfirmButton: false,
+                    timer            : 2000
+                });
+                return;
+            }
+
+            let totalJan   = 0;
+            let totalFeb   = 0;
+            let totalMar   = 0;
+            let totalApr   = 0;
+            let totalMei   = 0;
+            let totalJun   = 0;
+            let totalJul   = 0;
+            let totalAug   = 0;
+            let totalSep   = 0;
+            let totalOkt   = 0;
+            let totalNov   = 0;
+            let totalDes   = 0;
+            let grandTotal = 0;
+
+            
+            const result = Array.isArray(response.responResult) ? response.responResult : [];
+            globaldatakunjunganrjproviderexecutive = result;
+
+            let tableresult = "";
+            for (let i in result) {
+
+                let jan = parseInt(result[i].JAN) || 0;
+                let feb = parseInt(result[i].FEB) || 0;
+                let mar = parseInt(result[i].MAR) || 0;
+                let apr = parseInt(result[i].APR) || 0;
+                let mei = parseInt(result[i].MEI) || 0;
+                let jun = parseInt(result[i].JUN) || 0;
+                let jul = parseInt(result[i].JUL) || 0;
+                let aug = parseInt(result[i].AGU) || 0;
+                let sep = parseInt(result[i].SEP) || 0;
+                let okt = parseInt(result[i].OKT) || 0;
+                let nov = parseInt(result[i].NOV) || 0;
+                let des = parseInt(result[i].DES) || 0;
+
+                let total = jan + feb + mar + apr + mei + jun + jul + aug + sep + okt + nov + des;
+
+                totalJan += jan;
+                totalFeb += feb;
+                totalMar += mar;
+                totalApr += apr;
+                totalMei += mei;
+                totalJun += jun;
+                totalJul += jul;
+                totalAug += aug;
+                totalSep += sep;
+                totalOkt += okt;
+                totalNov += nov;
+                totalDes += des;
+
+                grandTotal += total;
+
+                tableresult += `
+                    <tr>
+                        <td class="ps-4">${parseInt(i) + 1}</td>
+                        <td>${result[i].PROVIDER}</td>
+                        <td class="text-end">${todesimal(jan)}</td>
+                        <td class="text-end">${todesimal(feb)}</td>
+                        <td class="text-end">${todesimal(mar)}</td>
+                        <td class="text-end">${todesimal(apr)}</td>
+                        <td class="text-end">${todesimal(mei)}</td>
+                        <td class="text-end">${todesimal(jun)}</td>
+                        <td class="text-end">${todesimal(jul)}</td>
+                        <td class="text-end">${todesimal(aug)}</td>
+                        <td class="text-end">${todesimal(sep)}</td>
+                        <td class="text-end">${todesimal(okt)}</td>
+                        <td class="text-end">${todesimal(nov)}</td>
+                        <td class="text-end">${todesimal(des)}</td>
+                        <td class="text-end pe-4 fw-bold">${todesimal(total)}</td>
+                    </tr>
+                `;
+            }
+
+            let footer = `
+                <tr class="fw-bolder text-muted bg-light">
+                    <td colspan="2" class="text-center">
+                        TOTAL
+                    </td>
+                    <td class="text-end">${todesimal(totalJan)}</td>
+                    <td class="text-end">${todesimal(totalFeb)}</td>
+                    <td class="text-end">${todesimal(totalMar)}</td>
+                    <td class="text-end">${todesimal(totalApr)}</td>
+                    <td class="text-end">${todesimal(totalMei)}</td>
+                    <td class="text-end">${todesimal(totalJun)}</td>
+                    <td class="text-end">${todesimal(totalJul)}</td>
+                    <td class="text-end">${todesimal(totalAug)}</td>
+                    <td class="text-end">${todesimal(totalSep)}</td>
+                    <td class="text-end">${todesimal(totalOkt)}</td>
+                    <td class="text-end">${todesimal(totalNov)}</td>
+                    <td class="text-end">${todesimal(totalDes)}</td>
+                    <td class="text-end pe-4">
+                        ${todesimal(grandTotal)}
+                    </td>
+                </tr>
+            `;
+
+            $("#resultdataproviderexecutive").html(tableresult);
+            $("#footerdataproviderexecutive").html(footer);
+
+            const table = initDataTable("#dataproviderexecutive_table","#searchtable");
         },
         complete: function () {
             Swal.close();

@@ -390,7 +390,7 @@ $("#btndownloaddatadetailrj_table").on("click", function () {
     exportToExcel(
         null,
         null,
-        "Kunjungan_Rawat_Jalan_Non_Executive.xlsx",
+        "Kunjungan_Rawat_Jalan_Non_Executive_dan_Executive.xlsx",
         {
             multiSheet: [
                 {
@@ -1150,6 +1150,8 @@ function datakunjunganigdprovider() {
     });
 };
 
+
+//All
 function datakunjunganrjpoliklinik() {
     let selectperiode = $("select[name='selectperiode']").val();
     $.ajax({
@@ -1306,6 +1308,22 @@ function datakunjunganrjpoliklinik() {
 
             });
 
+            const chartdataall = bulanField.map((field, index) => {
+                let all          = 0;
+
+                result.forEach(item => {
+                    const value = Number(item[field] || 0);
+                    all += value;
+                });
+
+                return {
+                    periode: namaBulan[index],
+                    all
+                };
+
+            });
+
+            renderchartarea("grafikkunjunganrjall",chartdataall,"Periode Pelayanan","Jumlah Kunjungan","Jumlah Kunjungan","all",null,"","all");
             renderchartarea("grafikkunjunganmcu",chartdata,"Periode Pelayanan","Jumlah Kunjungan","Jumlah Kunjungan","mcu",null,"","mcu");
         },
         complete: function () {
@@ -1610,21 +1628,6 @@ function datakunjunganrjprovider() {
             const bulanField = ["JAN","FEB","MAR","APR","MEI","JUN","JUL","AGU","SEP","OKT","NOV","DES"];
             const namaBulan  = ["Jan","Feb","Mar","Apr","Mei","Jun","Jul","Agu","Sep","Okt","Nov","Des"];
 
-            const chartdata = bulanField.map((field, index) => {
-                let all          = 0;
-
-                result.forEach(item => {
-                    const value = Number(item[field] || 0);
-                    all += value;
-                });
-
-                return {
-                    periode: namaBulan[index],
-                    all
-                };
-
-            });
-
             const dataProvider = [
                 { label: "BPJS", value: 0 },
                 { label: "Executive", value: 0 },
@@ -1677,9 +1680,6 @@ function datakunjunganrjprovider() {
 
             dataProvider.sort((a, b) => b.value - a.value);
 
-            renderchartarea("grafikkunjunganrjall",chartdata,"Periode Pelayanan","Jumlah Kunjungan","Jumlah Kunjungan","all",null,"","all");
-            // renderchartarea("grafikkunjunganrjnonexecutive",chartdata,"Periode Pelayanan","Jumlah Kunjungan","Jumlah Kunjungan","nonexecutive",null,"","nonexecutive");
-            // renderchartarea("grafikkunjunganexecutive",chartdata,"Periode Pelayanan","Jumlah Kunjungan","Jumlah Kunjungan","executive",null,"","executive");
             renderchartpie("grafikkunjunganrjprovider", dataProvider);
         },
         complete: function () {
