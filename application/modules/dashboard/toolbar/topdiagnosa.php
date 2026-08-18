@@ -4,13 +4,13 @@ $view = $this->input->get('view');
 
 <?php if ($view === 'detailrjsmf') : ?>
 
-    <a href="#" id="btnDownloadExcelRJSMF" class="btn btn-sm btn-light-primary me-4">
+    <a href="#" id="btnDownloadExcelRJSMF" class="btn btn-sm btn-light-primary me-2">
         <i class="bi bi-file-earmark-spreadsheet"></i> Download Excel
     </a>
 
 <?php elseif ($view === 'detailrismf') : ?>
 
-    <a href="#" id="btnDownloadExcelRISMF" class="btn btn-sm btn-light-primary me-4">
+    <a href="#" id="btnDownloadExcelRISMF" class="btn btn-sm btn-light-primary me-2">
         <i class="bi bi-file-earmark-spreadsheet"></i> Download Excel
     </a>
 

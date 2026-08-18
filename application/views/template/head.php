@@ -1,6 +1,6 @@
 <script> var url = '<?php echo base_url();?>'; </script>
 
-<title>Analisa Data | Healthcare Data Analytics Dashboard</title>
+<title>Data Analyst | Healthcare Data Analytics Dashboard</title>
 <meta name="description" content="Healthcare Data Analytics Dashboard for monitoring hospital performance, patient services, financial metrics, clinical quality indicators, and business intelligence." />
 <meta name="keywords" content="Healthcare Analytics, Hospital Dashboard, Business Intelligence, Data Analytics, Hospital Information System, Medical Analytics, Revenue Analysis, Patient Analytics, Performance Dashboard, INA-CBG, BPJS, Healthcare BI" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />

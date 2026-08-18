@@ -56,16 +56,29 @@ $(function () {
                 showConfirmButton: false,
                 allowOutsideClick: false,
                 allowEscapeKey   : false,
-                timer            : code === "00" ? 3000: undefined,
+                timer            : code === "00" ? 2000 : undefined,
                 timerProgressBar : code === "00",
 
                 didOpen: function () {
                     Swal.showLoading();
 
-                    Swal.getPopup().style.cursor = "pointer";
+                    const popup = Swal.getPopup();
+                    popup.style.cursor = "pointer";
 
-                    Swal.getPopup().addEventListener("click", function () {
+                    // Klik popup
+                    popup.addEventListener("click", function () {
                         if ((code === "00" || code === "02") && response.url) {
+                            window.location.href = response.url;
+                        }
+                    });
+
+                    // Tekan ENTER
+                    document.addEventListener("keydown", function (event) {
+                        if (
+                            event.key === "Enter" &&
+                            (code === "00" || code === "02") &&
+                            response.url
+                        ) {
                             window.location.href = response.url;
                         }
                     });
