@@ -6,7 +6,7 @@
                     "
                         SELECT (2014 + LEVEL) AS PERIODE
                         FROM DUAL
-                        CONNECT BY LEVEL < EXTRACT(YEAR FROM SYSDATE) - 2014
+                        CONNECT BY LEVEL <= EXTRACT(YEAR FROM SYSDATE) - 2014
                         ORDER BY PERIODE DESC
 
                     ";

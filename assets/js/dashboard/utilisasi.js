@@ -204,7 +204,7 @@ function datautilisasiruangok() {
                 let mei = parseInt(result[i].MEI) || 0;
                 let jun = parseInt(result[i].JUN) || 0;
                 let jul = parseInt(result[i].JUL) || 0;
-                let aug = parseInt(result[i].AGU) || 0;
+                let aug = parseInt(result[i].AGS) || 0;
                 let sep = parseInt(result[i].SEP) || 0;
                 let okt = parseInt(result[i].OKT) || 0;
                 let nov = parseInt(result[i].NOV) || 0;
@@ -289,7 +289,7 @@ function datautilisasiruangok() {
                         Number(item.MEI ?? 0),
                         Number(item.JUN ?? 0),
                         Number(item.JUL ?? 0),
-                        Number(item.AGU ?? 0),
+                        Number(item.AGS ?? 0),
                         Number(item.SEP ?? 0),
                         Number(item.OKT ?? 0),
                         Number(item.NOV ?? 0),
