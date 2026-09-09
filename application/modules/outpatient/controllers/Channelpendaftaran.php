@@ -5,7 +5,7 @@
 
         public function __construct(){
             parent:: __construct();
-             $this->load->model("Modelchannelpendaftaran","md");
+            $this->load->model("Modelchannelpendaftaran","md");
         }
 
         public function index(){
