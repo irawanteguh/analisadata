@@ -323,6 +323,8 @@
                     continue;
                 }
 
+                return var_dump(isJamBesuk($message));
+
                 if(isJamBesuk($message)){
 
                     $reply =

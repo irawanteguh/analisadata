@@ -454,7 +454,7 @@
                 $compare = trim($compare);
             }
 
-            if($originalMessage === $compare){
+            if(strpos($originalMessage, $compare) !== false){
                 return true;
             }
         }
