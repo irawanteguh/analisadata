@@ -5,8 +5,8 @@ class Openwa {
 
     protected $CI;
 
-    private $base_url  = 'http://192.168.200.41:2785';
-    private $api_key   = 'owa_k1_d97c9ab8faabbe4f14aac38858d4caa8fe9d5de9c789f5cfffdf863a0c543212';
+    private $base_url = OPENWA_BASE_URL;
+    private $api_key  = OPENWA_API_KEY;
 
     public function __construct(){
         $this->CI =& get_instance();

@@ -67,7 +67,7 @@
                     "Terima kasih.\n*RSUD Pasar Minggu*";
 
                     $result = $this->openwa->sendTextChatid(
-                        "a60fc13c-9c63-4d47-9380-c104b3c8c467",
+                        OPENWA_SESSION_ID_PEO,
                         $chatid,
                         $reply
                     );
@@ -107,7 +107,7 @@
                     "Mohon informasikan jenis tindakan atau treatment yang ingin ditanyakan agar kami dapat membantu memberikan informasi lebih lanjut.";
 
                     $result = $this->openwa->sendTextChatid(
-                        "a60fc13c-9c63-4d47-9380-c104b3c8c467",
+                        OPENWA_SESSION_ID_PEO,
                         $chatid,
                         $reply
                     );
@@ -147,7 +147,7 @@
                         "⚠️ *Pendaftaran ditutup 30 menit sebelum jam praktik dokter.*";
 
                     $result = $this->openwa->sendTextChatid(
-                        "a60fc13c-9c63-4d47-9380-c104b3c8c467",
+                        OPENWA_SESSION_ID_PEO,
                         $chatid,
                         $reply
                     );
@@ -186,7 +186,7 @@
                         "Silakan memastikan status rujukan dan kepesertaan BPJS terlebih dahulu melalui Faskes 1 atau layanan BPJS Kesehatan.";
 
                     $result = $this->openwa->sendTextChatid(
-                        "a60fc13c-9c63-4d47-9380-c104b3c8c467",
+                        OPENWA_SESSION_ID_PEO,
                         $chatid,
                         $reply
                     );
@@ -226,7 +226,7 @@
                                 "Pasar Minggu, Jakarta Selatan";
 
                     $result = $this->openwa->shareloc(
-                        "a60fc13c-9c63-4d47-9380-c104b3c8c467",
+                        OPENWA_SESSION_ID_PEO,
                         $chatid,
                         $latitude,
                         $longitude,
@@ -268,7 +268,7 @@
                         "Terima kasih atas kepercayaan Anda kepada *RSUD Pasar Minggu*.";
 
                     $result = $this->openwa->sendImageChatid(
-                        "a60fc13c-9c63-4d47-9380-c104b3c8c467",
+                        OPENWA_SESSION_ID_PEO,
                         $chatid,
                         "https://rsudpasarminggu.jakarta.go.id/analisadata/assets/media/whatsapp/media_keluhan.png",
                         $reply
@@ -307,7 +307,7 @@
                         "Terima kasih.\n*RSUD Pasar Minggu*";
 
                     $result = $this->openwa->sendImageChatid(
-                        "a60fc13c-9c63-4d47-9380-c104b3c8c467",
+                        OPENWA_SESSION_ID_PEO,
                         $chatid,
                         "https://rsudpasarminggu.jakarta.go.id/analisadata/assets/media/whatsapp/media_jam_besuk.png",
                         $reply

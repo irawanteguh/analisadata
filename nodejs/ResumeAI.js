@@ -17,6 +17,7 @@ for (const iface of Object.values(interfaces)) {
     }
 }
 
+// const BASE_URL = process.env.BASE_URL || `http://${host}/dataanalyst/analisadata/index.php/`;
 const BASE_URL = process.env.BASE_URL || `http://192.168.200.41:8080/analisadata/index.php/`;
 
 function getTimeStamp() {
