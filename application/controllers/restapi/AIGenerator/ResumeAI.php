@@ -38,6 +38,82 @@ class ResumeAI extends REST_Controller {
         $this->load->model("ModelResumeAI","md");
     }
 
+    public function generateresume_POST(){
+        headerlogresume();
+
+        $resultlistrresume = $this->md->listrresume();
+
+        if(empty($resultlistrresume)){
+            echo color('red')."Data Tidak Ditemukan";
+            return;
+        }
+
+        foreach($resultlistrresume as $a){
+            $statusColor = "red";
+            $statusMsg   = "";
+
+            $episodeid = $a->EPISODE_ID;
+
+            // =========================
+            // CALL API
+            // =========================
+            $url = "http://192.168.200.41:8080/analisadata/index.php/generateresumeai/".$episodeid;
+
+            $ch = curl_init();
+
+            curl_setopt($ch, CURLOPT_URL, $url);
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($ch, CURLOPT_TIMEOUT, 30);
+            curl_setopt($ch, CURLOPT_POST, true);
+            curl_setopt($ch, CURLOPT_POSTFIELDS, ['episodeid' => $episodeid]);
+            $response = curl_exec($ch);
+
+            // =========================
+            // ERROR CURL
+            // =========================
+            if (curl_errno($ch)) {
+
+                $statusMsg   = "CURL ERROR: ".curl_error($ch);
+                $statusColor = "red";
+
+                curl_close($ch);
+
+                echo formatlog($a->PASIEN_ID,$a->EPISODE_ID,$a->TGLKELUAR,$a->DOKTER_ID,$statusMsg,'cyan','cyan','cyan','cyan',$statusColor);
+                continue;
+            }
+
+            curl_close($ch);
+
+            // =========================
+            // DECODE JSON
+            // =========================
+            $result = json_decode($response, true);
+
+            if (!$result) {
+                $statusMsg   = "INVALID JSON";
+                $statusColor = "red";
+            } else {
+                if (isset($result['status']) && $result['status'] === true && $result['code'] == 200) {
+                    $statusMsg   = "Success";
+                    $statusColor = "green";
+
+                    echo formatlog($a->PASIEN_ID,$a->EPISODE_ID,$a->TGLKELUAR,$a->DOKTER_ID,$statusMsg,'cyan','cyan','cyan','cyan',$statusColor);
+                } else {
+
+                    $msg  = $result['message'] ?? 'FAILED';
+                    $code = $result['code'] ?? 'UNKNOWN';
+
+                    $statusMsg   = "FAILED ($code): ".$msg;
+                    $statusColor = "red";
+
+                    echo formatlog($a->PASIEN_ID,$a->EPISODE_ID,$a->TGLKELUAR,$a->DOKTER_ID,$statusMsg,'cyan','cyan','cyan','cyan',$statusColor);
+                }
+            }
+            
+        }
+        
+    }
+
     public function generateresumeai_post($episodeid){
         $body        = [];
         $sourcedata  = [];
@@ -1499,82 +1575,6 @@ class ResumeAI extends REST_Controller {
             "text"  => implode("\n", $formatted),
             "count" => count($raw)
         ];
-    }
-
-    public function generateresume_POST(){
-        headerlogresume();
-
-        $resultlistrresume = $this->md->listrresume();
-
-        if(empty($resultlistrresume)){
-            echo color('red')."Data Tidak Ditemukan";
-            return;
-        }
-
-        foreach($resultlistrresume as $a){
-            $statusColor = "red";
-            $statusMsg   = "";
-
-            $episodeid = $a->EPISODE_ID;
-
-            // =========================
-            // CALL API
-            // =========================
-            $url = "http://192.168.200.41:8080/analisadata/index.php/generateresumeai/".$episodeid;
-
-            $ch = curl_init();
-
-            curl_setopt($ch, CURLOPT_URL, $url);
-            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-            curl_setopt($ch, CURLOPT_TIMEOUT, 30);
-            curl_setopt($ch, CURLOPT_POST, true);
-            curl_setopt($ch, CURLOPT_POSTFIELDS, ['episodeid' => $episodeid]);
-            $response = curl_exec($ch);
-
-            // =========================
-            // ERROR CURL
-            // =========================
-            if (curl_errno($ch)) {
-
-                $statusMsg   = "CURL ERROR: ".curl_error($ch);
-                $statusColor = "red";
-
-                curl_close($ch);
-
-                echo formatlog($a->PASIEN_ID,$a->EPISODE_ID,$a->TGLKELUAR,$a->DOKTER_ID,$statusMsg,'cyan','cyan','cyan','cyan',$statusColor);
-                continue;
-            }
-
-            curl_close($ch);
-
-            // =========================
-            // DECODE JSON
-            // =========================
-            $result = json_decode($response, true);
-
-            if (!$result) {
-                $statusMsg   = "INVALID JSON";
-                $statusColor = "red";
-            } else {
-                if (isset($result['status']) && $result['status'] === true && $result['code'] == 200) {
-                    $statusMsg   = "Success";
-                    $statusColor = "green";
-
-                    echo formatlog($a->PASIEN_ID,$a->EPISODE_ID,$a->TGLKELUAR,$a->DOKTER_ID,$statusMsg,'cyan','cyan','cyan','cyan',$statusColor);
-                } else {
-
-                    $msg  = $result['message'] ?? 'FAILED';
-                    $code = $result['code'] ?? 'UNKNOWN';
-
-                    $statusMsg   = "FAILED ($code): ".$msg;
-                    $statusColor = "red";
-
-                    echo formatlog($a->PASIEN_ID,$a->EPISODE_ID,$a->TGLKELUAR,$a->DOKTER_ID,$statusMsg,'cyan','cyan','cyan','cyan',$statusColor);
-                }
-            }
-            
-        }
-        
     }
     
 }

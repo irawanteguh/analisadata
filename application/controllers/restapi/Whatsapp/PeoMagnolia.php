@@ -39,6 +39,8 @@
         }
 
         public function greeting_POST(){
+            headerlogwhatsapp();
+
             $resultdatawebhook = $this->md->datawebhook();
 
             if(empty($resultdatawebhook)){
@@ -70,20 +72,15 @@
                         $reply
                     );
 
-                    $http_status = $result['success'] ? REST_Controller::HTTP_OK : REST_Controller::HTTP_BAD_GATEWAY;
-
-                    $responseopenwa['status']   = $result['success'];
-                    $responseopenwa['message']  = $result['message']; 
-                    $responseopenwa['response'] = $result['response'];
-
                     $this->mw->updatewebhook($a->IDEMPOTENCY_KEY, array("RESPONSE_STATUS"=>"Y"));
-                    $this->response($responseopenwa, $http_status);
+                    echo formatlogwhatsapp(date('Y-m-d H:i:s', $result['response']['timestamp']), isset($result['response']['messageId']) ? $result['response']['messageId'] : '-', isset($result['success']) && $result['success'] ? 'SENT' : 'FAILED', isset($result['message']) ? $result['message'] : '-', isset($result['success']) && $result['success'] ? 'green' : 'red', isset($result['success']) && $result['success'] ? 'green' : 'red', isset($result['success']) && $result['success'] ? 'green' : 'red', isset($result['success']) && $result['success'] ? 'green' : 'red');
                 }
             }
 
         }
 
         public function biaya_POST(){
+            headerlogwhatsapp();
 
             $resultdatawebhook = $this->md->datawebhook();
 
@@ -115,19 +112,14 @@
                         $reply
                     );
 
-                    $http_status = $result['success'] ? REST_Controller::HTTP_OK : REST_Controller::HTTP_BAD_GATEWAY;
-
-                    $responseopenwa['status']   = $result['success'];
-                    $responseopenwa['message']  = $result['message'];
-                    $responseopenwa['response'] = $result['response'];
-
                     $this->mw->updatewebhook($a->IDEMPOTENCY_KEY, array("RESPONSE_STATUS"=>"Y"));
-                    $this->response($responseopenwa, $http_status);
+                    echo formatlogwhatsapp(date('Y-m-d H:i:s', $result['response']['timestamp']), isset($result['response']['messageId']) ? $result['response']['messageId'] : '-', isset($result['success']) && $result['success'] ? 'SENT' : 'FAILED', isset($result['message']) ? $result['message'] : '-', isset($result['success']) && $result['success'] ? 'green' : 'red', isset($result['success']) && $result['success'] ? 'green' : 'red', isset($result['success']) && $result['success'] ? 'green' : 'red', isset($result['success']) && $result['success'] ? 'green' : 'red');
                 }
             }
         }
 
         public function pendaftaran_POST(){
+            headerlogwhatsapp();
 
             $resultdatawebhook = $this->md->datawebhook();
 
@@ -160,19 +152,14 @@
                         $reply
                     );
 
-                    $http_status = $result['success'] ? REST_Controller::HTTP_OK : REST_Controller::HTTP_BAD_GATEWAY;
-
-                    $responseopenwa['status']   = $result['success'];
-                    $responseopenwa['message']  = $result['message'];
-                    $responseopenwa['response'] = $result['response'];
-
                     $this->mw->updatewebhook($a->IDEMPOTENCY_KEY, array("RESPONSE_STATUS"=>"Y"));
-                    $this->response($responseopenwa, $http_status);
+                    echo formatlogwhatsapp(date('Y-m-d H:i:s', $result['response']['timestamp']), isset($result['response']['messageId']) ? $result['response']['messageId'] : '-', isset($result['success']) && $result['success'] ? 'SENT' : 'FAILED', isset($result['message']) ? $result['message'] : '-', isset($result['success']) && $result['success'] ? 'green' : 'red', isset($result['success']) && $result['success'] ? 'green' : 'red', isset($result['success']) && $result['success'] ? 'green' : 'red', isset($result['success']) && $result['success'] ? 'green' : 'red');
                 }
             }
         }
 
         public function bpjs_POST(){
+            headerlogwhatsapp();
 
             $resultdatawebhook = $this->md->datawebhook();
 
@@ -204,19 +191,15 @@
                         $reply
                     );
 
-                    $http_status = $result['success'] ? REST_Controller::HTTP_OK : REST_Controller::HTTP_BAD_GATEWAY;
-
-                    $responseopenwa['status']   = $result['success'];
-                    $responseopenwa['message']  = $result['message'];
-                    $responseopenwa['response'] = $result['response'];
-
                     $this->mw->updatewebhook($a->IDEMPOTENCY_KEY, array("RESPONSE_STATUS"=>"Y"));
-                    $this->response($responseopenwa, $http_status);
+                    echo formatlogwhatsapp(date('Y-m-d H:i:s', $result['response']['timestamp']), isset($result['response']['messageId']) ? $result['response']['messageId'] : '-', isset($result['success']) && $result['success'] ? 'SENT' : 'FAILED', isset($result['message']) ? $result['message'] : '-', isset($result['success']) && $result['success'] ? 'green' : 'red', isset($result['success']) && $result['success'] ? 'green' : 'red', isset($result['success']) && $result['success'] ? 'green' : 'red', isset($result['success']) && $result['success'] ? 'green' : 'red');
                 }
             }
         }
 
         public function alamat_POST(){
+            headerlogwhatsapp();
+
             $resultdatawebhook = $this->md->datawebhook();
 
             if(empty($resultdatawebhook)){
@@ -250,19 +233,15 @@
                         $description
                     );
 
-                    $http_status = $result['success'] ? REST_Controller::HTTP_OK : REST_Controller::HTTP_BAD_GATEWAY;
-
-                    $responseopenwa['status']   = $result['success'];
-                    $responseopenwa['message']  = $result['message'];
-                    $responseopenwa['response'] = $result['response'];
-
                     $this->mw->updatewebhook($a->IDEMPOTENCY_KEY, array("RESPONSE_STATUS"=>"Y"));
-                    $this->response($responseopenwa, $http_status);
+                    echo formatlogwhatsapp(date('Y-m-d H:i:s', $result['response']['timestamp']), isset($result['response']['messageId']) ? $result['response']['messageId'] : '-', isset($result['success']) && $result['success'] ? 'SENT' : 'FAILED', isset($result['message']) ? $result['message'] : '-', isset($result['success']) && $result['success'] ? 'green' : 'red', isset($result['success']) && $result['success'] ? 'green' : 'red', isset($result['success']) && $result['success'] ? 'green' : 'red', isset($result['success']) && $result['success'] ? 'green' : 'red');
                 }
             }
         }
 
         public function keluhan_POST(){
+            headerlogwhatsapp();
+
             $resultdatawebhook = $this->md->datawebhook();
 
             if(empty($resultdatawebhook)){
@@ -295,19 +274,15 @@
                         $reply
                     );
 
-                    $http_status = $result['success'] ? REST_Controller::HTTP_OK : REST_Controller::HTTP_BAD_GATEWAY;
-
-                    $responseopenwa['status']   = $result['success'];
-                    $responseopenwa['message']  = $result['message']; 
-                    $responseopenwa['response'] = $result['response'];
-
                     $this->mw->updatewebhook($a->IDEMPOTENCY_KEY, array("RESPONSE_STATUS"=>"Y"));
-                    $this->response($responseopenwa, $http_status);
+                    echo formatlogwhatsapp(date('Y-m-d H:i:s', $result['response']['timestamp']), isset($result['response']['messageId']) ? $result['response']['messageId'] : '-', isset($result['success']) && $result['success'] ? 'SENT' : 'FAILED', isset($result['message']) ? $result['message'] : '-', isset($result['success']) && $result['success'] ? 'green' : 'red', isset($result['success']) && $result['success'] ? 'green' : 'red', isset($result['success']) && $result['success'] ? 'green' : 'red', isset($result['success']) && $result['success'] ? 'green' : 'red');
                 }
             }
         }
 
         public function jambesuk_POST(){
+            headerlogwhatsapp();
+
             $resultdatawebhook = $this->md->datawebhook();
 
             if(empty($resultdatawebhook)){
@@ -340,12 +315,8 @@
 
                     $http_status = $result['success'] ? REST_Controller::HTTP_OK : REST_Controller::HTTP_BAD_GATEWAY;
 
-                    $responseopenwa['status']   = $result['success'];
-                    $responseopenwa['message']  = $result['message']; 
-                    $responseopenwa['response'] = $result['response'];
-
                     $this->mw->updatewebhook($a->IDEMPOTENCY_KEY, array("RESPONSE_STATUS"=>"Y"));
-                    $this->response($responseopenwa, $http_status);
+                    echo formatlogwhatsapp(date('Y-m-d H:i:s', $result['response']['timestamp']), isset($result['response']['messageId']) ? $result['response']['messageId'] : '-', isset($result['success']) && $result['success'] ? 'SENT' : 'FAILED', isset($result['message']) ? $result['message'] : '-', isset($result['success']) && $result['success'] ? 'green' : 'red', isset($result['success']) && $result['success'] ? 'green' : 'red', isset($result['success']) && $result['success'] ? 'green' : 'red', isset($result['success']) && $result['success'] ? 'green' : 'red');
                 }
             }
         }

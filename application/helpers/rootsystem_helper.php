@@ -70,10 +70,10 @@
         return $decodedPassword;
     }
 
-    function headerlog(){
-        echo PHP_EOL;
-        echo color('cyan').str_pad("TANGGAL", 15).str_pad("NOMOR KARTU", 25).str_pad("NOMOR SEP", 25).str_pad("NOMOR RUJUKAN", 25)."MESSAGE".PHP_EOL;
-    }
+    // function headerlog(){
+    //     echo PHP_EOL;
+    //     echo color('cyan').str_pad("TANGGAL", 15).str_pad("NOMOR KARTU", 25).str_pad("NOMOR SEP", 25).str_pad("NOMOR RUJUKAN", 25)."MESSAGE".PHP_EOL;
+    // }
 
     function headerlogresume(){
         echo PHP_EOL;

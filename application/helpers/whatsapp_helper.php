@@ -1,4 +1,30 @@
 <?php
+    function headerlogwhatsapp(){
+        echo PHP_EOL;
+        echo color('cyan'). str_pad("TIMESTAMP", 21). str_pad("MESSAGE ID", 49). str_pad("STATUS", 12). "MESSAGE". PHP_EOL;
+    }
+
+    function formatlogwhatsapp($tanggal, $messageid, $status, $message, $colortanggal = 'cyan', $colormessageid = 'cyan', $colorstatus = 'cyan', $colorMessage = 'white') {
+
+        $tanggalWidth    = 21;
+        $messageidWidth  = 49;
+        $statusWidth     = 12;
+
+        $colorStartTanggal   = color($colortanggal);
+        $colorStartMessageId = color($colormessageid);
+        $colorStartStatus    = color($colorstatus);
+        $colorStartMessage   = color($colorMessage);
+
+        $reset = color('reset');
+
+        $formatted  = $colorStartTanggal . str_pad($tanggal, $tanggalWidth) . $reset;
+        $formatted .= $colorStartMessageId . str_pad($messageid, $messageidWidth) . $reset;
+        $formatted .= $colorStartStatus . str_pad($status, $statusWidth) . $reset;
+        $formatted .= $colorStartMessage . $message . $reset;
+
+        return $formatted . PHP_EOL;
+    }
+
     function isGreeting($message,$ignoreCase = true,$ignorePunctuation = true){
 
         $originalMessage = trim($message);
