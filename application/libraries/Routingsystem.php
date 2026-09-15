@@ -19,6 +19,7 @@ class Routingsystem {
 		'auth',
 		'Webhook',
 		'restapi',
+		'generateresumeai',
 		'generateresume',
 		'Whatsapp',
 		'listpasienbooking',
