@@ -355,12 +355,17 @@
 
         $originalMessage = trim($message);
 
+        if(empty($originalMessage)){
+            return false;
+        }
+
         if($ignoreCase){
             $originalMessage = strtoupper($originalMessage);
         }
 
         if($ignorePunctuation){
-            $originalMessage = preg_replace('/[[:punct:]]/', '', $originalMessage);
+            $originalMessage = preg_replace('/[[:punct:]]/', ' ', $originalMessage);
+            $originalMessage = preg_replace('/\s+/', ' ', $originalMessage);
             $originalMessage = trim($originalMessage);
         }
 
@@ -382,7 +387,8 @@
             'ADA MASALAH',
             'ADA KENDALA',
             'SAYA PUNYA KELUHAN',
-            'SAYA INGIN MENYAMPAIKAN KELUHAN'
+            'SAYA INGIN MENYAMPAIKAN KELUHAN',
+            'SAYA MAU MENYAMPAIKAN KELUHAN'
         );
 
         foreach($keluhan as $item){
@@ -394,11 +400,18 @@
             }
 
             if($ignorePunctuation){
-                $compare = preg_replace('/[[:punct:]]/', '', $compare);
+                $compare = preg_replace('/[[:punct:]]/', ' ', $compare);
+                $compare = preg_replace('/\s+/', ' ', $compare);
                 $compare = trim($compare);
             }
 
+            // Exact match
             if($originalMessage === $compare){
+                return true;
+            }
+
+            // Match jika pesan mengandung keyword/kalimat keluhan
+            if(strpos($originalMessage, $compare) !== false){
                 return true;
             }
         }
