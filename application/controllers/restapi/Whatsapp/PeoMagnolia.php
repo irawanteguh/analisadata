@@ -289,7 +289,7 @@
                         "Terima kasih atas kepercayaan Anda kepada *RSUD Pasar Minggu*.";
 
                     $result = $this->openwa->sendImageChatid(
-                        "70ac719d-e2aa-405f-bd50-a1aaa724bfdf",
+                        "a60fc13c-9c63-4d47-9380-c104b3c8c467",
                         $chatid,
                         "https://rsudpasarminggu.jakarta.go.id/analisadata/assets/media/whatsapp/media_keluhan.png",
                         $reply
@@ -331,7 +331,7 @@
                         "Terima kasih.\n*RSUD Pasar Minggu*";
 
                     $result = $this->openwa->sendImageChatid(
-                        "70ac719d-e2aa-405f-bd50-a1aaa724bfdf",
+                        "a60fc13c-9c63-4d47-9380-c104b3c8c467",
                         $chatid,
                         "https://rsudpasarminggu.jakarta.go.id/analisadata/assets/media/whatsapp/media_jam_besuk.png",
                         $reply
