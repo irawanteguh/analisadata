@@ -152,15 +152,15 @@ class ResumeAI extends REST_Controller {
         }
 
         if(empty($resultkeluhanutama)){
+            $dataresumefailed['EPISODE_ID']  = $episodeid;
+            $this->md->insertresumefailed($dataresumefailed);
+
             $body['status']                = false;
             $body['code']                  = 404;
             $body['message']               = "Source Data Tidak Tersedia";
             $body['metadata']['timestamp'] = date('Y-m-d H:i:s');
 
             return $this->response($body, 404);
-
-            $dataresumefailed['EPISODE_ID']  = $episodeid;
-            $this->md->insertresumefailed($dataresumefailed);
         }
         
         $resultobat           = $this->md->obat($episodeid);
