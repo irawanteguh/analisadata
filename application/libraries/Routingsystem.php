@@ -16,14 +16,22 @@ class Routingsystem {
 	private static $activeCache = [];
 
 	private static $publicRoutes = [
-		'',
 		'auth',
-		'booking',
-		'public',
-		'api',
-		'cron',
-		'callback',
-		'webhook'
+		'Webhook',
+		'restapi',
+		'Whatsapp',
+		'listpasienbooking',
+		'listbatalbooking',
+		'listreminderbooking',
+		'listpasienadaobat',
+		'googlereview',
+		'greeting',
+		'keluhan',
+		'jambesuk',
+		'biaya',
+		'pendaftaran',
+		'bpjs',
+		'alamat'
 	];
 
 	public static function system()
