@@ -297,11 +297,12 @@
 
                     $http_status = $result['success'] ? REST_Controller::HTTP_OK : REST_Controller::HTTP_BAD_GATEWAY;
 
-                    $this->response([
-                        'status'   => $result['success'],
-                        'message'  => $result['message'],
-                        'response' => $result['response']
-                    ], $http_status);
+                    $responseopenwa['status']   = $result['success'];
+                    $responseopenwa['message']  = $result['message']; 
+                    $responseopenwa['response'] = $result['response'];
+
+                    $this->mw->updatewebhook($a->IDEMPOTENCY_KEY, array("RESPONSE_STATUS"=>"Y"));
+                    $this->response($responseopenwa, $http_status);
                 }
             }
         }
@@ -339,11 +340,12 @@
 
                     $http_status = $result['success'] ? REST_Controller::HTTP_OK : REST_Controller::HTTP_BAD_GATEWAY;
 
-                    $this->response([
-                        'status'   => $result['success'],
-                        'message'  => $result['message'],
-                        'response' => $result['response']
-                    ], $http_status);
+                    $responseopenwa['status']   = $result['success'];
+                    $responseopenwa['message']  = $result['message']; 
+                    $responseopenwa['response'] = $result['response'];
+
+                    $this->mw->updatewebhook($a->IDEMPOTENCY_KEY, array("RESPONSE_STATUS"=>"Y"));
+                    $this->response($responseopenwa, $http_status);
                 }
             }
         }
