@@ -115,10 +115,11 @@ class ResumeAI extends REST_Controller {
     }
 
     public function generateresumeai_post($episodeid){
-        $body        = [];
-        $sourcedata  = [];
-        $dataresume  = [];
-        $statusjenis = "";
+        $body             = [];
+        $sourcedata       = [];
+        $dataresume       = [];
+        $dataresumefailed = [];
+        $statusjenis      = "";
 
         $resultkunjungan = $this->md->kunjungan($episodeid);
         $statusjenis     = $resultkunjungan->STATUSJENIS;
@@ -157,6 +158,9 @@ class ResumeAI extends REST_Controller {
             $body['metadata']['timestamp'] = date('Y-m-d H:i:s');
 
             return $this->response($body, 404);
+
+            $dataresumefailed['EPISODE_ID']  = $episodeid;
+            $this->md->insertresumefailed($dataresumefailed);
         }
         
         $resultobat           = $this->md->obat($episodeid);

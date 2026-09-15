@@ -21,6 +21,11 @@
                             FROM WEB_CO_RESUME_RANAP_AI B
                             WHERE B.EPISODE_ID = A.EPISODE_ID
                         )
+                        AND NOT EXISTS (
+                            SELECT 1
+                            FROM WEB_CO_RESUME_AI_FAILED B
+                            WHERE B.EPISODE_ID = A.EPISODE_ID
+                        )
                         ORDER BY A.TGL_KELUAR DESC
                         FETCH FIRST 30 ROWS ONLY
                     ";
@@ -510,6 +515,11 @@
 
         function insertresume($data){           
             $sql =   $this->db->insert("WEB_CO_RESUME_RANAP_AI",$data);
+            return $sql;
+        }
+
+        function insertresumefailed($data){           
+            $sql =   $this->db->insert("WEB_CO_RESUME_AI_FAILED",$data);
             return $sql;
         }
 
