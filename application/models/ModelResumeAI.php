@@ -48,7 +48,7 @@
                                         'NPP'
                                         ELSE
                                         CASE
-                                            WHEN X.RUANGRWT_ID LIKE 'PERINA%' AND X.RUANGIDFIRST LIKE 'PERINA%' THEN
+                                            WHEN (X.RUANGRWT_ID LIKE 'PERINA%' AND X.RUANGIDFIRST LIKE 'PERINA%') OR (X.RUANGRWT_ID LIKE 'NICU%' AND X.RUANGIDFIRST LIKE 'PERINA%') THEN
                                             'PERINA'
                                             ELSE
                                             'NORMAL'
