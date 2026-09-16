@@ -166,16 +166,16 @@ async function callAPI(endpoint, method = "GET", body = null) {
 }
 
 async function runservices() {
-    await callAPI("listpasienbooking", "POST");
-    await callAPI("listreminderbooking", "POST");
-    await callAPI("listbatalbooking", "POST");
-    await callAPI("listpasienadaobat", "POST");
-    await callAPI("googlereview", "POST");
+    // await callAPI("listpasienbooking", "POST");
+    // await callAPI("listreminderbooking", "POST");
+    // await callAPI("listbatalbooking", "POST");
+    // await callAPI("listpasienadaobat", "POST");
+    // await callAPI("googlereview", "POST");
 
 
     // await callAPI("greeting", "POST");
     // await callAPI("biaya", "POST");
-    // await callAPI("pendaftaran", "POST");
+    await callAPI("pendaftaran", "POST");
     // await callAPI("bpjs", "POST");
     // await callAPI("alamat", "POST");
     // await callAPI("keluhan", "POST");
@@ -200,4 +200,4 @@ async function runservicesSafe() {
 
 console.clear();
 runservicesSafe();
-// setInterval(runservicesSafe, 3000);
+setInterval(runservicesSafe, 3000);

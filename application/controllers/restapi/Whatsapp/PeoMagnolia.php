@@ -63,20 +63,15 @@
                     "👋 *Halo, selamat datang di RSUD Pasar Minggu.*\n\n".
                     "Terima kasih telah menghubungi kami.\n".
                     "Saya *PEO (Patient Experience Officer)*, siap membantu Anda mendapatkan informasi dan layanan di RSUD Pasar Minggu.\n".
-                    "Apabila terdapat pertanyaan dan kebutuhan informasi lainnya silahkan tulis pertanyaan dikolom chat.\n".
-                    "Terima kasih.\n*RSUD Pasar Minggu*";
+                    "Apabila terdapat pertanyaan dan kebutuhan informasi lainnya silahkan tulis pertanyaan dikolom chat.\n\n".
+                    "PEO (Patient Experience Officer)\nAsisten layanan digital RSUD Pasar Minggu";
 
-                    $result = $this->openwa->sendTextChatid(
-                        OPENWA_SESSION_ID_PEO,
-                        $chatid,
-                        $reply
-                    );
+                    $result = $this->openwa->sendTextChatid(OPENWA_SESSION_ID_PEO,$chatid,$reply);
 
                     $this->mw->updatewebhook($a->IDEMPOTENCY_KEY, array("RESPONSE_STATUS"=>"Y"));
-                    echo formatlogwhatsapp(date('Y-m-d H:i:s', $result['response']['timestamp']), isset($result['response']['messageId']) ? $result['response']['messageId'] : '-', isset($result['success']) && $result['success'] ? 'SENT' : 'FAILED', isset($result['message']) ? $result['message'] : '-', isset($result['success']) && $result['success'] ? 'green' : 'red', isset($result['success']) && $result['success'] ? 'green' : 'red', isset($result['success']) && $result['success'] ? 'green' : 'red', isset($result['success']) && $result['success'] ? 'green' : 'red');
+                    echo formatlogwhatsapp(!empty($result['response']['timestamp']) ? date('Y-m-d H:i:s',$result['response']['timestamp']) : date('Y-m-d H:i:s'),$result['response']['messageId'] ?? '',isset($result['response']) ? ($result['success'] ? 'SENT' : 'FAILED') : 'FAILED',isset($result['response']) ? ($result['message'] ?? '') : 'Tidak Mendapatkan response',isset($result['response']) && !empty($result['success']) ? 'green' : 'red',isset($result['response']) && !empty($result['success']) ? 'green' : 'red',isset($result['response']) && !empty($result['success']) ? 'green' : 'red',isset($result['response']) && !empty($result['success']) ? 'green' : 'red');
                 }
             }
-
         }
 
         public function biaya_POST(){
@@ -102,18 +97,15 @@
 
                     $reply =
                     "👩‍⚕️ *Informasi Biaya Pemeriksaan*\n\n".
-                    "Untuk biaya pendaftaran dan pemeriksaan dokter sebesar *Rp. 300.000*.\n".
+                    "Untuk biaya pendaftaran dan pemeriksaan dokter klinik magnolia sebesar *Rp. 300.000*.\n".
                     "Biaya tersebut *belum termasuk biaya tindakan / treatment dan obat*, apabila diperlukan.\n".
-                    "Mohon informasikan jenis tindakan atau treatment yang ingin ditanyakan agar kami dapat membantu memberikan informasi lebih lanjut.";
+                    "Mohon informasikan jenis tindakan atau treatment yang ingin ditanyakan agar kami dapat membantu memberikan informasi lebih lanjut.\n\n".
+                    "PEO (Patient Experience Officer)\nAsisten layanan digital RSUD Pasar Minggu";
 
-                    $result = $this->openwa->sendTextChatid(
-                        OPENWA_SESSION_ID_PEO,
-                        $chatid,
-                        $reply
-                    );
+                    $result = $this->openwa->sendTextChatid(OPENWA_SESSION_ID_PEO,$chatid,$reply);
 
                     $this->mw->updatewebhook($a->IDEMPOTENCY_KEY, array("RESPONSE_STATUS"=>"Y"));
-                    echo formatlogwhatsapp(date('Y-m-d H:i:s', $result['response']['timestamp']), isset($result['response']['messageId']) ? $result['response']['messageId'] : '-', isset($result['success']) && $result['success'] ? 'SENT' : 'FAILED', isset($result['message']) ? $result['message'] : '-', isset($result['success']) && $result['success'] ? 'green' : 'red', isset($result['success']) && $result['success'] ? 'green' : 'red', isset($result['success']) && $result['success'] ? 'green' : 'red', isset($result['success']) && $result['success'] ? 'green' : 'red');
+                    echo formatlogwhatsapp(!empty($result['response']['timestamp']) ? date('Y-m-d H:i:s',$result['response']['timestamp']) : date('Y-m-d H:i:s'),$result['response']['messageId'] ?? '',isset($result['response']) ? ($result['success'] ? 'SENT' : 'FAILED') : 'FAILED',isset($result['response']) ? ($result['message'] ?? '') : 'Tidak Mendapatkan response',isset($result['response']) && !empty($result['success']) ? 'green' : 'red',isset($result['response']) && !empty($result['success']) ? 'green' : 'red',isset($result['response']) && !empty($result['success']) ? 'green' : 'red',isset($result['response']) && !empty($result['success']) ? 'green' : 'red');
                 }
             }
         }
@@ -141,19 +133,17 @@
 
                     $reply =
                         "📋 *Informasi Pendaftaran RSUD Pasar Minggu*\n\n".
-                        "Untuk pendaftaran, Bapak/Ibu dapat mendaftar secara online melalui *e-Pasien*:\n".
+                        "Untuk pendaftaran klinik magnolia, Bapak/Ibu dapat mendaftar secara online melalui *e-Pasien*:\n".
                         "https://rsudpasarminggu.jakarta.go.id/e-pasien/index.php/auth\n\n".
                         "Atau dapat langsung mendaftar di *Klinik Magnolia Lantai 2* sesuai dengan jam praktik dokter. 🙏🏻\n\n".
-                        "⚠️ *Pendaftaran ditutup 30 menit sebelum jam praktik dokter.*";
+                        "⚠️ *Pendaftaran ditutup 30 menit sebelum jam praktik dokter.*\n\n".
+                        "PEO (Patient Experience Officer)\nAsisten layanan digital RSUD Pasar Minggu";
 
-                    $result = $this->openwa->sendTextChatid(
-                        OPENWA_SESSION_ID_PEO,
-                        $chatid,
-                        $reply
-                    );
+                    $result = $this->openwa->sendTextChatid(OPENWA_SESSION_ID_PEO,$chatid,$reply);
 
                     $this->mw->updatewebhook($a->IDEMPOTENCY_KEY, array("RESPONSE_STATUS"=>"Y"));
-                    echo formatlogwhatsapp(date('Y-m-d H:i:s', $result['response']['timestamp']), isset($result['response']['messageId']) ? $result['response']['messageId'] : '-', isset($result['success']) && $result['success'] ? 'SENT' : 'FAILED', isset($result['message']) ? $result['message'] : '-', isset($result['success']) && $result['success'] ? 'green' : 'red', isset($result['success']) && $result['success'] ? 'green' : 'red', isset($result['success']) && $result['success'] ? 'green' : 'red', isset($result['success']) && $result['success'] ? 'green' : 'red');
+                    echo formatlogwhatsapp(!empty($result['response']['timestamp']) ? date('Y-m-d H:i:s',$result['response']['timestamp']) : date('Y-m-d H:i:s'),$result['response']['messageId'] ?? '',isset($result['response']) ? ($result['success'] ? 'SENT' : 'FAILED') : 'FAILED',isset($result['response']) ? ($result['message'] ?? '') : 'Tidak Mendapatkan response',isset($result['response']) && !empty($result['success']) ? 'green' : 'red',isset($result['response']) && !empty($result['success']) ? 'green' : 'red',isset($result['response']) && !empty($result['success']) ? 'green' : 'red',isset($result['response']) && !empty($result['success']) ? 'green' : 'red');
+                
                 }
             }
         }

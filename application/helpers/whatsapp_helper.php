@@ -118,67 +118,126 @@
 
         $originalMessage = trim($message);
 
+        if($originalMessage == ''){
+            return false;
+        }
+
+        // Normalisasi huruf
         if($ignoreCase){
             $originalMessage = strtoupper($originalMessage);
         }
 
+        // Normalisasi tanda baca
         if($ignorePunctuation){
-            $originalMessage = preg_replace('/[[:punct:]]/', '', $originalMessage);
-            $originalMessage = trim($originalMessage);
+            $originalMessage = preg_replace('/[^\p{L}\p{N}\s]/u',' ',$originalMessage);
         }
 
-        $biaya = array(
+        // Normalisasi spasi
+        $originalMessage = preg_replace('/\s+/u',' ',trim($originalMessage));
 
-            // Biaya umum
+        /*
+        * 1. Kata utama biaya
+        */
+        $keywordBiaya = array(
             'BIAYA',
             'HARGA',
             'TARIF',
-            'BERAPA BIAYANYA',
-            'BERAPA HARGANYA',
-            'BERAPA TARIFNYA',
-
-            // Pemeriksaan
-            'BIAYA PEMERIKSAAN',
-            'HARGA PEMERIKSAAN',
-            'TARIF PEMERIKSAAN',
-
-            // Dokter
-            'BIAYA DOKTER',
-            'HARGA DOKTER',
-            'TARIF DOKTER',
-            'BIAYA KONSULTASI',
-            'HARGA KONSULTASI',
-            'TARIF KONSULTASI',
-
-            // Treatment
-            'BIAYA TREATMENT',
-            'HARGA TREATMENT',
-            'TARIF TREATMENT',
-
-            // Poli kulit
-            'BIAYA POLI KULIT',
-            'HARGA POLI KULIT',
-            'TARIF POLI KULIT',
-            'BIAYA DOKTER KULIT',
-            'HARGA DOKTER KULIT',
-            'TARIF DOKTER KULIT'
+            'ONGKOS',
+            'BAYAR',
+            'PEMBAYARAN',
+            'HARGANYA',
+            'BIAYANYA',
+            'TARIFNYA'
         );
 
-        foreach($biaya as $item){
+        /*
+        * 2. Pola pertanyaan biaya
+        */
+        $patternBiaya = array(
+            'BERAPA BIAYA',
+            'BERAPA HARGA',
+            'BERAPA TARIF',
+            'BIAYA BERAPA',
+            'HARGA BERAPA',
+            'TARIF BERAPA',
+            'BIAYANYA BERAPA',
+            'HARGANYA BERAPA',
+            'TARIFNYA BERAPA',
+            'BERAPA YANG HARUS DIBAYAR',
+            'HARUS BAYAR BERAPA',
+            'BAYAR BERAPA',
+            'KENA BERAPA',
+            'TOTAL BAYAR BERAPA',
+            'BIAYA NYA BERAPA',
+            'HARGA NYA BERAPA',
+            'TARIF NYA BERAPA'
+        );
 
-            $compare = $item;
+        /*
+        * 3. Konteks pelayanan
+        */
+        $keywordLayanan = array(
+            'PENDAFTARAN',
+            'DAFTAR',
+            'REGISTRASI',
+            'PEMERIKSAAN',
+            'DOKTER',
+            'KONSULTASI',
+            'POLI',
+            'TINDAKAN',
+            'TREATMENT',
+            'RAWAT JALAN',
+            'RAWAT INAP',
+            'IGD',
+            'UGD',
+            'LABORATORIUM',
+            'LAB',
+            'RADIOLOGI',
+            'USG',
+            'RONTGEN',
+            'KULIT'
+        );
 
-            if($ignoreCase){
-                $compare = strtoupper($compare);
-            }
+        /*
+        * 4. Jika ada pola pertanyaan biaya
+        */
+        foreach($patternBiaya as $pattern){
 
-            if($ignorePunctuation){
-                $compare = preg_replace('/[[:punct:]]/', '', $compare);
-                $compare = trim($compare);
-            }
-
-            if(strpos($originalMessage, $compare) !== false){
+            if(strpos($originalMessage,$pattern) !== false){
                 return true;
+            }
+        }
+
+        /*
+        * 5. Jika ada keyword biaya langsung
+        */
+        foreach($keywordBiaya as $keyword){
+
+            $pattern = '/\b'.preg_quote($keyword,'/').'\b/u';
+
+            if(preg_match($pattern,$originalMessage)){
+                return true;
+            }
+        }
+
+        /*
+        * 6. Kombinasi "berapa" + konteks layanan
+        *
+        * Contoh:
+        * PENDAFTARAN BERAPA
+        * DOKTER BERAPA
+        * POLI KULIT BERAPA
+        */
+        if(strpos($originalMessage,'BERAPA') !== false){
+
+            foreach($keywordLayanan as $layanan){
+
+                $pattern = '/\b'.preg_quote($layanan,'/').'\b/u';
+
+                if(preg_match($pattern,$originalMessage)){
+
+                    return true;
+                }
             }
         }
 
