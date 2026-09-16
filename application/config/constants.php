@@ -32,9 +32,10 @@
             define('BPJS_CKEY', '1uADAB4568');
             define('BPJS_USER_KEY', 'f76a89365f8c920aa05712ef77e0ea51');
             define('BPJS_BASE_URL_VCLAIM', 'https://apijkn.bpjs-kesehatan.go.id/vclaim-rest');
-            define('OPENWA_SESSION_ID_PEO', 'a60fc13c-9c63-4d47-9380-c104b3c8c467');
+            define('OPENWA_SESSION_ID_PEO', '3124f4aa-4f6f-436f-a9bb-9c5e98c88932');
             define('OPENWA_BASE_URL', 'http://192.168.200.41:2785');
-            define('OPENWA_API_KEY', 'owa_k1_d97c9ab8faabbe4f14aac38858d4caa8fe9d5de9c789f5cfffdf863a0c543212');
+            define('OPENWA_API_KEY', 'owa_k1_33c1ff3e4cb5526e2e39af17c0934755cf49c160c96e81a906db66a92b9c1a88');
+            define('OPENWA_WEBHOOK_URL', 'https://rsudpasarminggu.jakarta.go.id/analisadata/index.php/restapi/Whatsapp/Webhook');
         break;
     }
     

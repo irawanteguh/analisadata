@@ -17,8 +17,8 @@ for (const iface of Object.values(interfaces)) {
     }
 }
 
-// const BASE_URL = process.env.BASE_URL || `http://${host}/dataanalyst/analisadata/index.php/`;
-const BASE_URL = process.env.BASE_URL || `http://192.168.200.41:8080/analisadata/index.php/`;
+const BASE_URL = process.env.BASE_URL || `http://localhost/dataanalyst/analisadata/index.php/`;
+// const BASE_URL = process.env.BASE_URL || `http://192.168.200.41:8080/analisadata/index.php/`;
 
 function getTimeStamp() {
   const now = new Date();
@@ -166,13 +166,20 @@ async function callAPI(endpoint, method = "GET", body = null) {
 }
 
 async function runservices() {
-    await callAPI("greeting", "POST");
-    await callAPI("biaya", "POST");
-    await callAPI("pendaftaran", "POST");
-    await callAPI("bpjs", "POST");
-    await callAPI("alamat", "POST");
-    await callAPI("keluhan", "POST");
-    await callAPI("jambesuk", "POST");
+    await callAPI("listpasienbooking", "POST");
+    await callAPI("listreminderbooking", "POST");
+    await callAPI("listbatalbooking", "POST");
+    await callAPI("listpasienadaobat", "POST");
+    await callAPI("googlereview", "POST");
+
+
+    // await callAPI("greeting", "POST");
+    // await callAPI("biaya", "POST");
+    // await callAPI("pendaftaran", "POST");
+    // await callAPI("bpjs", "POST");
+    // await callAPI("alamat", "POST");
+    // await callAPI("keluhan", "POST");
+    // await callAPI("jambesuk", "POST");
 }
 
 async function runservicesSafe() {
@@ -193,4 +200,4 @@ async function runservicesSafe() {
 
 console.clear();
 runservicesSafe();
-setInterval(runservicesSafe, 3000);
+// setInterval(runservicesSafe, 3000);

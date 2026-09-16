@@ -11,8 +11,9 @@
     $route['rujukanbpjs']       = 'restapi/BPJS/Rujukankeluar/rujukanbpjs';
 
     $route['listpasienbooking']   = 'restapi/Whatsapp/Rawatjalan/listpasienbooking';
-    $route['listbatalbooking']    = 'restapi/Whatsapp/Rawatjalan/listbatalbooking';
     $route['listreminderbooking'] = 'restapi/Whatsapp/Rawatjalan/listreminderbooking';
+    $route['listbatalbooking']    = 'restapi/Whatsapp/Rawatjalan/listbatalbooking';
+    
     $route['listpasienadaobat']   = 'restapi/Whatsapp/Rawatjalan/listpasienadaobat';
     $route['googlereview']        = 'restapi/Whatsapp/Rawatjalan/googlereview';
     
