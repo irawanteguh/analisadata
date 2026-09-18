@@ -6,13 +6,13 @@ class Routingsystem {
 
 	protected static $app;
 
-	public static $segment1 = '';
-	public static $segment2 = '';
-	public static $pageTitle = 'Analisa Data';
+	public static $segment1   = '';
+	public static $segment2   = '';
+	public static $pageTitle  = 'Analisa Data';
 	public static $resultmenu = [];
 	public static $activeMenu = [];
 
-	private static $children = [];
+	private static $children    = [];
 	private static $activeCache = [];
 
 	private static $publicRoutes = [
@@ -27,6 +27,7 @@ class Routingsystem {
 		'listreminderbooking',
 		'listpasienadaobat',
 		'googlereview',
+		'mcu',
 		'greeting',
 		'keluhan',
 		'jambesuk',

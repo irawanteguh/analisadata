@@ -122,5 +122,109 @@
             return $recordset;
         }
 
+        function mcu($templateid){
+            $query =
+                    "
+                        SELECT PASIEN_ID,
+                            TGL_MASUK AS TGL_MCU_TERAKHIR,
+                            TGLMASUK,
+                            NAMAPASIEN,
+                            NOMORHP,
+                            JMLHARI,
+                            SEGMENT
+                        FROM (
+                            SELECT X.*,
+                                ROW_NUMBER() OVER (
+                                    PARTITION BY SEGMENT
+                                    ORDER BY TGL_MASUK ASC, PASIEN_ID
+                                ) AS RN_SEGMENT
+                            FROM (
+                                SELECT A.PASIEN_ID,
+                                    A.TGL_MASUK,
+
+                                    TO_CHAR(
+                                        A.TGL_MASUK,
+                                        'FMDay, FMDD FMMonth YYYY',
+                                        'NLS_DATE_LANGUAGE=INDONESIAN'
+                                    ) AS TGLMASUK,
+
+                                    SR01_GET_SUFFIX(A.PASIEN_ID) AS NAMAPASIEN,
+
+                                    '+6281288646630' AS NOMORHP,
+
+                                    SR01_HITUNG_UMURDLMHARI(
+                                        A.TGL_MASUK,
+                                        TRUNC(SYSDATE)
+                                    ) AS JMLHARI,
+
+                                    CASE
+                                        WHEN SR01_HITUNG_UMURDLMHARI(
+                                                    A.TGL_MASUK,
+                                                    TRUNC(SYSDATE)
+                                                ) >= 365
+                                            THEN 'MCU_1_TAHUN'
+
+                                        WHEN SR01_HITUNG_UMURDLMHARI(
+                                                    A.TGL_MASUK,
+                                                    TRUNC(SYSDATE)
+                                                ) >= 180
+                                            THEN 'MCU_6_BULAN'
+
+                                        WHEN SR01_HITUNG_UMURDLMHARI(
+                                                    A.TGL_MASUK,
+                                                    TRUNC(SYSDATE)
+                                                ) >= 91
+                                            THEN 'MCU_3_BULAN'
+                                    END AS SEGMENT,
+
+                                    ROW_NUMBER() OVER (
+                                        PARTITION BY A.PASIEN_ID
+                                        ORDER BY A.TGL_MASUK DESC
+                                    ) AS RN
+
+                                FROM SR01_KEU_EPISODE A
+
+                                WHERE A.LOKASI_ID = '001'
+                                AND A.AKTIF = '1'
+                                AND A.STATUS_EPISODE = '55'
+                                AND A.JENIS_EPISODE = 'O'
+                                AND A.POLI_ID = 'MEDIC0000000000'
+                                AND A.REKANAN_ID = 'UMUM'
+                                AND A.EPISODE_ID NOT IN (SELECT EPISODE_ID FROM SR01_WHATSAPP_BROADCAST_HD WHERE AKTIF='1' AND TEMPLATE_ID='".$templateid."' AND PASIEN_ID=A.PASIEN_ID)
+                                AND NOT EXISTS (
+                                    SELECT 1
+                                    FROM SR01_KEU_EPISODE I
+                                    WHERE I.LOKASI_ID = '001'
+                                        AND I.AKTIF = '1'
+                                        AND I.STATUS_EPISODE = '55'
+                                        AND I.JENIS_EPISODE = 'I'
+                                        AND I.PULANG_ID IN (
+                                            'P04',
+                                            'P03',
+                                            'P10',
+                                            'P11',
+                                            'P0X'
+                                        )
+                                        AND I.PASIEN_ID = A.PASIEN_ID
+                                )
+                            ) X
+                            WHERE RN = 1
+                            AND JMLHARI >= 91
+                        )
+                        WHERE RN_SEGMENT <= 1
+                        ORDER BY
+                            CASE SEGMENT
+                                WHEN 'MCU_3_BULAN' THEN 1
+                                WHEN 'MCU_6_BULAN' THEN 2
+                                WHEN 'MCU_1_TAHUN' THEN 3
+                            END,
+                            JMLHARI ASC;
+                    ";
+
+            $recordset = $this->db->query($query);
+            $recordset = $recordset->result();
+            return $recordset;
+        }
+
     }
 ?>

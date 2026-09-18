@@ -205,7 +205,7 @@
         public function googlereview_POST(){
             $templateid   = "1ef87844-ddbb-46bb-8405-f9a2a280f95d";
             $templatename = "Google Review";
-            $linkimage     = 'https://rsudpasarminggu.jakarta.go.id/analisadata/assets/media/whatsapp/google_review.png';
+            $linkimage    = 'https://rsudpasarminggu.jakarta.go.id/analisadata/assets/media/whatsapp/google_review.png';
 
             $resultlistpasienbooking = $this->md->googlereview($templateid);
 
@@ -225,7 +225,55 @@
                         "Masukan dari Anda sangat berarti bagi kami untuk terus meningkatkan kualitas pelayanan *RSUD Pasar Minggu*.\n" .
                         "Silakan klik link berikut ini : https://share.google/TcMaR25FVOf7BrgaK"."\n\n" .
                         
-                        "PEO (Patient Experience Officer)\nAsisten layanan digital RSUD Pasar Minggu";
+                        "PEO (Patient Experience Officer)\n" .
+                        "Asisten layanan digital *RSUD Pasar Minggu*";
+
+                $result = $this->openwa->sendImage(OPENWA_SESSION_ID_PEO,$a->NOMORHP,$linkimage,$caption);
+
+                $datasimpan['PASIEN_ID']     = $a->PASIEN_ID;
+                $datasimpan['EPISODE_ID']    = $a->EPISODE_ID;
+                $datasimpan['NO_HP']         = $a->NOMORHP;
+                $datasimpan['X_ID']          = $result['response']['messageId'] ?? '';
+                $datasimpan['TIMESTAMP']     = $result['response']['timestamp'] ?? '';
+                $datasimpan['STATUS']        = $result['success'] ?? '';
+                $datasimpan['TEMPLATE_NAME'] = $templatename;
+                $datasimpan['TEMPLATE_ID']   = $templateid;
+                $this->mw->insertlogwhatsapp($datasimpan);
+
+                echo formatlogwhatsapp(!empty($result['response']['timestamp']) ? date('Y-m-d H:i:s',$result['response']['timestamp']) : date('Y-m-d H:i:s'),$result['response']['messageId'] ?? '',isset($result['response']) ? ($result['success'] ? 'SENT' : 'FAILED') : 'FAILED',isset($result['response']) ? ($result['message'] ?? '') : 'Tidak Mendapatkan response',isset($result['response']) && !empty($result['success']) ? 'green' : 'red',isset($result['response']) && !empty($result['success']) ? 'green' : 'red',isset($result['response']) && !empty($result['success']) ? 'green' : 'red',isset($result['response']) && !empty($result['success']) ? 'green' : 'red');
+            }
+        }
+
+        public function mcu_POST(){
+            $templateid   = "0cce44b0-efd2-4c31-a558-b289202db474";
+            $templatename = "Medical Check Up";
+            $linkimage    = 'https://rsudpasarminggu.jakarta.go.id/analisadata/assets/media/whatsapp/medical_check_up.png';
+
+            $resultlistpasienbooking = $this->md->mcu($templateid);
+
+            if(empty($resultlistpasienbooking)){
+                echo color('red')."Data Tidak Ditemukan";
+                return;
+            }
+
+            foreach ($resultlistpasienbooking as $a) {
+
+                $caption =
+                            "Halo *" . $a->NAMAPASIEN . "*,\n\n" .
+
+                            "Salam sehat dari *RSUD Pasar Minggu*. 👋\n" .
+                            "Kami ingin mengingatkan Bapak/Ibu bahwa pemeriksaan *Medical Check Up (MCU)* dapat dilakukan secara berkala untuk membantu memantau kondisi kesehatan.\n" .
+                            "Jika Bapak/Ibu ingin melakukan MCU kembali, *RSUD Pasar Minggu* siap membantu memberikan informasi mengenai pilihan pemeriksaan dan proses pendaftarannya.\n\n" .
+
+                            "📍 *RSUD Pasar Minggu*\n" .
+                            "📱 Informasi : https://rsudpasarminggu.jakarta.go.id/mcu/detail/paket-dasar-1 \n\n" .
+
+                            "Silakan balas pesan ini apabila membutuhkan informasi lebih lanjut.\n\n" .
+
+                            "Semoga Bapak/Ibu selalu sehat. 🙏\n\n" .
+
+                            "PEO (Patient Experience Officer)\n" .
+                            "Asisten layanan digital *RSUD Pasar Minggu*";
 
                 $result = $this->openwa->sendImage(OPENWA_SESSION_ID_PEO,$a->NOMORHP,$linkimage,$caption);
 
