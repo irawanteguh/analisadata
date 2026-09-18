@@ -218,7 +218,7 @@
                                 WHEN 'MCU_6_BULAN' THEN 2
                                 WHEN 'MCU_1_TAHUN' THEN 3
                             END,
-                            JMLHARI ASC;
+                            JMLHARI ASC
                     ";
 
             $recordset = $this->db->query($query);
