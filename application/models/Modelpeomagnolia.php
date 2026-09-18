@@ -9,8 +9,7 @@
                         WHERE A.LOKASI_ID='001'
                         AND   A.AKTIF='1'
                         AND   A.RESPONSE_STATUS='N'
-                        AND   A.PUSH_NAME='Teguh Irawan'
-                        -- AND   A.PUSH_NAME IN ('Teguh Irawan','Desty Wijayanti','Fauziyyah','Wahyuni Ari Safitri Rahma','marketingrsudpm','Tisha')
+                        AND   A.PUSH_NAME IN ('Teguh Irawan','Desty Wijayanti','Fauziyyah','Wahyuni Ari Safitri Rahma','marketingrsudpm','Tisha')
                         ORDER BY A.CREATED_DATE DESC
                         FETCH FIRST 1 ROWS ONLY
                     ";
