@@ -190,7 +190,7 @@
                                 AND A.JENIS_EPISODE = 'O'
                                 AND A.POLI_ID = 'MEDIC0000000000'
                                 AND A.REKANAN_ID = 'UMUM'
-                                AND A.EPISODE_ID NOT IN (SELECT EPISODE_ID FROM SR01_WHATSAPP_BROADCAST_HD WHERE AKTIF='1' AND TEMPLATE_ID='".$templateid."' AND PASIEN_ID=A.PASIEN_ID)
+                                AND A.PASIEN_ID NOT IN (SELECT PASIEN_ID FROM SR01_WHATSAPP_BROADCAST_HD WHERE AKTIF='1' AND TEMPLATE_ID='".$templateid."' AND PASIEN_ID=A.PASIEN_ID)
                                 AND NOT EXISTS (
                                     SELECT 1
                                     FROM SR01_KEU_EPISODE I
