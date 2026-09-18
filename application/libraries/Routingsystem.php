@@ -33,7 +33,14 @@ class Routingsystem {
 		'biaya',
 		'pendaftaran',
 		'bpjs',
-		'alamat'
+		'alamat',
+		'nlp',
+		'nlp/test',
+		'nlp/dataset',
+		'nlp/evaluate',
+		'nlp/miss',
+		'nlp/multi',
+		'nlp/confusion'
 	];
 
 	public static function system()

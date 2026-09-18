@@ -173,13 +173,13 @@ async function runservices() {
     // await callAPI("googlereview", "POST");
 
 
-    // await callAPI("greeting", "POST");
-    // await callAPI("biaya", "POST");
+    await callAPI("greeting", "POST");
+    await callAPI("biaya", "POST");
     await callAPI("pendaftaran", "POST");
-    // await callAPI("bpjs", "POST");
-    // await callAPI("alamat", "POST");
-    // await callAPI("keluhan", "POST");
-    // await callAPI("jambesuk", "POST");
+    await callAPI("bpjs", "POST");
+    await callAPI("alamat", "POST");
+    await callAPI("keluhan", "POST");
+    await callAPI("jambesuk", "POST");
 }
 
 async function runservicesSafe() {

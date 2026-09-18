@@ -25,23 +25,136 @@
         return $formatted . PHP_EOL;
     }
 
-    function isGreeting($message,$ignoreCase = true,$ignorePunctuation = true){
+    function normalizeNLP($message)
+    {
+        $text = trim($message);
 
-        $originalMessage = trim($message);
-
-        if($ignoreCase){
-            $originalMessage = strtoupper($originalMessage);
+        if ($text == '') {
+            return '';
         }
 
-        if($ignorePunctuation){
-            $originalMessage = preg_replace('/[[:punct:]]/', '', $originalMessage);
-            $originalMessage = trim($originalMessage);
+        $text = strtoupper($text);
+
+        /*
+        |--------------------------------------------------------------------------
+        | Normalisasi typo / bahasa percakapan
+        |--------------------------------------------------------------------------
+        */
+        $replace = array(
+            'BEZUK'                    => 'BESUK',
+            'JENGUK'                  => 'BESUK',
+            'MENJENGUK'               => 'BESUK',
+            'KUNJUNGAN'               => 'KUNJUNG',
+            'KUNJUNGIN'               => 'KUNJUNG',
+
+            'PAKE'                    => 'PAKAI',
+
+            'NGGAK'                   => 'TIDAK',
+            'NGGA'                    => 'TIDAK',
+            'GAK'                    => 'TIDAK',
+            'GA'                     => 'TIDAK',
+
+            'DIMANA'                  => 'DI MANA',
+            'DMN'                     => 'DI MANA',
+
+            'RS PASAR MINGGU'         => 'RSUD PASAR MINGGU',
+            'RUMAH SAKIT PASAR MINGGU' => 'RSUD PASAR MINGGU',
+
+            'SHARELOC'                => 'SHARE LOKASI',
+            'SHARELOCK'               => 'SHARE LOKASI'
+        );
+
+        /*
+        |--------------------------------------------------------------------------
+        | Replace menggunakan word boundary
+        |--------------------------------------------------------------------------
+        | Menghindari kasus "GA" mengganti bagian kata lain.
+        |--------------------------------------------------------------------------
+        */
+        foreach ($replace as $from => $to) {
+
+            $pattern = '/\b' . preg_quote($from, '/') . '\b/u';
+
+            $text = preg_replace(
+                $pattern,
+                $to,
+                $text
+            );
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | Hilangkan punctuation
+        |--------------------------------------------------------------------------
+        */
+        $text = preg_replace(
+            '/[^\p{L}\p{N}\s]/u',
+            ' ',
+            $text
+        );
+
+        /*
+        |--------------------------------------------------------------------------
+        | Normalisasi spasi
+        |--------------------------------------------------------------------------
+        */
+        $text = preg_replace(
+            '/\s+/u',
+            ' ',
+            $text
+        );
+
+        return trim($text);
+    }
+
+    function hasKeyword($text, $keywords)
+    {
+        foreach($keywords as $keyword){
+
+            $keyword = strtoupper(trim($keyword));
+
+            if($keyword == ''){
+                continue;
+            }
+
+            $pattern = '/\b'.preg_quote($keyword, '/').'\b/u';
+
+            if(preg_match($pattern, $text)){
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    function hasPhrase($text, $phrases)
+    {
+        foreach($phrases as $phrase){
+
+            $phrase = strtoupper(trim($phrase));
+
+            if($phrase == ''){
+                continue;
+            }
+
+            if(strpos($text, $phrase) !== false){
+                return true;
+            }
+        }
+
+        return false;
+    }
+    
+    function isGreeting($message)
+    {
+        $text = normalizeNLP($message);
+
+        if($text == ''){
+            return false;
         }
 
         $greeting = array(
-            // Halo
             'HALO',
-            'HALO!',
             'HALLO',
             'HELLO',
             'HAI',
@@ -51,62 +164,50 @@
             'HAY',
             'HII',
             'HIII',
-            'HIII',
             'HY',
-
-            // Sapaan waktu
             'PAGI',
-            'SELAMAT PAGI',
             'SIANG',
-            'SELAMAT SIANG',
             'SORE',
-            'SELAMAT SORE',
             'MALAM',
-            'SELAMAT MALAM',
-
-            // Salam Islam
             'ASSALAMUALAIKUM',
-            'ASSALAMUALAIKUM WR WB',
-            'ASSALAMUALAIKUM WR. WB.',
-            'ASSALAMUALAIKUM WARAHMATULLAHI WABARAKATUH',
-            'ASSALAMUALAIKUM WARAHMATULLAH WABARAKATUH',
             'ASS WR WB',
-
-            // Sapaan umum
             'PERMISI',
-            'MISI',
-            'HALO ADMIN',
-            'HAI ADMIN',
-            'HI ADMIN',
-            'HALO MIN',
-            'HAI MIN',
-            'HI MIN',
-            'HALO RSUD',
-            'HALO RSUD PASAR MINGGU',
-            'HALO PEO',
+            'MISI'
+        );
 
-            // Sapaan awal percakapan
-            'SAYA MAU BERTANYA',
+        $context = array(
+            'ADMIN',
+            'MIN',
+            'RSUD',
+            'RS',
+            'PEO'
+        );
+
+        $question = array(
             'MAU TANYA',
             'MAU BERTANYA',
+            'SAYA MAU TANYA',
+            'SAYA MAU BERTANYA',
             'MINTA INFORMASI',
             'BUTUH INFORMASI'
         );
 
-        foreach($greeting as $item){
+        // Greeting langsung
+        if(hasKeyword($text, $greeting)){
+            return true;
+        }
 
-            $compare = $item;
+        // Greeting + konteks
+        if(
+            hasKeyword($text, $greeting) &&
+            hasKeyword($text, $context)
+        ){
+            return true;
+        }
 
-            if($ignoreCase){
-                $compare = strtoupper($compare);
-            }
-
-            if($ignorePunctuation){
-                $compare = preg_replace('/[[:punct:]]/', '', $compare);
-                $compare = trim($compare);
-            }
-
-            if($originalMessage === $compare){
+        // Pembuka percakapan
+        foreach($question as $pattern){
+            if(strpos($text, $pattern) !== false){
                 return true;
             }
         }
@@ -114,31 +215,830 @@
         return false;
     }
 
-    function isBiaya($message,$ignoreCase = true,$ignorePunctuation = true){
+    function isJamBesuk($message){
+        $text = normalizeNLP($message);
 
-        $originalMessage = trim($message);
-
-        if($originalMessage == ''){
+        if($text == ''){
             return false;
         }
 
-        // Normalisasi huruf
-        if($ignoreCase){
-            $originalMessage = strtoupper($originalMessage);
-        }
+        $score = 0;
 
-        // Normalisasi tanda baca
-        if($ignorePunctuation){
-            $originalMessage = preg_replace('/[^\p{L}\p{N}\s]/u',' ',$originalMessage);
-        }
-
-        // Normalisasi spasi
-        $originalMessage = preg_replace('/\s+/u',' ',trim($originalMessage));
 
         /*
-        * 1. Kata utama biaya
+        * =========================================================
+        * 1. KATA UTAMA BESUK / KUNJUNGAN
+        * =========================================================
         */
-        $keywordBiaya = array(
+        $visit = array(
+            'BESUK',
+            'KUNJUNG',
+            'PASIEN',
+            'RAWAT INAP',
+            'MENJENGUK'
+        );
+
+        if(hasKeyword($text, $visit)){
+            $score += 3;
+        }
+
+
+        /*
+        * =========================================================
+        * 2. KATA TERKAIT WAKTU
+        * =========================================================
+        *
+        * PAGI / SIANG / SORE / MALAM penting karena user
+        * sering bertanya:
+        *
+        * "boleh besuk sore?"
+        * "besuk malam boleh?"
+        * "pagi boleh menjenguk?"
+        */
+        $time = array(
+            'JAM',
+            'WAKTU',
+            'JADWAL',
+            'KAPAN',
+            'PUKUL',
+            'PAGI',
+            'SIANG',
+            'SORE',
+            'MALAM'
+        );
+
+
+        /*
+        * =========================================================
+        * 3. PHRASE KUAT
+        * =========================================================
+        */
+        $strongPhrase = array(
+            'JAM BESUK',
+            'JADWAL BESUK',
+            'WAKTU BESUK',
+            'JAM KUNJUNG',
+            'JADWAL KUNJUNG',
+            'WAKTU KUNJUNG',
+            'WAKTU MENJENGUK',
+            'JADWAL MENJENGUK',
+            'JAM MENJENGUK',
+            'BOLEH BESUK',
+            'BISA BESUK',
+            'BOLEH MENJENGUK',
+            'BISA MENJENGUK'
+        );
+
+        if(hasPhrase($text, $strongPhrase)){
+            return true;
+        }
+
+
+        /*
+        * =========================================================
+        * 4. BESUK + WAKTU
+        * =========================================================
+        */
+        if(
+            hasKeyword($text, array(
+                'BESUK',
+                'KUNJUNG',
+                'MENJENGUK'
+            ))
+            &&
+            hasKeyword($text, $time)
+        ){
+            return true;
+        }
+
+
+        /*
+        * =========================================================
+        * 5. BESUK + PASIEN / RAWAT INAP
+        * =========================================================
+        */
+        if(
+            hasKeyword($text, array(
+                'BESUK',
+                'KUNJUNG',
+                'MENJENGUK'
+            ))
+            &&
+            hasKeyword($text, array(
+                'PASIEN',
+                'RAWAT INAP'
+            ))
+        ){
+            return true;
+        }
+
+
+        /*
+        * =========================================================
+        * 6. SKOR MINIMAL
+        * =========================================================
+        */
+        if(
+            hasKeyword($text, array(
+                'BESUK',
+                'KUNJUNG',
+                'MENJENGUK'
+            ))
+        ){
+            $score += 2;
+        }
+
+        if(hasKeyword($text, $time)){
+            $score += 2;
+        }
+
+        return ($score >= 5);
+    }
+
+    function isAlamat($message){
+        $text = normalizeNLP($message);
+
+        if($text == ''){
+            return false;
+        }
+
+        $score = 0;
+
+
+        /*
+        * =========================================================
+        * 1. KATA UTAMA LOKASI
+        * =========================================================
+        */
+        $location = array(
+            'ALAMAT',
+            'LOKASI',
+            'DIMANA',
+            'DI MANA',
+            'LETAK',
+            'POSISI',
+            'JALAN',
+            'PATOKAN',
+            'MAP',
+            'MAPS'
+        );
+
+        if(hasKeyword($text, $location)){
+            $score += 5;
+        }
+
+
+        /*
+        * =========================================================
+        * 2. KONTEKS ARAH / LOKASI
+        * =========================================================
+        */
+        $direction = array(
+            'DEKAT MANA',
+            'SEBELAH MANA',
+            'MASUKNYA',
+            'LEWAT MANA',
+            'DARI JALAN RAYA',
+            'JALAN APA',
+            'DI DAERAH MANA',
+            'ARAH MANA'
+        );
+
+        if(hasPhrase($text, $direction)){
+            $score += 5;
+        }
+
+
+        /*
+        * =========================================================
+        * 3. SHARE / KIRIM LOKASI
+        * =========================================================
+        */
+        $shareLocation = array(
+            'SHARE LOKASI',
+            'SHARELOC',
+            'SHARE LOC',
+            'KIRIM LOKASI',
+            'KIRIM SHARELOC',
+            'KIRIM SHARE LOC',
+            'BAGI LOKASI',
+            'BAGIKAN LOKASI',
+            'SHARE MAPS',
+            'KIRIM MAPS'
+        );
+
+        if(hasPhrase($text, $shareLocation)){
+            $score += 7;
+        }
+
+
+        /*
+        * =========================================================
+        * 4. KONTEKS RUMAH SAKIT
+        * =========================================================
+        */
+        $hospital = array(
+            'RSUD',
+            'RUMAH SAKIT',
+            'RS',
+            'RUMAH SAKITNYA',
+            'RSUD PASAR MINGGU',
+            'PASAR MINGGU'
+        );
+
+        if(hasKeyword($text, $hospital)){
+            $score += 2;
+        }
+
+
+        /*
+        * =========================================================
+        * 5. POLA ALAMAT LENGKAP
+        * =========================================================
+        */
+        $addressPhrase = array(
+            'ALAMAT LENGKAP',
+            'MINTA ALAMAT',
+            'BOLEH MINTA ALAMAT',
+            'ALAMAT RUMAH SAKIT',
+            'ALAMAT RUMAH SAKITNYA',
+            'LOKASI RUMAH SAKIT',
+            'LOKASI RUMAH SAKITNYA'
+        );
+
+        if(hasPhrase($text, $addressPhrase)){
+            $score += 7;
+        }
+
+
+        /*
+        * =========================================================
+        * 6. POLA PATOKAN
+        * =========================================================
+        */
+        $landmark = array(
+            'PATOKAN',
+            'PATOKANNYA',
+            'DEKAT MANA',
+            'SEBELAH MANA',
+            'DI DAERAH MANA',
+            'JALAN APA'
+        );
+
+        if(hasPhrase($text, $landmark)){
+            $score += 5;
+        }
+
+
+        /*
+        * =========================================================
+        * 7. POLA ARAH MASUK
+        * =========================================================
+        */
+        if(
+            hasKeyword($text, array('MASUKNYA')) ||
+            hasPhrase($text, array(
+                'LEWAT MANA',
+                'DARI JALAN RAYA'
+            ))
+        ){
+            $score += 5;
+        }
+
+
+        /*
+        * =========================================================
+        * 8. RSUD PASAR MINGGU + LOKASI
+        * =========================================================
+        */
+        if(
+            hasKeyword($text, array(
+                'RSUD PASAR MINGGU',
+                'PASAR MINGGU'
+            )) &&
+            (
+                hasKeyword($text, $location) ||
+                hasPhrase($text, $direction)
+            )
+        ){
+            $score += 5;
+        }
+
+
+        /*
+        * =========================================================
+        * 9. MINIMUM SCORE
+        * =========================================================
+        */
+        return ($score >= 5);
+    }
+
+    function isPendaftaran($message){
+        $text = normalizeNLP($message);
+
+        if($text == ''){
+            return false;
+        }
+
+        $score = 0;
+
+
+        /*
+        * =========================================================
+        * 1. KATA UTAMA PENDAFTARAN
+        * =========================================================
+        */
+        $registration = array(
+            'DAFTAR',
+            'PENDAFTARAN',
+            'MENDAFTAR',
+            'REGISTRASI'
+        );
+
+        if(hasKeyword($text, $registration)){
+            $score += 5;
+        }
+
+
+        /*
+        * =========================================================
+        * 2. KONTEKS JANJI / BOOKING
+        * =========================================================
+        */
+        $booking = array(
+            'JANJI',
+            'JANJI TEMU',
+            'BOOKING',
+            'RESERVASI',
+            'JADWAL DOKTER'
+        );
+
+        if(hasKeyword($text, $booking)){
+            $score += 5;
+        }
+
+
+        /*
+        * =========================================================
+        * 3. KONTEKS ANTREAN
+        * =========================================================
+        */
+        $queue = array(
+            'ANTREAN',
+            'ANTRIAN',
+            'NOMOR ANTREAN',
+            'NOMOR ANTRIAN',
+            'AMBIL NOMOR',
+            'AMBIL ANTREAN',
+            'AMBIL ANTRIAN'
+        );
+
+        if(hasKeyword($text, $queue)){
+            $score += 5;
+        }
+
+
+        /*
+        * =========================================================
+        * 4. PASIEN BARU
+        * =========================================================
+        */
+        $newPatient = array(
+            'PASIEN BARU',
+            'BELUM PERNAH BEROBAT',
+            'PERTAMA KALI BEROBAT',
+            'PERTAMA KALI KE SANA',
+            'PERTAMA KALI KE SINI'
+        );
+
+        if(hasPhrase($text, $newPatient)){
+            $score += 5;
+        }
+
+
+        /*
+        * =========================================================
+        * 5. KONTEKS BEROBAT
+        * =========================================================
+        */
+        if(
+            hasKeyword($text, array('BEROBAT')) &&
+            (
+                hasKeyword($text, array('CARA')) ||
+                hasKeyword($text, array('BAGAIMANA')) ||
+                hasKeyword($text, array('DAFTAR', 'PENDAFTARAN'))
+            )
+        ){
+            $score += 5;
+        }
+
+
+        /*
+        * =========================================================
+        * 6. CARA DAFTAR
+        * =========================================================
+        */
+        $caraDaftar = array(
+            'CARA DAFTAR',
+            'CARA PENDAFTARAN',
+            'BAGAIMANA CARA DAFTAR',
+            'BAGAIMANA CARA PENDAFTARAN',
+            'CARA MENDAFTAR',
+            'CARA REGISTRASI'
+        );
+
+        if(hasPhrase($text, $caraDaftar)){
+            $score += 5;
+        }
+
+
+        /*
+        * =========================================================
+        * 7. JANJI DENGAN DOKTER
+        * =========================================================
+        */
+        $doctorBooking = array(
+            'BIKIN JANJI',
+            'BUAT JANJI',
+            'BISA BOOKING',
+            'CARA BOOKING',
+            'JANJI DENGAN DOKTER',
+            'JANJI TEMU DOKTER',
+            'BUAT JANJI DOKTER',
+            'BIKIN JANJI DOKTER',
+            'JADWAL DENGAN DOKTER',
+            'BIKIN JADWAL DOKTER'
+        );
+
+        if(hasPhrase($text, $doctorBooking)){
+            $score += 5;
+        }
+
+
+        /*
+        * =========================================================
+        * 8. BEROBAT + CARA / BAGAIMANA
+        * =========================================================
+        */
+        if(
+            hasKeyword($text, array('BEROBAT')) &&
+            hasKeyword($text, array(
+                'CARA',
+                'BAGAIMANA',
+                'BISA'
+            ))
+        ){
+            $score += 4;
+        }
+
+
+        /*
+        * =========================================================
+        * 9. JADWAL DOKTER
+        * =========================================================
+        */
+        if(
+            hasKeyword($text, array('JADWAL')) &&
+            hasKeyword($text, array('DOKTER'))
+        ){
+            $score += 5;
+        }
+
+
+        /*
+        * =========================================================
+        * 10. MINIMUM SCORE
+        * =========================================================
+        */
+        return ($score >= 5);
+    }
+
+    function isBPJS($message)
+    {
+        $text = normalizeNLP($message);
+
+        if($text == ''){
+            return false;
+        }
+
+        $bpjs = array(
+            'BPJS',
+            'KIS',
+            'JKN',
+            'PESERTA BPJS',
+            'KARTU BPJS'
+        );
+
+        $rujukan = array(
+            'RUJUKAN',
+            'SURAT RUJUKAN',
+            'FASKES',
+            'FASKES 1',
+            'FASKES SATU',
+            'FKTP'
+        );
+
+        $bpjsQuestion = array(
+            'PAKAI BPJS',
+            'PAKE BPJS',
+            'BISA BPJS',
+            'GUNAKAN BPJS',
+            'MENGGUNAKAN BPJS',
+            'DENGAN BPJS',
+            'KALAU BPJS'
+        );
+
+        // BPJS eksplisit
+        if(hasKeyword($text, $bpjs)){
+            return true;
+        }
+
+        // Pertanyaan BPJS
+        foreach($bpjsQuestion as $pattern){
+            if(strpos($text, $pattern) !== false){
+                return true;
+            }
+        }
+
+        // Rujukan + konteks BPJS
+        if(
+            hasKeyword($text, $rujukan) &&
+            (
+                strpos($text, 'BPJS') !== false ||
+                strpos($text, 'JKN') !== false ||
+                strpos($text, 'KIS') !== false
+            )
+        ){
+            return true;
+        }
+
+        return false;
+    }
+
+    function isKeluhan($message)
+    {
+        $text = normalizeNLP($message);
+
+        if($text == ''){
+            return false;
+        }
+
+        $score = 0;
+
+        /*
+        * =========================================================
+        * 1. KEYWORD UTAMA KELUHAN
+        * =========================================================
+        */
+        $keywords = array(
+            'KELUHAN',
+            'KOMPLAIN',
+            'COMPLAIN',
+            'PENGADUAN',
+            'ADUAN',
+            'MENGADU',
+            'MENGADUKAN',
+            'LAPOR',
+            'MELAPORKAN'
+        );
+
+        foreach($keywords as $keyword){
+            if(hasKeyword($text, array($keyword))){
+                $score += 5;
+            }
+        }
+
+
+        /*
+        * =========================================================
+        * 2. EKSPRESI KETIDAKPUASAN
+        * =========================================================
+        */
+        $dissatisfaction = array(
+            'KECEWA',
+            'TIDAK PUAS',
+            'KURANG PUAS',
+            'TIDAK NYAMAN',
+            'KURANG NYAMAN',
+            'TIDAK SENANG',
+            'KURANG SENANG',
+            'MENGECEWAKAN',
+            'KETIDAKNYAMANAN'
+        );
+
+        foreach($dissatisfaction as $keyword){
+            if(hasKeyword($text, array($keyword))){
+                $score += 4;
+            }
+        }
+
+
+        /*
+        * =========================================================
+        * 3. PHRASE PENGADUAN
+        * =========================================================
+        */
+        $phrases = array(
+            'CARA MENYAMPAIKAN PENGADUAN',
+            'CARA MENYAMPAIKAN KELUHAN',
+            'CARA MENYAMPAIKAN KOMPLAIN',
+
+            'PROSEDUR PENGADUAN',
+            'PROSEDUR KELUHAN',
+
+            'PENGADUAN PASIEN',
+            'KELUHAN PASIEN',
+
+            'MAU LAPOR',
+            'INGIN LAPOR',
+            'MAU MELAPORKAN',
+            'INGIN MELAPORKAN',
+
+            'MAU MENGADUKAN',
+            'INGIN MENGADUKAN',
+
+            'MEMBUAT PENGADUAN',
+            'MEMBUAT KELUHAN',
+
+            'MENYAMPAIKAN PENGADUAN',
+            'MENYAMPAIKAN KELUHAN',
+            'MENYAMPAIKAN KOMPLAIN',
+
+            'ADA PENGADUAN',
+            'ADA KELUHAN',
+
+            'KRITIK DAN SARAN',
+
+            'MENYAMPAIKAN KETIDAKNYAMANAN',
+            'KETIDAKNYAMANAN SELAMA PELAYANAN',
+
+            'MASALAH DENGAN PELAYANAN',
+            'MASALAH PELAYANAN',
+
+            'PENGADUAN TERKAIT PELAYANAN',
+            'KELUHAN TERKAIT PELAYANAN',
+
+            'TIDAK PUAS DENGAN PELAYANAN',
+            'KURANG PUAS DENGAN PELAYANAN',
+
+            'KECEWA DENGAN PELAYANAN'
+        );
+
+        if(hasPhrase($text, $phrases)){
+            $score += 5;
+        }
+
+
+        /*
+        * =========================================================
+        * 4. KONTEKS PELAYANAN
+        * =========================================================
+        */
+        $service = array(
+            'PELAYANAN',
+            'PETUGAS',
+            'PERAWAT',
+            'DOKTER',
+            'ADMIN',
+            'ADMINISTRASI',
+            'PENDAFTARAN',
+            'PENDAFTAR',
+            'POLI',
+            'POLIKLINIK',
+            'IGD',
+            'UGD',
+            'RAWAT JALAN',
+            'RAWAT INAP',
+            'FARMASI',
+            'APOTEK',
+            'LAB',
+            'LABORATORIUM',
+            'RADIOLOGI',
+            'KASIR',
+            'LOKET',
+            'SATPAM',
+            'PERAWATAN',
+            'RUMAH SAKIT'
+        );
+
+        if(hasKeyword($text, $service)){
+            $score += 2;
+        }
+
+
+        /*
+        * =========================================================
+        * 5. NEGATIVE SERVICE EXPERIENCE
+        * =========================================================
+        */
+        $negative = array(
+            'LAMA',
+            'LAMBAT',
+            'MENUNGGU',
+            'TIDAK DILAYANI',
+            'TIDAK DITANGGAPI',
+            'TIDAK ADA RESPON',
+            'TIDAK JELAS',
+            'TIDAK RAMAH',
+            'KURANG RAMAH',
+            'KASAR',
+            'SOMBONG',
+            'DIABAIKAN',
+            'TERLAMBAT',
+            'SALAH',
+            'RIBET',
+            'SULIT'
+        );
+
+        if(hasKeyword($text, $negative)){
+            $score += 2;
+        }
+
+
+        /*
+        * =========================================================
+        * 6. MASALAH + PELAYANAN
+        * =========================================================
+        */
+        if(
+            hasKeyword($text, array('MASALAH')) &&
+            hasKeyword($text, array('PELAYANAN'))
+        ){
+            $score += 5;
+        }
+
+
+        /*
+        * =========================================================
+        * 7. KRITIK / SARAN
+        * =========================================================
+        */
+        if(
+            hasKeyword($text, array('KRITIK')) ||
+            hasKeyword($text, array('SARAN'))
+        ){
+            if(
+                hasKeyword($text, array(
+                    'MENYAMPAIKAN',
+                    'MAU',
+                    'INGIN',
+                    'MEMBERIKAN'
+                ))
+            ){
+                $score += 5;
+            }
+        }
+
+
+        /*
+        * =========================================================
+        * 8. KETIDAKPUASAN + PELAYANAN
+        * =========================================================
+        */
+        if(
+            hasKeyword($text, array(
+                'KECEWA',
+                'TIDAK PUAS',
+                'KURANG PUAS',
+                'TIDAK NYAMAN',
+                'KURANG NYAMAN'
+            ))
+            &&
+            hasKeyword($text, array(
+                'PELAYANAN',
+                'RUMAH SAKIT',
+                'PETUGAS',
+                'DOKTER',
+                'PERAWAT'
+            ))
+        ){
+            $score += 4;
+        }
+
+
+        /*
+        * =========================================================
+        * THRESHOLD
+        * =========================================================
+        */
+        return ($score >= 5);
+    }
+
+    function isBiaya($message){
+        $text = normalizeNLP($message);
+
+        if($text == ''){
+            return false;
+        }
+
+        $score = 0;
+
+        /*
+        * =========================================================
+        * 1. KATA UTAMA BIAYA
+        * =========================================================
+        */
+        $keywords = array(
             'BIAYA',
             'HARGA',
             'TARIF',
@@ -147,416 +1047,403 @@
             'PEMBAYARAN',
             'HARGANYA',
             'BIAYANYA',
-            'TARIFNYA'
+            'TARIFNYA',
+            'BAYARNYA',
+            'KENA'
         );
 
-        /*
-        * 2. Pola pertanyaan biaya
-        */
-        $patternBiaya = array(
-            'BERAPA BIAYA',
-            'BERAPA HARGA',
-            'BERAPA TARIF',
-            'BIAYA BERAPA',
-            'HARGA BERAPA',
-            'TARIF BERAPA',
-            'BIAYANYA BERAPA',
-            'HARGANYA BERAPA',
-            'TARIFNYA BERAPA',
-            'BERAPA YANG HARUS DIBAYAR',
-            'HARUS BAYAR BERAPA',
-            'BAYAR BERAPA',
-            'KENA BERAPA',
-            'TOTAL BAYAR BERAPA',
-            'BIAYA NYA BERAPA',
-            'HARGA NYA BERAPA',
-            'TARIF NYA BERAPA'
-        );
+        foreach($keywords as $keyword){
 
-        /*
-        * 3. Konteks pelayanan
-        */
-        $keywordLayanan = array(
-            'PENDAFTARAN',
-            'DAFTAR',
-            'REGISTRASI',
-            'PEMERIKSAAN',
-            'DOKTER',
-            'KONSULTASI',
-            'POLI',
-            'TINDAKAN',
-            'TREATMENT',
-            'RAWAT JALAN',
-            'RAWAT INAP',
-            'IGD',
-            'UGD',
-            'LABORATORIUM',
-            'LAB',
-            'RADIOLOGI',
-            'USG',
-            'RONTGEN',
-            'KULIT'
-        );
+            if(hasKeyword($text, array($keyword))){
 
-        /*
-        * 4. Jika ada pola pertanyaan biaya
-        */
-        foreach($patternBiaya as $pattern){
+                if(in_array($keyword, array(
+                    'BIAYA',
+                    'HARGA',
+                    'TARIF',
+                    'BIAYANYA',
+                    'HARGANYA',
+                    'TARIFNYA'
+                ))){
 
-            if(strpos($originalMessage,$pattern) !== false){
-                return true;
-            }
-        }
+                    $score += 5;
 
-        /*
-        * 5. Jika ada keyword biaya langsung
-        */
-        foreach($keywordBiaya as $keyword){
+                }else{
 
-            $pattern = '/\b'.preg_quote($keyword,'/').'\b/u';
-
-            if(preg_match($pattern,$originalMessage)){
-                return true;
-            }
-        }
-
-        /*
-        * 6. Kombinasi "berapa" + konteks layanan
-        *
-        * Contoh:
-        * PENDAFTARAN BERAPA
-        * DOKTER BERAPA
-        * POLI KULIT BERAPA
-        */
-        if(strpos($originalMessage,'BERAPA') !== false){
-
-            foreach($keywordLayanan as $layanan){
-
-                $pattern = '/\b'.preg_quote($layanan,'/').'\b/u';
-
-                if(preg_match($pattern,$originalMessage)){
-
-                    return true;
+                    $score += 2;
                 }
             }
         }
 
-        return false;
-    }
 
-    function isPendaftaran($message,$ignoreCase = true,$ignorePunctuation = true){
+        /*
+        * =========================================================
+        * 2. KATA / KONTEKS JUMLAH UANG
+        * =========================================================
+        */
+        $money = array(
+            'BERAPA',
+            'UANG',
+            'KISARAN',
+            'ESTIMASI',
+            'SIAPIN',
+            'SIAPKAN',
+            'BAWA UANG',
+            'SIAPIN UANG',
+            'SIAPKAN UANG',
+            'UANGNYA',
+            'SEKALI DATANG',
+            'SEKALI PERIKSA'
+        );
 
-        $originalMessage = trim($message);
+        foreach($money as $keyword){
 
-        if($ignoreCase){
-            $originalMessage = strtoupper($originalMessage);
+            if(hasKeyword($text, array($keyword))){
+
+                if(in_array($keyword, array(
+                    'BERAPA',
+                    'UANG',
+                    'KISARAN',
+                    'ESTIMASI'
+                ))){
+
+                    $score += 2;
+
+                }else{
+
+                    $score += 3;
+                }
+            }
         }
 
-        if($ignorePunctuation){
-            $originalMessage = preg_replace('/[[:punct:]]/', '', $originalMessage);
-            $originalMessage = preg_replace('/\s+/', ' ', $originalMessage);
-            $originalMessage = trim($originalMessage);
-        }
 
-        $pendaftaran = array(
+        /*
+        * =========================================================
+        * 3. KONTEKS PELAYANAN / BEROBAT
+        * =========================================================
+        */
+        $service = array(
 
-            // Pendaftaran
-            'DAFTAR',
+            'BEROBAT',
+            'PERIKSA',
+            'PEMERIKSAAN',
+            'DOKTER',
+            'KONSULTASI',
+
             'PENDAFTARAN',
-            'MENDAFTAR',
+            'DAFTAR',
             'REGISTRASI',
-            'REGISTRASI PASIEN',
-            'DAFTAR PASIEN',
 
-            // Daftar online
-            'DAFTAR ONLINE',
-            'PENDAFTARAN ONLINE',
-            'DAFTAR LEWAT ONLINE',
-            'DAFTAR MELALUI ONLINE',
+            'POLI',
+            'POLIKLINIK',
 
-            // WhatsApp
-            'DAFTAR WA',
-            'DAFTAR VIA WA',
-            'DAFTAR LEWAT WA',
-            'DAFTAR MELALUI WA',
-            'PENDAFTARAN WA',
+            'TINDAKAN',
 
-            // Daftar langsung
-            'DAFTAR LANGSUNG',
-            'DAFTAR KE RS',
-            'DAFTAR DI RS',
-            'DAFTAR RUMAH SAKIT',
-            'PENDAFTARAN LANGSUNG'
+            'RAWAT JALAN',
+            'RAWAT INAP',
+
+            'IGD',
+            'UGD',
+
+            'LAB',
+            'LABORATORIUM',
+
+            'RADIOLOGI',
+            'USG',
+            'RONTGEN',
+
+            'FARMASI',
+            'APOTEK',
+
+            'OPERASI',
+            'BEDAH',
+
+            'PASIEN UMUM'
         );
 
-        foreach($pendaftaran as $item){
-
-            $compare = $item;
-
-            if($ignoreCase){
-                $compare = strtoupper($compare);
-            }
-
-            if($ignorePunctuation){
-                $compare = preg_replace('/[[:punct:]]/', '', $compare);
-                $compare = preg_replace('/\s+/', ' ', $compare);
-                $compare = trim($compare);
-            }
-
-            if(strpos($originalMessage, $compare) !== false){
-                return true;
-            }
+        if(hasKeyword($text, $service)){
+            $score += 2;
         }
 
-        return false;
-    }
 
-    function isBPJS($message,$ignoreCase = true,$ignorePunctuation = true){
+        /*
+        * =========================================================
+        * 4. PHRASE KUAT BIAYA
+        * =========================================================
+        */
+        $phrases = array(
 
-        $originalMessage = trim($message);
+            /*
+            * Pertanyaan biaya umum
+            */
+            'BERAPA BIAYA',
+            'BERAPA HARGA',
+            'BERAPA TARIF',
 
-        if($ignoreCase){
-            $originalMessage = strtoupper($originalMessage);
-        }
+            'BIAYA BERAPA',
+            'HARGA BERAPA',
+            'TARIF BERAPA',
 
-        if($ignorePunctuation){
-            $originalMessage = preg_replace('/[[:punct:]]/', '', $originalMessage);
-            $originalMessage = preg_replace('/\s+/', ' ', $originalMessage);
-            $originalMessage = trim($originalMessage);
-        }
+            'BIAYANYA BERAPA',
+            'HARGANYA BERAPA',
+            'TARIFNYA BERAPA',
 
-        $bpjs = array(
+            'BAYAR BERAPA',
+            'HARUS BAYAR BERAPA',
+            'KENA BERAPA',
 
-            // BPJS
-            'BPJS',
-            'BPJS KESEHATAN',
-            'PASIEN BPJS',
-            'PESERTA BPJS',
+            'TOTAL BAYAR BERAPA',
+            'TOTAL BIAYA BERAPA',
 
-            // Rujukan
-            'RUJUKAN',
-            'SURAT RUJUKAN',
-            'RUJUKAN BPJS',
-            'SURAT RUJUKAN BPJS',
+            'BERAPA YANG HARUS DIBAYAR',
 
-            // Faskes
-            'FASKES',
-            'FASKES 1',
-            'FASKES SATU',
-            'FKTP',
+            /*
+            * Berobat
+            */
+            'BIAYA BEROBAT',
+            'HARGA BEROBAT',
+            'TARIF BEROBAT',
 
-            // Kombinasi pertanyaan
-            'BPJS RUJUKAN',
-            'BPJS FASKES',
-            'BPJS FASKES 1'
+            'BEROBAT BERAPA',
+            'BEROBAT HABIS BERAPA',
+
+            /*
+            * Pemeriksaan
+            */
+            'BIAYA PEMERIKSAAN',
+            'HARGA PEMERIKSAAN',
+            'TARIF PEMERIKSAAN',
+
+            'PEMERIKSAAN BERAPA',
+
+            /*
+            * Dokter
+            */
+            'BIAYA DOKTER',
+            'HARGA DOKTER',
+            'TARIF DOKTER',
+
+            'DOKTER BERAPA',
+
+            /*
+            * Konsultasi
+            */
+            'BIAYA KONSULTASI',
+            'HARGA KONSULTASI',
+            'TARIF KONSULTASI',
+
+            'KONSULTASI BERAPA',
+
+            /*
+            * Pendaftaran
+            */
+            'BIAYA PENDAFTARAN',
+            'HARGA PENDAFTARAN',
+            'TARIF PENDAFTARAN',
+
+            /*
+            * Rawat jalan / inap
+            */
+            'BIAYA RAWAT JALAN',
+            'BIAYA RAWAT INAP',
+
+            /*
+            * IGD
+            */
+            'BIAYA IGD',
+            'BIAYA UGD',
+
+            /*
+            * Laboratorium
+            */
+            'BIAYA LAB',
+            'BIAYA LABORATORIUM',
+
+            /*
+            * Radiologi
+            */
+            'BIAYA RADIOLOGI',
+            'BIAYA USG',
+            'BIAYA RONTGEN',
+
+            /*
+            * Tindakan
+            */
+            'BIAYA TINDAKAN',
+            'HARGA TINDAKAN',
+
+            /*
+            * Bahasa natural
+            */
+            'SIAPIN UANG',
+            'SIAPKAN UANG',
+            'BAWA UANG',
+
+            'UANG BERAPA',
+            'SIAPIN BERAPA',
+            'SIAPKAN BERAPA',
+
+            'SEKALI DATANG',
+            'SEKALI PERIKSA',
+
+            'PASIEN UMUM',
+            'PASIENT UMUM'
         );
 
-        foreach($bpjs as $item){
-
-            $compare = $item;
-
-            if($ignoreCase){
-                $compare = strtoupper($compare);
-            }
-
-            if($ignorePunctuation){
-                $compare = preg_replace('/[[:punct:]]/', '', $compare);
-                $compare = preg_replace('/\s+/', ' ', $compare);
-                $compare = trim($compare);
-            }
-
-            if(strpos($originalMessage, $compare) !== false){
-                return true;
-            }
+        if(hasPhrase($text, $phrases)){
+            $score += 5;
         }
 
-        return false;
-    }
 
-    function isAlamat($message, $ignoreCase = true, $ignorePunctuation = true){
-
-        $originalMessage = trim($message);
-
-        if($ignoreCase){
-            $originalMessage = strtoupper($originalMessage);
+        /*
+        * =========================================================
+        * 5. POLA "BERAPA + LAYANAN"
+        * =========================================================
+        */
+        if(
+            hasKeyword($text, array('BERAPA')) &&
+            hasKeyword($text, $service)
+        ){
+            $score += 4;
         }
 
-        if($ignorePunctuation){
-            $originalMessage = preg_replace('/[[:punct:]]/', '', $originalMessage);
+
+        /*
+        * =========================================================
+        * 6. POLA "UANG + BEROBAT"
+        * =========================================================
+        */
+        if(
+            hasKeyword($text, array('UANG')) &&
+            hasKeyword($text, array(
+                'BEROBAT',
+                'PERIKSA',
+                'PEMERIKSAAN',
+                'DOKTER',
+                'PASIEN'
+            ))
+        ){
+            $score += 5;
         }
 
-        // Normalisasi spasi
-        $originalMessage = preg_replace('/\s+/', ' ', $originalMessage);
-        $originalMessage = trim($originalMessage);
 
-        $alamat = array(
-            'ALAMAT',
-            'ALAMAT RS',
-            'ALAMAT RSUD',
-            'ALAMAT RUMAH SAKIT',
-            'ALAMAT RSUD PASAR MINGGU',
-            'LOKASI',
-            'LOKASI RS',
-            'LOKASI RSUD',
-            'LOKASI RUMAH SAKIT',
-            'LOKASI RSUD PASAR MINGGU',
-            'RSUD PASAR MINGGU DIMANA',
-            'RSUD PASAR MINGGU DI MANA',
-            'RSUD PASAR MINGGU ADA DIMANA',
-            'RSUD PASAR MINGGU ADA DI MANA',
-            'RSUD PASAR MINGGU LOKASINYA DIMANA',
-            'RSUD PASAR MINGGU LOKASINYA DI MANA',
-            'DIMANA RSUD PASAR MINGGU',
-            'DI MANA RSUD PASAR MINGGU',
-            'DIMANA ALAMAT RSUD PASAR MINGGU',
-            'DI MANA ALAMAT RSUD PASAR MINGGU'
+        /*
+        * =========================================================
+        * 7. POLA "BEROBAT + BERAPA"
+        * =========================================================
+        */
+        if(
+            hasKeyword($text, array('BEROBAT')) &&
+            hasKeyword($text, array('BERAPA'))
+        ){
+            $score += 5;
+        }
+
+
+        /*
+        * =========================================================
+        * 8. POLA "PERIKSA + BERAPA"
+        * =========================================================
+        */
+        if(
+            hasKeyword($text, array(
+                'PERIKSA',
+                'PEMERIKSAAN'
+            )) &&
+            hasKeyword($text, array('BERAPA'))
+        ){
+            $score += 5;
+        }
+
+
+        /*
+        * =========================================================
+        * 9. PASIEN UMUM
+        * =========================================================
+        */
+        if(
+            hasKeyword($text, array('PASIEN UMUM'))
+        ){
+            $score += 5;
+        }
+
+
+        /*
+        * =========================================================
+        * 10. TANPA / BUKAN / TIDAK PAKAI BPJS
+        * =========================================================
+        *
+        * Contoh:
+        * "bukan BPJS, biaya berobat berapa?"
+        * "tanpa BPJS bayarnya berapa?"
+        * "nggak pakai BPJS kena berapa?"
+        *
+        * BPJS di sini adalah konteks pembayaran,
+        * bukan intent BPJS utama.
+        */
+        $nonBpjs = array(
+            'TANPA BPJS',
+            'BUKAN BPJS',
+            'TIDAK PAKAI BPJS',
+            'NGGAK PAKAI BPJS',
+            'NGGA PAKAI BPJS',
+            'GAK PAKAI BPJS',
+            'GA PAKAI BPJS',
+            'TIDAK MENGGUNAKAN BPJS',
+            'NGGAK MENGGUNAKAN BPJS',
+            'TANPA KARTU BPJS'
         );
 
-        foreach($alamat as $item){
+        if(hasPhrase($text, $nonBpjs)){
 
-            $compare = $item;
-
-            if($ignoreCase){
-                $compare = strtoupper($compare);
-            }
-
-            if($ignorePunctuation){
-                $compare = preg_replace('/[[:punct:]]/', '', $compare);
-            }
-
-            // Normalisasi spasi keyword
-            $compare = preg_replace('/\s+/', ' ', $compare);
-            $compare = trim($compare);
-
-            if($originalMessage === $compare){
-                return true;
+            if(
+                hasKeyword($text, array(
+                    'BERAPA',
+                    'BIAYA',
+                    'HARGA',
+                    'TARIF',
+                    'BAYAR',
+                    'KENA',
+                    'UANG'
+                ))
+            ){
+                $score += 6;
             }
         }
 
-        return false;
-    }
 
-    function isKeluhan($message, $ignoreCase = true, $ignorePunctuation = true){
-
-        $originalMessage = trim($message);
-
-        if(empty($originalMessage)){
-            return false;
-        }
-
-        if($ignoreCase){
-            $originalMessage = strtoupper($originalMessage);
-        }
-
-        if($ignorePunctuation){
-            $originalMessage = preg_replace('/[[:punct:]]/', ' ', $originalMessage);
-            $originalMessage = preg_replace('/\s+/', ' ', $originalMessage);
-            $originalMessage = trim($originalMessage);
-        }
-
-        $keluhan = array(
-            'KELUHAN',
-            'SAYA MAU MENGAJUKAN KELUHAN',
-            'MAU MENGAJUKAN KELUHAN',
-            'INGIN MENGAJUKAN KELUHAN',
-            'SAYA MAU KOMPLAIN',
-            'MAU KOMPLAIN',
-            'INGIN KOMPLAIN',
-            'KOMPLAIN',
-            'COMPLAIN',
-            'PENGADUAN',
-            'ADUAN',
-            'SAYA MAU MENGADU',
-            'MAU MENGADU',
-            'INGIN MENGADU',
-            'ADA MASALAH',
-            'ADA KENDALA',
-            'SAYA PUNYA KELUHAN',
-            'SAYA INGIN MENYAMPAIKAN KELUHAN',
-            'SAYA MAU MENYAMPAIKAN KELUHAN'
+        /*
+        * =========================================================
+        * 11. POLA PEMBAYARAN
+        * =========================================================
+        */
+        $payment = array(
+            'HARUS BAYAR',
+            'BISA BAYAR',
+            'CARA BAYAR',
+            'PEMBAYARANNYA',
+            'PEMBAYARAN',
+            'BAYARNYA',
+            'BAYAR',
+            'KENA',
+            'DIBAYAR'
         );
 
-        foreach($keluhan as $item){
-
-            $compare = $item;
-
-            if($ignoreCase){
-                $compare = strtoupper($compare);
-            }
-
-            if($ignorePunctuation){
-                $compare = preg_replace('/[[:punct:]]/', ' ', $compare);
-                $compare = preg_replace('/\s+/', ' ', $compare);
-                $compare = trim($compare);
-            }
-
-            // Exact match
-            if($originalMessage === $compare){
-                return true;
-            }
-
-            // Match jika pesan mengandung keyword/kalimat keluhan
-            if(strpos($originalMessage, $compare) !== false){
-                return true;
-            }
+        if(hasPhrase($text, $payment)){
+            $score += 3;
         }
 
-        return false;
+
+        /*
+        * =========================================================
+        * 12. DEBUG SCORE
+        * =========================================================
+        *
+        * Jika ingin melihat score saat testing,
+        * sementara bisa mengembalikan score.
+        *
+        * Untuk production tetap boolean.
+        */
+        return ($score >= 5);
     }
 
-    function isJamBesuk($message, $ignoreCase = true, $ignorePunctuation = true){
-
-        $originalMessage = trim($message);
-
-        if($ignoreCase){
-            $originalMessage = strtoupper($originalMessage);
-        }
-
-        if($ignorePunctuation){
-            $originalMessage = preg_replace('/[[:punct:]]/', '', $originalMessage);
-            $originalMessage = trim($originalMessage);
-        }
-
-        $jamBesuk = array(
-            'JAM BESUK',
-            'JAM BEZUK',
-            'JADWAL BESUK',
-            'WAKTU BESUK',
-            'WAKTU BEZUK',
-            'JADWAL KUNJUNGAN',
-            'JAM KUNJUNGAN',
-            'JAM VISIT',
-            'JAM JENGUK',
-            'WAKTU JENGUK',
-            'JADWAL JENGUK',
-            'BESUK PASIEN',
-            'MAU BESUK',
-            'MAU MENJENGUK',
-            'BOLEH BESUK',
-            'KAPAN BOLEH BESUK',
-            'KAPAN JAM BESUK',
-            'JAM BESUK PASIEN',
-            'JADWAL BESUK PASIEN'
-        );
-
-        foreach($jamBesuk as $item){
-
-            $compare = $item;
-
-            if($ignoreCase){
-                $compare = strtoupper($compare);
-            }
-
-            if($ignorePunctuation){
-                $compare = preg_replace('/[[:punct:]]/', '', $compare);
-                $compare = trim($compare);
-            }
-
-            if(strpos($originalMessage, $compare) !== false){
-                return true;
-            }
-        }
-
-        return false;
-    }
 ?>

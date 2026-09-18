@@ -86,7 +86,7 @@ function renderchartarea(name, data, titleX, titleY, seriesName, fieldName, righ
     }
 
     const options = {
-        chart : { type: "area", height: 350, toolbar: { show: false }, zoom: { enabled: false } },
+        chart : { type: "area", height: 350, toolbar: { show: true }, zoom: { enabled: false } },
         series: series,
         xaxis : {
             categories   : data.map(item => item.periode),
