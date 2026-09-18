@@ -171,6 +171,7 @@ async function runservices() {
     // await callAPI("listbatalbooking", "POST");
     // await callAPI("listpasienadaobat", "POST");
     // await callAPI("googlereview", "POST");
+    // await callAPI("mcu", "POST");
 
 
     await callAPI("greeting", "POST");
