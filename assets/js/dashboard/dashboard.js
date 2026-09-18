@@ -453,6 +453,7 @@ $("#btndownloaddatadetailrj_table").on("click", function () {
                         return {
                             "No": index + 1,
                             "Nama Dokter": item.NAMADOKTER ?? "",
+                            "SMF": item.KOLEGIUM ?? "",
                             "Jan": jan,
                             "Feb": feb,
                             "Mar": mar,
@@ -885,6 +886,7 @@ $("#btndownloaddatadetailri_table").on("click", function () {
                         return {
                             "No": index + 1,
                             "Nama Dokter": item.NAMADOKTER ?? "",
+                            "SMF": item.KOLEGIUM ?? "",
                             "Jan": jan,
                             "Feb": feb,
                             "Mar": mar,
@@ -1470,6 +1472,7 @@ function datakunjunganrjdokter() {
                     <tr>
                         <td class="ps-4">${parseInt(i) + 1}</td>
                         <td>${result[i].NAMADOKTER}</td>
+                        <td>${result[i].KOLEGIUM || ''}</td>
                         <td class="text-end">${todesimal(jan)}</td>
                         <td class="text-end">${todesimal(feb)}</td>
                         <td class="text-end">${todesimal(mar)}</td>
@@ -1489,7 +1492,7 @@ function datakunjunganrjdokter() {
 
             let footer = `
                 <tr class="fw-bolder text-muted bg-light">
-                    <td colspan="2" class="text-center">
+                    <td colspan="3" class="text-center">
                         TOTAL
                     </td>
                     <td class="text-end">${todesimal(totalJan)}</td>
@@ -3285,6 +3288,7 @@ function datakunjunganridokter() {
                     <tr>
                         <td class="ps-4">${parseInt(i) + 1}</td>
                         <td>${result[i].NAMADOKTER}</td>
+                        <td>${result[i].KOLEGIUM}</td>
                         <td class="text-end">${todesimal(jan)}</td>
                         <td class="text-end">${todesimal(feb)}</td>
                         <td class="text-end">${todesimal(mar)}</td>
@@ -3304,7 +3308,7 @@ function datakunjunganridokter() {
 
             let footer = `
                 <tr class="fw-bolder text-muted bg-light">
-                    <td colspan="2" class="text-center">
+                    <td colspan="3" class="text-center">
                         TOTAL
                     </td>
                     <td class="text-end">${todesimal(totalJan)}</td>

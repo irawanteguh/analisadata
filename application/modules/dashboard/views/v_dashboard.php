@@ -307,6 +307,7 @@
 								<tr class="fw-bolder text-muted bg-light">
 									<th class="ps-4 rounded-start">#</th>
 									<th>NAMA DOKTER</th>
+									<th>SMF</th>
 									<th>JAN</th>
 									<th>FEB</th>
 									<th>MAR</th>
@@ -763,6 +764,7 @@
 								<tr class="fw-bolder text-muted bg-light">
 									<th class="ps-4 rounded-start">#</th>
 									<th>NAMA DOKTER</th>
+									<th>SMF</th>
 									<th>JAN</th>
 									<th>FEB</th>
 									<th>MAR</th>

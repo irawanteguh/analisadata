@@ -273,6 +273,7 @@
                                 (SELECT UPPER(NAMA)
                                 FROM SR01_MED_DOKTER_MS P
                                 WHERE P.DOKTER_ID = A.DOKTER_ID) AS NAMADOKTER,
+                                (SELECT KOLEGIUM FROM SR01_RMN_KOLEGIUM_MS WHERE KOLEGIUM_ID=(SELECT KOLEGIUM_ID FROM SR01_RMN_DOKTER_MS WHERE DOKTER_ID=A.DOKTER_ID))KOLEGIUM,
                                 TO_CHAR(A.TGL_MASUK,'MM') AS BULAN
                             FROM SR01_KEU_EPISODE A
                             WHERE A.LOKASI_ID = '001'
@@ -946,6 +947,7 @@
                             FROM (
                                 SELECT
                                     (SELECT UPPER(NAMA) FROM SR01_MED_DOKTER_MS P WHERE P.DOKTER_ID = A.DOKTER_ID) AS NAMADOKTER,
+                                    (SELECT KOLEGIUM FROM SR01_RMN_KOLEGIUM_MS WHERE KOLEGIUM_ID=(SELECT KOLEGIUM_ID FROM SR01_RMN_DOKTER_MS WHERE DOKTER_ID=A.DOKTER_ID))KOLEGIUM,
                                     TO_CHAR(A.TGL_MASUK,'MM') AS BULAN
                                 FROM SR01_KEU_EPISODE A
                                 WHERE A.LOKASI_ID = '001'

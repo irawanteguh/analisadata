@@ -49,7 +49,7 @@
                         Filter
                     </a>
 
-                    <div class="menu menu-sub menu-sub-dropdown w-250px w-md-300px"
+                    <div class="menu menu-sub menu-sub-dropdown w-250px w-md-400px"
                         data-kt-menu="true"
                         id="kt_menu_61484bf6e3ff8">
 
