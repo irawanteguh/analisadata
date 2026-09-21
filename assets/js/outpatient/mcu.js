@@ -111,10 +111,46 @@ $("#btndownloaddatadetailmcu_table").on("click", function () {
 
 });
 
+$("#btndownloaddatadetailmcukaryawan_table").on("click", function () {
+    exportToExcel(
+        null,
+        null,
+        "Kunjungan_MCU_Karyawan.xlsx",
+        {
+            multiSheet: [
+                {
+                    name: "Daftar Karyawan",
+                    data: globaldatakunjunganrjdetail,
+                    formatter: (item, index) => {
+                        return {
+                            "No": index + 1,
+                            "NIK Karyawan": item.NIKKARYAWAN ?? "",
+                            "MR Karyawan": item.MRPAS ?? "",
+                            "Nama Karyawan": item.NAMAPASIEN ?? "",
+                            "Bagian": item.BAGIAN ?? "",
+                            "Unit": item.UNIT ?? "",
+                            "Sub Unit": item.SUBUNIT ?? "",
+                            "Tgl Masuk": item.TGLMASUK ?? "",
+                            "Status Lab": item.STATUSLAB == 1 ? "Hasil Lab Tersedia" : item.STATUSLAB == 4 ? "Hasil Lab Belum Tersedia" : "Belum Melakukan Pemeriksaan Penunjang",
+                            "Status Rad": item.STATUSRAD == 1 ? "Hasil Rad Tersedia" : item.STATUSRAD == 4 ? "Hasil Rad Belum Tersedia" : "Belum Melakukan Pemeriksaan Penunjang",
+                            "Final Summary": item.FINALSUMMARY ?? "",
+                            "Final Saran": item.FINALSARAN ?? "",
+                            "Provider": item.PROVIDER ?? "",
+                            "Nama Paket MCU": item.NAMAPAKET ?? ""
+                        };
+                    }
+                }
+            ]
+        }
+    );
+
+});
+
 function loaddata(){
     datapaketmcu();
     datakunjunganmcuprovider();
     datamcudetail();
+    datamcukaryawan();
 };
 
 function datapaketmcu() {
@@ -538,6 +574,85 @@ function datamcudetail() {
             $("#resultdatamcudetail").html(tableresult);
             
             const table = initDataTable("#datamcudetail_table","#searchtable");
+        },
+        complete: function () {
+            Swal.close();
+        },
+        error: function () {
+            Swal.fire({
+                icon             : "error",
+                title            : "Request Failed",
+                text             : "We were unable to process your request due to a server error. Please try again later. If the problem persists, contact your system administrator.",
+                confirmButtonText: "OK"
+            });
+        }
+    });
+};
+
+function datamcukaryawan() {
+    let selectperiode = $("select[name='selectperiode']").val();
+    $.ajax({
+        url       : url + "index.php/outpatient/mcu/datamcukaryawan",
+        data      : {selectperiode: selectperiode},
+        type      : "POST",
+        dataType  : "JSON",
+
+        beforeSend: function () {
+
+            Swal.fire({
+                title            : 'Processing',
+                html             : 'Please wait while the system retrieves the requested data.',
+                allowOutsideClick: false,
+                allowEscapeKey   : false,
+                showConfirmButton: false,
+                didOpen          : () => Swal.showLoading()
+            });
+
+            $("#resultdatamcukaryawan").empty();
+        },
+
+        success: function (response) {
+
+            if (response.responCode !== "00") {
+                Swal.fire({
+                    icon             : 'warning',
+                    title            : 'No Records Found',
+                    text             : 'No records are available for the selected period.',
+                    showConfirmButton: false,
+                    timer            : 2000
+                });
+                return;
+            }
+            
+            const result = Array.isArray(response.responResult) ? response.responResult : [];
+            globaldatakunjunganrjdetail = result;
+
+            let tableresult = "";
+            for (let i in result) {
+
+                tableresult += `
+                    <tr>
+                        <td class="ps-4">${parseInt(i) + 1}</td>
+                        <td>${result[i].NIKKARYAWAN}</td>
+                        <td>${result[i].MRPAS}</td>
+                        <td>${result[i].NAMAPASIEN}</td>
+                        <td>${result[i].BAGIAN || ''}</td>
+                        <td>${result[i].UNIT || ''}</td>
+                        <td>${result[i].SUBUNIT || ''}</td>
+                        <td>${result[i].TGLMASUK}</td>
+                        <td>${result[i].STATUSLAB == 1 ? 'Hasil Lab Tersedia' : result[i].STATUSLAB == 4 ? 'Hasil Lab Belum Tersedia' : 'Belum Melakukan Pemeriksaan Penunjang'}</td>
+                        <td>${result[i].STATUSRAD == 1 ? 'Hasil Rad Tersedia' : result[i].STATUSRAD == 4 ? 'Hasil Rad Belum Tersedia' : 'Belum Melakukan Pemeriksaan Penunjang'}</td>
+                        <td>${result[i].FINALSUMMARY || ''}</td>
+                        <td>${result[i].FINALSARAN || ''}</td>
+                        <td>${result[i].PROVIDER}</td>
+                        <td class="text-end pe-4 fw-bold">${result[i].NAMAPAKET}</td>
+                    </tr>
+                `;
+            }
+
+            $("#resultdatamcukaryawan").html(tableresult);
+            
+            const table = initDataTable("#datamcudetailkaryawan_table","#searchtable",100);
         },
         complete: function () {
             Swal.close();

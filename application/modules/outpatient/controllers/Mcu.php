@@ -9,8 +9,28 @@
         }
 
         public function index(){
-            $data = $this->loadcombobox();
-            $this->template->load("template/dashboard-light-aside","v_mcusummary",$data);
+            $data         = $this->loadcombobox();
+            $data['view'] = $this->input->get('view');
+
+            switch ($data['view']) {
+
+				case 'mcukaryawan':
+					$this->template->load(
+						"template/dashboard-light-aside",
+						"v_mcukaryawan",
+						$data
+					);
+					break;
+
+				default:
+					$this->template->load(
+						"template/dashboard-light-aside",
+						"v_mcusummary",
+						$data
+					);
+					break;
+			}
+
         }
 
         public function loadcombobox(){
@@ -28,6 +48,24 @@
         public function datamcudetail(){
             $periode = $this->input->post("selectperiode");
             $result  = $this->md->datamcudetail($periode);
+            
+			if(!empty($result)){
+				$json["responCode"]   = "00";
+				$json["responHead"]   = "success";
+				$json["responDesc"]   = "Data Di Temukan";
+				$json['responResult'] = $result;
+            }else{
+                $json["responCode"] = "01";
+                $json["responHead"] = "info";
+                $json["responDesc"] = "Data Tidak Di Temukan";
+            }
+
+            echo json_encode($json);
+        }
+
+        public function datamcukaryawan(){
+            $periode = $this->input->post("selectperiode");
+            $result  = $this->md->datamcukaryawan($periode);
             
 			if(!empty($result)){
 				$json["responCode"]   = "00";

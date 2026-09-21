@@ -1,5 +1,5 @@
 <?php
-$view = $this->input->get('view');
+    $view = $this->input->get('view');
 ?>
 
 <ul class="breadcrumb breadcrumb-separatorless fw-bold fs-7 my-1">

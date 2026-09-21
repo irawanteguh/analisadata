@@ -8,7 +8,7 @@
         }
 
 		public function index(){
-			$data = $this->loadcombobox();
+			$data         = $this->loadcombobox();
 			$data['view'] = $this->input->get('view');
 
 			switch ($data['view']) {
