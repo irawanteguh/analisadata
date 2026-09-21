@@ -1,16 +1,37 @@
 <?php
-	defined('BASEPATH') OR exit('No direct script access allowed');
-	class Kpi extends CI_Controller {
+    defined("BASEPATH") OR exit("No direct script access allowed");
 
-		public function __construct(){
+    class Kpi extends MX_Controller{ 
+
+        public function __construct(){
             parent:: __construct();
-			$this->load->model("Modelkpi","md");
+            $this->load->model("Modelkpi","md");
         }
 
         public function index(){
-            $data = $this->loadcombobox();
-			$this->template->load("template/dashboard-light-aside","v_kpi",$data);
-		}
+            $data         = $this->loadcombobox();
+            $data['view'] = $this->input->get('view');
+
+            switch ($data['view']) {
+
+				case 'detail':
+					$this->template->load(
+						"template/dashboard-light-aside",
+						"v_kpidetail",
+						$data
+					);
+					break;
+
+				default:
+					$this->template->load(
+						"template/dashboard-light-aside",
+						"v_kpi",
+						$data
+					);
+					break;
+			}
+
+        }
 
         public function loadcombobox(){
 			$resultperiode = $this->md->periode();
@@ -24,9 +45,8 @@
             return $data;
 		}
 
-        public function datawaktutunggurawatjalan(){
-            $periode = $this->input->post("selectperiode");
-            $result  = $this->md->datawaktutunggurawatjalan($periode);
+        public function detailwwaktutungguperbulan(){
+            $result  = $this->md->detailwwaktutungguperbulan();
             
 			if(!empty($result)){
 				$json["responCode"]   = "00";
@@ -42,9 +62,8 @@
             echo json_encode($json);
         }
 
-        public function datajampulangpasienbln(){
-            $periode = $this->input->post("selectperiode");
-            $result  = $this->md->datajampulangpasienbln($periode);
+        public function detailwwaktutunggu(){
+            $result  = $this->md->detailwwaktutunggu();
             
 			if(!empty($result)){
 				$json["responCode"]   = "00";
@@ -60,22 +79,5 @@
             echo json_encode($json);
         }
 
-        public function datajampulangharian(){
-            $result  = $this->md->datajampulangharian();
-            
-			if(!empty($result)){
-				$json["responCode"]   = "00";
-				$json["responHead"]   = "success";
-				$json["responDesc"]   = "Data Di Temukan";
-				$json['responResult'] = $result;
-            }else{
-                $json["responCode"] = "01";
-                $json["responHead"] = "info";
-                $json["responDesc"] = "Data Tidak Di Temukan";
-            }
-
-            echo json_encode($json);
-        }
-
-	}
+    }
 ?>

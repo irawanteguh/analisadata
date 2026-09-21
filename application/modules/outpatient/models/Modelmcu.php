@@ -139,34 +139,15 @@
                             AND A.POLI_ID = 'MEDIC0000000000'
                             AND A.REKANAN_ID IN ('CKG /0000000001','MCU K0000000001')
                             AND TO_CHAR(A.TGL_MASUK,'YYYY') = '".$periode."'
-                            AND (
-                                    (
-                                        A.POLI_ID NOT IN (
-                                            'UGD01',
-                                            'APS R0000000001',
-                                            'POLIFISIO',
-                                            'POLIFISOKUP',
-                                            'POLIFISWICARA',
-                                            'HEMOD0000000000'
-                                        )
-                                        AND EXISTS (
-                                            SELECT 1
-                                            FROM SR01_MED_PRWT_TR T
-                                            WHERE T.LOKASI_ID   = '001'
-                                            AND T.AKTIF       = '1'
-                                            AND T.DONE_STATUS = '01'
-                                            AND T.STATUS      = '1'
-                                            AND T.PASIEN_ID   = A.PASIEN_ID
-                                            AND T.EPISODE_ID  = A.EPISODE_ID
-                                        )
-                                    )
-                                    OR A.POLI_ID IN (
-                                        'POLIFISIO',
-                                        'POLIFISOKUP',
-                                        'POLIFISWICARA',
-                                        'HEMOD0000000000',
-                                        'CAPD0000000001'
-                                    )
+                            AND EXISTS (
+                                SELECT 1
+                                FROM SR01_MED_PRWT_TR T
+                                WHERE T.LOKASI_ID = '001'
+                                    AND T.AKTIF = '1'
+                                    AND T.DONE_STATUS = '01'
+                                    AND T.STATUS = '1'
+                                    AND T.PASIEN_ID = A.PASIEN_ID
+                                    AND T.EPISODE_ID = A.EPISODE_ID
                             )
                         )X
                         ORDER BY BAGIAN ASC, UNIT ASC, SUBUNIT ASC

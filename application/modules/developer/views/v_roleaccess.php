@@ -41,7 +41,7 @@
 					<span class="text-muted mt-1 fw-bold fs-7">-</span>
 				</h3>
 			</div>
-			<div class="card-body pt-0">
+			<div class="card-body py-3">
 				<div class="scroll-y me-n5 pe-5" id="listmodules"></div>
 			</div>
 		</div>

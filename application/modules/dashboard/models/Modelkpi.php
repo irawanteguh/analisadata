@@ -16,6 +16,329 @@
             return $recordset;
         }
 
+        function datawaktutunggurawatjalan($periode){
+            $query = "
+                        SELECT TO_CHAR(A.TGL_MASUK, 'MM') AS BULAN,
+                            COUNT(A.EPISODE_ID) AS JML,
+
+                            /* ========================================
+                                MULAI PEMERIKSAAN DOKTER
+                                ======================================== */
+                            COUNT(
+                                CASE
+                                    WHEN MP.MULAIPERIKSA IS NOT NULL
+                                    THEN 1
+                                END
+                            ) AS JML_SUDAH_PERIKSA,
+
+                            COUNT(
+                                CASE
+                                    WHEN MP.MULAIPERIKSA IS NOT NULL
+                                        AND RH.TGLCHECKIN IS NOT NULL
+                                        AND MP.MULAIPERIKSA >= RH.TGLCHECKIN
+                                        AND (MP.MULAIPERIKSA - RH.TGLCHECKIN) * 24 * 60 <= 60
+                                    THEN 1
+                                END
+                            ) AS JML_DIBAWAH_60,
+
+                            ROUND(
+                                100 *
+                                COUNT(
+                                    CASE
+                                        WHEN MP.MULAIPERIKSA IS NOT NULL
+                                            AND RH.TGLCHECKIN IS NOT NULL
+                                            AND MP.MULAIPERIKSA >= RH.TGLCHECKIN
+                                            AND (MP.MULAIPERIKSA - RH.TGLCHECKIN) * 24 * 60 <= 60
+                                        THEN 1
+                                    END
+                                )
+                                /
+                                NULLIF(
+                                    COUNT(
+                                        CASE
+                                            WHEN MP.MULAIPERIKSA IS NOT NULL
+                                                AND RH.TGLCHECKIN IS NOT NULL
+                                                AND MP.MULAIPERIKSA >= RH.TGLCHECKIN
+                                            THEN 1
+                                        END
+                                    ),
+                                    0
+                                ),
+                                2
+                            ) AS PERSEN_DIBAWAH_60,
+
+                            ROUND(
+                                AVG(
+                                    CASE
+                                        WHEN MP.MULAIPERIKSA IS NOT NULL
+                                            AND RH.TGLCHECKIN IS NOT NULL
+                                            AND MP.MULAIPERIKSA >= RH.TGLCHECKIN
+                                        THEN (MP.MULAIPERIKSA - RH.TGLCHECKIN) * 24 * 60
+                                    END
+                                ),
+                                2
+                            ) AS AVG_WAKTU_TUNGGU,
+
+                            /* ========================================
+                                MULAI ANAMNESA
+                                ======================================== */
+                            COUNT(
+                                CASE
+                                    WHEN RH.TGL_MULAI_ANAM IS NOT NULL
+                                        AND RH.TGLCHECKIN IS NOT NULL
+                                        AND RH.TGL_MULAI_ANAM >= RH.TGLCHECKIN
+                                        AND (RH.TGL_MULAI_ANAM - RH.TGLCHECKIN) * 24 * 60 <= 20
+                                    THEN 1
+                                END
+                            ) AS JML_DIBAWAH_20_ANAM,
+
+                            ROUND(
+                                100 *
+                                COUNT(
+                                    CASE
+                                        WHEN RH.TGL_MULAI_ANAM IS NOT NULL
+                                            AND RH.TGLCHECKIN IS NOT NULL
+                                            AND RH.TGL_MULAI_ANAM >= RH.TGLCHECKIN
+                                            AND (RH.TGL_MULAI_ANAM - RH.TGLCHECKIN) * 24 * 60 <= 20
+                                        THEN 1
+                                    END
+                                )
+                                /
+                                NULLIF(
+                                    COUNT(
+                                        CASE
+                                            WHEN RH.TGL_MULAI_ANAM IS NOT NULL
+                                                AND RH.TGLCHECKIN IS NOT NULL
+                                                AND RH.TGL_MULAI_ANAM >= RH.TGLCHECKIN
+                                            THEN 1
+                                        END
+                                    ),
+                                    0
+                                ),
+                                2
+                            ) AS PERSEN_DIBAWAH_20_ANAM,
+
+
+                            ROUND(
+                                AVG(
+                                    CASE
+                                        WHEN RH.TGL_MULAI_ANAM IS NOT NULL
+                                            AND RH.TGLCHECKIN IS NOT NULL
+                                            AND RH.TGL_MULAI_ANAM >= RH.TGLCHECKIN
+                                        THEN
+                                            (RH.TGL_MULAI_ANAM - RH.TGLCHECKIN) * 24 * 60
+                                    END
+                                ),
+                                2
+                            ) AS AVG_WAKTU_ANAM,
+
+                            /* ========================================
+                                SELESAI ANAMNESA
+                                ======================================== */
+                            COUNT(
+                                CASE
+                                    WHEN RH.TGL_MULAI_ANAM IS NOT NULL
+                                        AND SA.TGL_SELESAI_ANAM IS NOT NULL
+                                        AND SA.TGL_SELESAI_ANAM >= RH.TGL_MULAI_ANAM
+                                        AND (SA.TGL_SELESAI_ANAM - RH.TGL_MULAI_ANAM) * 24 * 60 <= 10
+                                    THEN 1
+                                END
+                            ) AS JML_ANAM_SELESAI_10,
+
+                            ROUND(
+                                100 *
+                                COUNT(
+                                    CASE
+                                        WHEN RH.TGL_MULAI_ANAM IS NOT NULL
+                                            AND SA.TGL_SELESAI_ANAM IS NOT NULL
+                                            AND SA.TGL_SELESAI_ANAM >= RH.TGL_MULAI_ANAM
+                                            AND (SA.TGL_SELESAI_ANAM - RH.TGL_MULAI_ANAM) * 24 * 60 <= 10
+                                        THEN 1
+                                    END
+                                )
+                                /
+                                NULLIF(
+                                    COUNT(
+                                        CASE
+                                            WHEN RH.TGL_MULAI_ANAM IS NOT NULL
+                                                AND SA.TGL_SELESAI_ANAM IS NOT NULL
+                                                AND SA.TGL_SELESAI_ANAM >= RH.TGL_MULAI_ANAM
+                                            THEN 1
+                                        END
+                                    ),
+                                    0
+                                ),
+                                2
+                            ) AS PERSEN_ANAM_SELESAI_10,
+
+                            ROUND(
+                                AVG(
+                                    CASE
+                                        WHEN RH.TGL_MULAI_ANAM IS NOT NULL
+                                            AND SA.TGL_SELESAI_ANAM IS NOT NULL
+                                            AND SA.TGL_SELESAI_ANAM >= RH.TGL_MULAI_ANAM
+                                        THEN
+                                            (SA.TGL_SELESAI_ANAM - RH.TGL_MULAI_ANAM) * 24 * 60
+                                    END
+                                ),
+                                2
+                            ) AS AVG_WAKTU_SELESAI_ANAM,
+                            
+                            /* ========================================
+                                SELESAI ANAMNESA → MULAI DOKTER
+                                ======================================== */
+                            COUNT(
+                                CASE
+                                    WHEN SA.TGL_SELESAI_ANAM IS NOT NULL
+                                        AND MP.MULAIPERIKSA IS NOT NULL
+                                        AND MP.MULAIPERIKSA >= SA.TGL_SELESAI_ANAM
+                                        AND (MP.MULAIPERIKSA - SA.TGL_SELESAI_ANAM) * 24 * 60 <= 30
+                                    THEN 1
+                                END
+                            ) AS JML_ANAM_DOKTER_30,
+
+                            ROUND(
+                                100 *
+                                COUNT(
+                                    CASE
+                                        WHEN SA.TGL_SELESAI_ANAM IS NOT NULL
+                                            AND MP.MULAIPERIKSA IS NOT NULL
+                                            AND MP.MULAIPERIKSA >= SA.TGL_SELESAI_ANAM
+                                            AND (MP.MULAIPERIKSA - SA.TGL_SELESAI_ANAM) * 24 * 60 <= 30
+                                        THEN 1
+                                    END
+                                )
+                                /
+                                NULLIF(
+                                    COUNT(
+                                        CASE
+                                            WHEN SA.TGL_SELESAI_ANAM IS NOT NULL
+                                                AND MP.MULAIPERIKSA IS NOT NULL
+                                                AND MP.MULAIPERIKSA >= SA.TGL_SELESAI_ANAM
+                                            THEN 1
+                                        END
+                                    ),
+                                    0
+                                ),
+                                2
+                            ) AS PERSEN_ANAM_DOKTER_30,
+
+                            ROUND(
+                                AVG(
+                                    CASE
+                                        WHEN SA.TGL_SELESAI_ANAM IS NOT NULL
+                                            AND MP.MULAIPERIKSA IS NOT NULL
+                                            AND MP.MULAIPERIKSA >= SA.TGL_SELESAI_ANAM
+                                        THEN
+                                            (MP.MULAIPERIKSA - SA.TGL_SELESAI_ANAM) * 24 * 60
+                                    END
+                                ),
+                                2
+                            ) AS AVG_WAKTU_ANAM_DOKTER
+
+                        FROM SR01_KEU_EPISODE A
+
+                        /* ========================================
+                        MULAI PEMERIKSAAN DOKTER
+                        ======================================== */
+                        LEFT JOIN (
+                            SELECT PASIEN_ID,
+                                EPISODE_ID,
+                                MIN(CREATED_DATE) AS MULAIPERIKSA
+                            FROM WEB_CO_MULAI_PERIKSA
+                            WHERE SHOW_ITEM = '1'
+                            GROUP BY PASIEN_ID,
+                                    EPISODE_ID
+                        ) MP
+                            ON MP.PASIEN_ID = A.PASIEN_ID
+                        AND MP.EPISODE_ID = A.EPISODE_ID
+
+                        /* ========================================
+                        CHECK-IN + MULAI ANAMNESA
+                        ======================================== */
+                        LEFT JOIN (
+                            SELECT PASIEN_ID,
+                                EPISODE_ID,
+                                MIN(TGL_HADIR) AS TGLCHECKIN,
+                                MIN(TGL_MULAI_ANAM) AS TGL_MULAI_ANAM
+                            FROM WEB_CO_REGISTRASI_ONLINE_HD
+                            WHERE LOKASI_ID = '001'
+                            AND AKTIF = '1'
+                            GROUP BY PASIEN_ID,
+                                    EPISODE_ID
+                        ) RH
+                            ON RH.PASIEN_ID = A.PASIEN_ID
+                        AND RH.EPISODE_ID = A.EPISODE_ID
+
+                        /* ========================================
+                        SELESAI ANAMNESA
+                        ======================================== */
+                        LEFT JOIN (
+                            SELECT PASIEN_ID,
+                                EPISODE_ID,
+                                MIN(CREATED_DATE) AS TGL_SELESAI_ANAM
+                            FROM SR01_MED_ASSESMEN_AWAL
+                            WHERE AKTIF = '1'
+                            GROUP BY PASIEN_ID,
+                                    EPISODE_ID
+                        ) SA
+                            ON SA.PASIEN_ID = A.PASIEN_ID
+                        AND SA.EPISODE_ID = A.EPISODE_ID
+
+                        WHERE A.LOKASI_ID = '001'
+                        AND A.AKTIF = '1'
+                        AND A.JENIS_EPISODE = 'O'
+                        AND A.STATUS_EPISODE <> '99'
+
+                        AND TO_CHAR(A.TGL_MASUK, 'YYYY') = '".$periode."'
+
+                        AND A.POLI_ID NOT IN (
+                            'APS',
+                            'APS L0000000001',
+                            'APS R0000000001',
+                            'UGD01',
+                            'UGD02',
+                            'RUJUKANLUAR',
+                            'MEDIC0000000000',
+                            'POLI0000000000',
+                            'POLI0000000043',
+                            'POLI0000000042',
+                            'POLI0000000041',
+                            'POLI0000000044',
+                            'POLI0000000052',
+                            'POLI0000000031'
+                        )
+
+                        AND (
+                            A.POLI_ID IN (
+                                'POLIFISIO',
+                                'POLIFISOKUP',
+                                'POLIFISWICARA',
+                                'HEMOD0000000000',
+                                'CAPD0000000001'
+                            )
+                            OR EXISTS (
+                                SELECT 1
+                                FROM SR01_MED_PRWT_TR T
+                                WHERE T.LOKASI_ID   = '001'
+                                    AND T.AKTIF       = '1'
+                                    AND T.DONE_STATUS = '01'
+                                    AND T.STATUS      = '1'
+                                    AND T.PASIEN_ID   = A.PASIEN_ID
+                                    AND T.EPISODE_ID  = A.EPISODE_ID
+                            )
+                        )
+
+                        GROUP BY TO_CHAR(A.TGL_MASUK, 'MM')
+
+                        ORDER BY BULAN
+            ";
+
+            $recordset = $this->db->query($query);
+            $recordset = $recordset->result();
+            return $recordset;
+        }
+
         function datajampulangpasienbln($periode){
             $query =
                     "
