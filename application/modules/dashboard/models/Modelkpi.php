@@ -307,7 +307,11 @@
                             'POLI0000000044',
                             'POLI0000000052',
                             'POLI0000000031',
-                            'HEMOD0000000000'
+                            'HEMOD0000000000',
+                            'POLIFISIO',
+                            'POLIFISOKUP',
+                            'POLIFISWICARA',
+                            'POLI0000000025'
                         )
 
                         AND (

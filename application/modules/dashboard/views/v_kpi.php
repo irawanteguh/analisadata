@@ -107,6 +107,8 @@
 							<li>Poli Medical Check Up</li>
 							<li>Poli Gigi</li>
 							<li>Haemodialisa</li>
+							<li>Rehab Medik</li>
+							<li>Fisioterapi</li>
 						</ul>
 					</ul>
 				</span>
