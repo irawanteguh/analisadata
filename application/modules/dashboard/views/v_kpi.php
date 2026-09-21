@@ -106,6 +106,7 @@
 						<ul>
 							<li>Poli Medical Check Up</li>
 							<li>Poli Gigi</li>
+							<li>Haemodialisa</li>
 						</ul>
 					</ul>
 				</span>
