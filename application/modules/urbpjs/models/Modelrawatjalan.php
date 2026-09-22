@@ -6,7 +6,7 @@
                     "
                         SELECT (2014 + LEVEL) AS PERIODE
                         FROM DUAL
-                        CONNECT BY LEVEL < EXTRACT(YEAR FROM SYSDATE) - 2014
+                        CONNECT BY LEVEL <= EXTRACT(YEAR FROM SYSDATE) - 2014
                         ORDER BY PERIODE DESC
                     ";
 
@@ -123,41 +123,38 @@
                         AND A.JENIS_EPISODE = 'O'
                         AND A.STATUS_EPISODE <> '99'
                         AND A.REKANAN_ID = 'BPJS'
-                        AND TO_CHAR(A.TGL_MASUK,'YYYY') = '".$periode."'
-                        AND (
+                        AND TO_CHAR(A.TGL_MASUK,'MM.YYYY') = '09.".$periode."'
+                        AND A.POLI_ID NOT IN (
+                                'APS',
+                                'APS L0000000001',
+                                'APS R0000000001',
+                                'UGD01',
+                                'UGD02',
+                                'RUJUKANLUAR'
+                            )
+                            AND (
                                 (
-                                    A.POLI_ID NOT IN (
-                                        'UGD01',
-                                        'APS R0000000001',
+                                    A.POLI_ID IN (
                                         'POLIFISIO',
                                         'POLIFISOKUP',
                                         'POLIFISWICARA',
-                                        'HEMOD0000000000'
+                                        'HEMOD0000000000',
+                                        'CAPD0000000001'
                                     )
-                                    AND EXISTS (
+                                    OR EXISTS (
                                         SELECT 1
                                         FROM SR01_MED_PRWT_TR T
-                                        WHERE T.LOKASI_ID = '001'
-                                        AND T.AKTIF = '1'
-                                        AND T.DONE_STATUS = '01'
-                                        AND T.STATUS = '1'
-                                        AND T.PASIEN_ID = A.PASIEN_ID
-                                        AND T.EPISODE_ID = A.EPISODE_ID
+                                        WHERE T.LOKASI_ID   = '001'
+                                            AND T.AKTIF       = '1'
+                                            AND T.DONE_STATUS = '01'
+                                            AND T.STATUS      = '1'
+                                            AND T.PASIEN_ID   = A.PASIEN_ID
+                                            AND T.EPISODE_ID  = A.EPISODE_ID
                                     )
-                                )
-                                OR A.POLI_ID IN (
-                                    'POLIFISIO',
-                                    'POLIFISOKUP',
-                                    'POLIFISWICARA',
-                                    'HEMOD0000000000',
-                                    'CAPD0000000001'
                                 )
                             )
 
-                        GROUP BY
-                            TO_CHAR(A.TGL_MASUK,'MM'),
-                            RTRIM(TO_CHAR(A.TGL_MASUK,'MONTH','NLS_DATE_LANGUAGE=INDONESIAN'))
-
+                        GROUP BY TO_CHAR(A.TGL_MASUK,'MM'), RTRIM(TO_CHAR(A.TGL_MASUK,'MONTH','NLS_DATE_LANGUAGE=INDONESIAN'))
                         ORDER BY BULAN
                     ";
 

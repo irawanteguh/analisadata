@@ -3,16 +3,11 @@ let currentSync = 0;
 let batchSize   = 500;
 let startTime   = null;
 
-datarrjdetail();
-quadrantdokter();
-quadrantsmf();
-quadrantresource();
-datadetailtidakadasep();
+
+load();
 
 $('#selectperiode').on('change', function () {
-    datarrjdetail();
-    quadrantdokter();
-    quadrantsmf();
+    load();
 });
 
 $("#modal_upload_bahv").on("show.bs.modal", function () {
@@ -817,6 +812,14 @@ $("#fileeklaim").on("change", function () {
     reader.readAsArrayBuffer(file);
 
 });
+
+function load(){
+    datarrjdetail();
+    // quadrantdokter();
+    // quadrantsmf();
+    // quadrantresource();
+    // datadetailtidakadasep();
+}
 
 function formatDuration(seconds) {
     seconds = Math.max(0, Math.round(seconds));
