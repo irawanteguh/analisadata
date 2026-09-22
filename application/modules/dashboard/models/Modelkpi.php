@@ -344,6 +344,47 @@
             return $recordset;
         }
 
+        function pemabatalanoperasielektif($periode){
+            $query = "
+                        SELECT TO_CHAR (A.TGL_TINDAKAN, 'YYYY') AS TAHUN,
+                            TO_CHAR (A.TGL_TINDAKAN, 'MM') AS BULAN,
+                            COUNT ( * ) AS TOTAL,
+                            SUM(CASE
+                                    WHEN A.STATUS_ID = '99'
+                                        AND TRUNC (A.TGL_TINDAKAN) = TRUNC (A.BATAL_DATE)
+                                    THEN
+                                    1
+                                    ELSE
+                                    0
+                                END)
+                                AS BATAL,
+                            ROUND (
+                                100
+                                * SUM(CASE
+                                        WHEN A.STATUS_ID = '99'
+                                            AND TRUNC (A.TGL_TINDAKAN) = TRUNC (A.BATAL_DATE)
+                                        THEN
+                                            1
+                                        ELSE
+                                            0
+                                    END)
+                                / NULLIF (COUNT ( * ), 0),
+                                2)
+                                AS PERSENTASE_BATAL,
+                            SYSDATE AS LAST_UPDATE
+                        FROM SR01_MED_OK_LOG A
+                    WHERE     A.LOKASI_ID = '001'
+                            AND A.AKTIF = '1'
+                            AND A.CITO = '0'
+                            AND TO_CHAR(A.TGL_TINDAKAN,'YYYY') = '".$periode."'
+                    GROUP BY TO_CHAR (A.TGL_TINDAKAN, 'YYYY'), TO_CHAR (A.TGL_TINDAKAN, 'MM')
+                ";
+
+            $recordset = $this->db->query($query);
+            $recordset = $recordset->result();
+            return $recordset;
+        }
+
         function datajampulangpasienbln($periode){
             $query =
                     "

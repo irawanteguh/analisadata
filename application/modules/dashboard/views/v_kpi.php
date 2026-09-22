@@ -17,10 +17,10 @@
                     <li class="nav-item">
                         <a class="nav-link active" data-bs-toggle="tab" href="#tab2">Waktu tunggu Rawat Jalan</a>
                     </li>
-                    <!-- <li class="nav-item">
+                    <li class="nav-item">
                         <a class="nav-link" data-bs-toggle="tab" href="#tab3">Pembatalan Operasi Elektif</a>
                     </li>
-                    <li class="nav-item">
+                    <!-- <li class="nav-item">
                         <a class="nav-link" data-bs-toggle="tab" href="#tab4">Lama Layanan IGD</a>
                     </li>
                     <li class="nav-item">
@@ -300,7 +300,7 @@
 							<div class="menu-content text-muted pb-2 px-3 fs-7 text-uppercase">More Actions</div>
 						</div>
 						<div class="menu-item px-3">
-							<a href="#" class="menu-link px-3" id="btnDownloadExcelProviderIGD">Download Excel</a>
+							<a href="#" class="menu-link px-3" id="btnDownloadoperasi">Download Excel</a>
 						</div>
 					</div>
 				</div>

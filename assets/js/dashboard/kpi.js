@@ -1,4 +1,5 @@
 let globaldatawaktutunggurawatjalan = [];
+let globalpemabatalanoperasielektif = [];
 
 loaddata();
 
@@ -115,10 +116,120 @@ $("#btnDownloadgrafikkpiwaktutunggurjmulaidokter").on("click", function () {
 
 });
 
+$("#btnDownloadoperasi").on("click", function () {
+
+    exportToExcel(
+        globalpemabatalanoperasielektif,
+        "Pembatalan Operasi Elektif",
+        "Pembatalan_Operasi_Elektif.xlsx",
+        {
+            formatter: (item, index) => ({
+
+                "No": index + 1,
+                "Tahun": item.TAHUN || "",
+                "Bulan": item.BULAN || "",
+
+                "Total Operasi": item.TOTAL || 0,
+                "Jumlah Pembatalan": item.BATAL || 0,
+                "% Pembatalan Operasi Elektif":
+                    item.PERSENTASE_BATAL || 0,
+
+                "Last Update": item.LAST_UPDATE || ""
+
+            })
+        }
+    );
+
+});
+
 function loaddata(){
     datajampulangpasienbln();
     datajampulangharian();
     datawaktutunggurawatjalan();
+    pemabatalanoperasielektif();
+};
+
+function pemabatalanoperasielektif(){
+    let selectperiode = $("select[name='selectperiode']").val();
+    $.ajax({
+        url      : url + "index.php/dashboard/kpi/pemabatalanoperasielektif",
+        type     : "POST",
+        dataType : "JSON",
+        data     : { selectperiode: selectperiode },
+
+        beforeSend: function () {
+            Swal.fire({
+                title: 'Processing',
+                html : 'Please wait while the system displays the requested data.',
+                allowOutsideClick: false,
+                allowEscapeKey   : false,
+                showConfirmButton: false,
+                didOpen: () => Swal.showLoading()
+            });
+        },
+
+        success: function (response) {
+
+            if (response.responCode !== "00") {
+                Swal.fire({
+                    icon             : 'warning',
+                    title            : 'No Records Found',
+                    text             : 'No records are available for the selected period.',
+                    showConfirmButton: false,
+                    timer            : 2000
+                });
+                return;
+            }
+
+            const result       = Array.isArray(response.responResult) ? response.responResult : [];
+            globalpemabatalanoperasielektif = result;
+
+            const bulanLengkap = ["01","02","03","04","05","06","07","08","09","10","11","12"];
+            const namaBulan    = ["Jan","Feb","Mar","Apr","Mei","Jun","Jul","Agu","Sep","Okt","Nov","Des"];
+
+            const dataMap = {};
+
+            result.forEach(item => {
+                dataMap[item.BULAN] = {
+                    val1: parseFloat(item.PERSENTASE_BATAL) || 0,
+                    val2: parseFloat(item.BATAL) || 0
+                };
+            });
+
+            const chartData = bulanLengkap.map((b, index) => ({
+                periode: namaBulan[index],
+                Value1: dataMap[b]?.val1 ?? 0,
+                Value2: dataMap[b]?.val2 ?? 0
+            }));
+
+            renderchartarea(
+                "grafikkpioperasi",
+                chartData,
+                "Periode",
+                "% Pembatalan Operasi Elektif",
+                ["% Pembatalan", "Jumlah Pembatalan"],
+                ["Value1", "Value2"],
+                true,
+                "Jumlah Pembatalan Operasi",
+                "Value1",
+                "Jumlah Pembatalan Operasi",
+                null
+            );
+        },
+
+        complete: function () {
+            Swal.close();
+        },
+
+        error: function () {
+            Swal.fire({
+                icon: "error",
+                title: "Request Failed",
+                text: "We were unable to process your request due to a server error. Please try again later. If the problem persists, contact your system administrator.",
+                confirmButtonText: "OK"
+            });
+        }
+    });
 };
 
 function datawaktutunggurawatjalan(){
