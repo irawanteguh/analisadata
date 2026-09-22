@@ -114,13 +114,53 @@
 					"CREATED_BY"    => "SIRS01_" . $_SESSION["userid"]
 				];
 
-
 				$resultcekdataeklaim = $this->md->cekdataeklaim(isset($cekdatasep->SEP_JENISLAYAN) ? ($cekdatasep->SEP_JENISLAYAN == '2' ? 'O' : 'I') : null,$row["NO_SEP"]);
 				if(empty($resultcekdataeklaim)){
 					$this->md->inserturbpjs($data);
 				}else{
 					$this->md->updateurbpjs($row["NO_SEP"], $data);
 				}
+
+				if (!empty($cekdatasep->PASIEN_ID) && !empty($cekdatasep->EPISODE_ID)) {
+					$datacoding = [
+						'CODING_ID'     => 'IMP_'.$cekdatasep->EPISODE_ID,
+						'PASIEN_ID'     => $cekdatasep->PASIEN_ID,
+						'EPISODE_ID'    => $cekdatasep->EPISODE_ID,
+						'NOMOR_KARTU'   => $cekdatasep->NOKARTU,
+						'NOMOR_SEP'     => $row["NO_SEP"],
+						"TARIF_INACBG"  => $row["NILAI_INACBG"],
+						'KELAS_RAWAT'   => '3',
+						'JENIS_RAWAT'   => $cekdatasep->SEP_JENISLAYAN,
+						'NOMOR_RM'      => $cekdatasep->MRPAS,
+						'NAMA_PASIEN'   => $cekdatasep->NAMAPASIEN,
+						'AKTIF'         => '1',
+						'CODING_SOURCE' => 'GROUPING'
+					];
+
+					$resultcekdatacoding = $this->md->cekdatacoding($cekdatasep->PASIEN_ID,$cekdatasep->EPISODE_ID);
+					if (empty($resultcekdatacoding)) {
+						$this->md->insertcoding($datacoding);
+					} else {
+						$this->md->updatecoding($cekdatasep->PASIEN_ID, $cekdatasep->EPISODE_ID, $row["NO_SEP"], $datacoding);
+					}
+				}
+			}
+			echo json_encode(["status" => true]);
+		}
+
+		public function importtxteklaim(){
+			$rows = json_decode($this->input->post('data'), true);
+
+			if (!$rows) {
+				echo json_encode([
+					"status" => false,
+					"message" => "Data kosong."
+				]);
+				return;
+			}
+
+			foreach ($rows as $row) {
+				$cekdatasep = $this->md->cekdatasep($row["NO_SEP"]);
 
 				if (!empty($cekdatasep->PASIEN_ID) && !empty($cekdatasep->EPISODE_ID)) {
 					$datacoding = [

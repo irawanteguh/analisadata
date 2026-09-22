@@ -20,7 +20,6 @@
             return $recordset;
         }
 
-        
         function dataauditmedik($periode){
             $query =
                     "

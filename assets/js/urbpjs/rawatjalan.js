@@ -4,7 +4,7 @@ let batchSize   = 500;
 let startTime   = null;
 
 
-load();
+// load();
 
 $('#selectperiode').on('change', function () {
     load();
@@ -27,6 +27,14 @@ $("#modal_upload_farmasi").on("show.bs.modal", function () {
     $("#jmlDataFarmasi").text("0");
     $("#totalNilaiFarmasi").text("0");
     $("#resultpreviewfarmasi").empty();
+});
+
+$("#modal_upload_txt_eklaim").on("show.bs.modal", function () {
+    $("#filetxteklaim").val("");
+    $("#jmlDataEklaim").text("0");
+    $("#totalNilaiEklaim").text("0");
+    $("#headerPreviewtxtEklaim").empty();
+    $("#resultpreviewtxteklaim").empty();
 });
 
 $("#btnImportBahv").on("click", function () {
@@ -812,6 +820,396 @@ $("#fileeklaim").on("change", function () {
     reader.readAsArrayBuffer(file);
 
 });
+
+$("#filetxteklaim").on("change", function () {
+
+    const file = this.files[0];
+
+    if (!file) {
+        return;
+    }
+
+    // =====================================================
+    // RESET
+    // =====================================================
+
+    $("#jmlDataEklaim").text("0");
+    $("#totalNilaiEklaim").text("Rp 0");
+    $("#totalTarifRSEklaim").text("Rp 0");
+    $("#selisihTarifEklaim").text("Rp 0");
+
+    $("#headerPreviewtxtEklaim").empty();
+    $("#resultpreviewtxteklaim").empty();
+
+    window.dataTxtEklaim = [];
+
+    // =====================================================
+    // VALIDASI FILE
+    // =====================================================
+
+    if (!file.name.toLowerCase().endsWith(".txt")) {
+
+        Swal.fire({
+            icon: "warning",
+            title: "Format File Tidak Sesuai",
+            text: "Silakan pilih file Text Document (.TXT)."
+        });
+
+        $(this).val("");
+
+        return;
+    }
+
+    // =====================================================
+    // LOADING
+    // =====================================================
+
+    Swal.fire({
+        title: "Membaca File",
+        text: "Sedang membaca data TXT E-Klaim...",
+        allowOutsideClick: false,
+        allowEscapeKey: false,
+        didOpen: function () {
+            Swal.showLoading();
+        }
+    });
+
+    const reader = new FileReader();
+
+    reader.onload = function (e) {
+
+        try {
+
+            let text = e.target.result;
+
+            // =====================================================
+            // NORMALISASI LINE BREAK
+            // =====================================================
+
+            text = text
+                .replace(/\r\n/g, "\n")
+                .replace(/\r/g, "\n");
+
+            const lines = text
+                .split("\n")
+                .filter(function (line) {
+                    return line.trim() !== "";
+                });
+
+            if (lines.length === 0) {
+
+                Swal.fire({
+                    icon: "warning",
+                    title: "File Kosong",
+                    text: "File TXT tidak memiliki data."
+                });
+
+                return;
+            }
+
+            // =====================================================
+            // HEADER
+            // =====================================================
+
+            const headers = lines[0]
+                .replace(/^\uFEFF/, "")
+                .split("\t")
+                .map(function (header) {
+                    return header.trim();
+                });
+
+            console.log("HEADER:", headers);
+
+            // =====================================================
+            // VALIDASI HEADER
+            // =====================================================
+
+            const indexSEP = headers.indexOf("SEP");
+            const indexTarif = headers.indexOf("TARIF_INACBG");
+            const indexTarifRS = headers.indexOf("TARIF_RS");
+
+            if (indexTarif === -1) {
+
+                Swal.fire({
+                    icon: "error",
+                    title: "Kolom Tidak Ditemukan",
+                    text: "Kolom TARIF_INACBG tidak ditemukan pada file TXT."
+                });
+
+                return;
+            }
+
+            if (indexTarifRS === -1) {
+
+                Swal.fire({
+                    icon: "error",
+                    title: "Kolom Tidak Ditemukan",
+                    text: "Kolom TARIF_RS tidak ditemukan pada file TXT."
+                });
+
+                return;
+            }
+
+            // =====================================================
+            // HEADER TABLE
+            // =====================================================
+
+            let headerHtml = "<tr class='fw-bolder'>";
+
+            headers.forEach(function (header, index) {
+
+                let className =
+                    "bg-dark text-white text-nowrap";
+
+                if (index === 0) {
+                    className += " ps-4";
+                }
+
+                if (index === headers.length - 1) {
+                    className += " pe-4";
+                }
+
+                headerHtml += `
+                    <th class="${className}">
+                        ${escapeHtml(header)}
+                    </th>
+                `;
+            });
+
+            headerHtml += "</tr>";
+
+            $("#headerPreviewtxtEklaim").html(headerHtml);
+
+            // =====================================================
+            // DATA
+            // =====================================================
+
+            const data = [];
+
+            for (let i = 1; i < lines.length; i++) {
+
+                const row = lines[i].split("\t");
+
+                if (
+                    row.length === 1 &&
+                    row[0].trim() === ""
+                ) {
+                    continue;
+                }
+
+                data.push(row);
+            }
+
+            console.log("JUMLAH DATA:", data.length);
+
+            // Simpan seluruh data untuk proses Import
+            window.dataTxtEklaim = data;
+
+            // =====================================================
+            // JUMLAH DATA
+            // =====================================================
+
+            $("#jmlDataEklaim").text(
+                data.length.toLocaleString("id-ID")
+            );
+
+            // =====================================================
+            // TOTAL
+            // =====================================================
+
+            let totalTarif = 0;
+            let totalTarifRS = 0;
+
+            data.forEach(function (row) {
+
+                // -------------------------------------------------
+                // TARIF INA-CBG
+                // -------------------------------------------------
+
+                let valueInacbg = row[indexTarif] || "0";
+
+                valueInacbg = parseNominalTxt(valueInacbg);
+
+                totalTarif += valueInacbg;
+
+                // -------------------------------------------------
+                // TARIF RS
+                // -------------------------------------------------
+
+                let valueTarifRS = row[indexTarifRS] || "0";
+
+                valueTarifRS = parseNominalTxt(valueTarifRS);
+
+                totalTarifRS += valueTarifRS;
+
+            });
+
+            // =====================================================
+            // SELISIH
+            // =====================================================
+
+            const selisihTarif = totalTarifRS - totalTarif;
+
+            // =====================================================
+            // TAMPILKAN SUMMARY
+            // =====================================================
+
+            $("#totalNilaiEklaim").text(
+                "Rp " + totalTarif.toLocaleString("id-ID")
+            );
+
+            $("#totalTarifRSEklaim").text(
+                "Rp " + totalTarifRS.toLocaleString("id-ID")
+            );
+
+            $("#selisihTarifEklaim").text(
+                "Rp " + selisihTarif.toLocaleString("id-ID")
+            );
+
+            // =====================================================
+            // PREVIEW
+            // =====================================================
+
+            let bodyHtml = "";
+
+            data.slice(0, 100).forEach(function (row) {
+
+                bodyHtml += "<tr>";
+
+                headers.forEach(function (header, columnIndex) {
+
+                    const value = row[columnIndex] || "";
+
+                    bodyHtml += `
+                        <td class="text-nowrap">
+                            ${escapeHtml(value)}
+                        </td>
+                    `;
+
+                });
+
+                bodyHtml += "</tr>";
+
+            });
+
+            $("#resultpreviewtxteklaim").html(bodyHtml);
+
+            // =====================================================
+            // SELESAI
+            // =====================================================
+
+            Swal.close();
+
+        } catch (error) {
+
+            console.error("ERROR:", error);
+
+            Swal.fire({
+                icon: "error",
+                title: "Gagal Membaca File",
+                text: "Terjadi kesalahan saat membaca file TXT."
+            });
+
+        }
+
+    };
+
+    reader.onerror = function () {
+
+        Swal.fire({
+            icon: "error",
+            title: "Gagal Membaca File",
+            text: "File TXT tidak dapat dibaca."
+        });
+
+    };
+
+    // =====================================================
+    // BACA FILE
+    // =====================================================
+
+    reader.readAsText(file);
+
+});
+
+function parseNominalTxt(value) {
+
+    if (value === null || value === undefined) {
+        return 0;
+    }
+
+    value = String(value).trim();
+
+    if (value === "") {
+        return 0;
+    }
+
+    /*
+     * Hapus karakter selain angka,
+     * minus, koma dan titik
+     */
+    value = value.replace(/[^\d,.-]/g, "");
+
+    /*
+     * Jika format:
+     *
+     * 1.250.000
+     * 12.500.000
+     *
+     * maka titik dianggap separator ribuan.
+     */
+    if (
+        value.indexOf(".") !== -1 &&
+        value.indexOf(",") === -1
+    ) {
+
+        value = value.replace(/\./g, "");
+
+    }
+
+    /*
+     * Jika format:
+     *
+     * 1,250,000
+     *
+     * maka koma dianggap separator ribuan.
+     */
+    else if (
+        value.indexOf(",") !== -1 &&
+        value.indexOf(".") === -1
+    ) {
+
+        value = value.replace(/,/g, "");
+
+    }
+
+    /*
+     * Jika ada titik dan koma:
+     *
+     * 1.250.000,50
+     *
+     * maka titik = ribuan
+     * koma = decimal
+     */
+    else if (
+        value.indexOf(".") !== -1 &&
+        value.indexOf(",") !== -1
+    ) {
+
+        value = value
+            .replace(/\./g, "")
+            .replace(",", ".");
+
+    }
+
+    const result = parseFloat(value);
+
+    return isNaN(result) ? 0 : result;
+}
+
+function escapeHtml(text) {
+    return String(text).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+}
 
 function load(){
     datarrjdetail();

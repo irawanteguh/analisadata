@@ -10,15 +10,15 @@
 <div class="btn-group">
     <button type="button" class="btn btn-primary btn-sm dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false"><i class="bi bi-arrow-repeat"></i> Synchronize Data</button>
     <ul class="dropdown-menu">
+        <li>
+            <a class="dropdown-item btn btn-sm" href="#" data-bs-toggle="modal" data-bs-target="#modal_upload_txt_eklaim"><i class="bi bi-file-earmark-check"></i> Upload Txt E-KLAIM</a>
+		</li>
         <!-- <li>
-            <a class="dropdown-item btn btn-sm" href="#" onclick="syncdata_txtcoding();"><i class="bi bi-file-earmark-text"></i> File TXT - Coding</a>
-        </li> -->
-        <li>
             <a class="dropdown-item btn btn-sm" href="#" data-bs-toggle="modal" data-bs-target="#modal_upload_eklaim"><i class="bi bi-file-earmark-check"></i> Upload E-KLAIM</a>
-		</li>
-        <li>
+		</li> -->
+        <!-- <li>
             <a class="dropdown-item btn btn-sm" href="#" data-bs-toggle="modal" data-bs-target="#modal_upload_bahv"><i class="bi bi-file-earmark-check"></i> Upload BAHV</a>
-		</li>
+		</li> -->
         <!-- <li>
             <a class="dropdown-item btn btn-sm" href="#" data-bs-toggle="modal" data-bs-target="#modal_upload_farmasi"><i class="bi bi-capsule"></i> Upload Farmasi</a>
         </li> -->

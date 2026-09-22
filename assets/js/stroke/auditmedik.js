@@ -52,6 +52,10 @@ function dataauditmedik() {
                 didOpen          : () => Swal.showLoading()
             });
 
+            if ($.fn.DataTable.isDataTable("#dataauditmedik_table")) {
+                $("#dataauditmedik_table").DataTable().clear().destroy();
+            }
+
             $("#resultdataauditmedik").empty();
         },
         success: function (response) {
@@ -95,7 +99,7 @@ function dataauditmedik() {
             }
 
             $("#resultdataauditmedik").html(tableresult);
-            const table = initDataTable("#dataauditmedik_table", "#searchtable");
+            const table = initDataTable("#dataauditmedik_table", "#searchtable",10);
 
         },
         complete: function () {
