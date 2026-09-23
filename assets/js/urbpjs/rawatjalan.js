@@ -1,1223 +1,337 @@
-let totalSync   = 0;
-let currentSync = 0;
-let batchSize   = 500;
-let startTime   = null;
+load();
 
-
-// load();
-
-$('#selectperiode').on('change', function () {
-    load();
-});
-
-$("#modal_upload_bahv").on("show.bs.modal", function () {
-    $("#filebahv").val("");
-    dataBahv = [];
-    $("#jmlDataBahv").text("0");
-    $("#totalLayakBahv").text("0");
-    $("#totalTidakLayakBahv").text("0");
-    $("#resultpreviewbahv").empty();
-});
-
-$("#modal_upload_farmasi").on("show.bs.modal", function () {
-    $("#filefarmasi").val("");
-
-    dataFarmasi = [];
-
-    $("#jmlDataFarmasi").text("0");
-    $("#totalNilaiFarmasi").text("0");
-    $("#resultpreviewfarmasi").empty();
-});
-
-$("#modal_upload_txt_eklaim").on("show.bs.modal", function () {
+$("#modal_upload_txt_eklaim").on("show.bs.modal", function() {
     $("#filetxteklaim").val("");
     $("#jmlDataEklaim").text("0");
-    $("#totalNilaiEklaim").text("0");
+    $("#totalNilaiEklaim").text("Rp 0");
+    $("#totalTarifRSEklaim").text("Rp 0");
+    $("#selisihTarifEklaim").text("Rp 0");
     $("#headerPreviewtxtEklaim").empty();
     $("#resultpreviewtxteklaim").empty();
+    window.dataTxtEklaim = [];
+    window.headerTxtEklaim = [];
 });
 
-$("#btnImportBahv").on("click", function () {
-
-    if (dataBahv.length === 0) {
-        Swal.fire({
-            icon: "warning",
-            title: "No Data Available",
-            text: "Please select and import an Excel file before proceeding."
-        });
-        return;
-    }
-
-    Swal.fire({
-        title: "Import Data BAHV",
-        text: "Are you sure you want to import " + dataBahv.length.toLocaleString("id-ID") + " records?",
-        icon: "question",
-        showCancelButton: true,
-        confirmButtonText: "Yes, Import",
-        cancelButtonText: "Cancel",
-        confirmButtonColor: "#0d6efd", // Biru (Bootstrap Primary)
-        cancelButtonColor: "#6c757d"   // Abu-abu (Bootstrap Secondary)
-    }).then(function (result) {
-        if (result.isConfirmed) {
-            prosesImportBahv();
-        }
-    });
-});
-
-$("#btnImportFarmasi").on("click", function () {
-    if (dataFarmasi.length === 0) {
-        Swal.fire({
-            icon: "warning",
-            title: "No Data Available",
-            text: "Please select and preview an Excel file before proceeding."
-        });
-        return;
-    }
-    Swal.fire({
-        title: "Import Data Klaim Farmasi",
-        html: `
-            Are you sure you want to import
-            <strong>${dataFarmasi.length.toLocaleString("id-ID")}</strong>
-            records?
-        `,
-        icon: "question",
-        showCancelButton: true,
-        confirmButtonText: "Yes, Import",
-        cancelButtonText: "Cancel",
-        confirmButtonColor: "#0d6efd",
-        cancelButtonColor: "#6c757d"
-    }).then(function (result) {
-        if (result.isConfirmed) {
-            prosesImportFarmasi();
-        }
-
-    });
-});
-
-$("#btnImportEklaim").on("click", function () {
-
-    if (dataEklaim.length === 0) {
-
-        Swal.fire({
-            icon: "warning",
-            title: "No Data Available",
-            text: "Please select and preview an Excel file before proceeding."
-        });
-
-        return;
-
-    }
-
-    Swal.fire({
-
-        title: "Import Data E-Klaim",
-
-        html: `
-            Are you sure you want to import
-            <strong>${dataEklaim.length.toLocaleString("id-ID")}</strong>
-            records?
-        `,
-
-        icon: "question",
-
-        showCancelButton: true,
-
-        confirmButtonText: "Yes, Import",
-
-        cancelButtonText: "Cancel",
-
-        confirmButtonColor: "#0d6efd",
-
-        cancelButtonColor: "#6c757d"
-
-    }).then(function (result) {
-
-        if (result.isConfirmed) {
-
-            prosesImportEklaim();
-
-        }
-
-    });
-
-});
-
-$("#filebahv").on("change", function () {
-    const file = this.files[0];
-
-    if(!file){return;}
-
-    dataBahv = [];
-
-    $("#resultpreviewbahv").html("");
-    $("#jmlDataBahv").text("0");
-    $("#totalLayakBahv").text("0");
-    $("#totalTidakLayakBahv").text("0");
-
-
-    const reader = new FileReader();
-    reader.onload = function(e){
-        const workbook = XLSX.read(e.target.result,{type:"array"});
-        const sheet    = workbook.Sheets[workbook.SheetNames[0]];
-        const rows     = XLSX.utils.sheet_to_json(sheet,{header:1,defval:""});
-
-        let headerRow = -1;
-        let idxSep    = -1;
-        let idxStatus = -1;
-
-
-        for(let i=0;i<rows.length;i++){
-            let header    = rows[i].map(normalizeHeader);
-                idxSep    = header.indexOf("NOSEP");
-                idxStatus = header.indexOf("BAHV");
-
-            if(idxSep !== -1 && idxStatus !== -1){
-                headerRow=i;
-                break;
-            }
-        }
-
-
-        if(headerRow === -1){
-            Swal.fire({
-                icon: "error",
-                title: "Invalid Excel Format",
-                html: `
-                    <div class="text-start">
-                        <p class="mb-3">
-                            The uploaded Excel file does not match the required template.
-                            Please ensure the following column headers are present:
-                        </p>
-                        <ul class="mb-3">
-                            <li><strong>NO SEP</strong></li>
-                            <li><strong>BAHV</strong></li>
-                        </ul>
-                        <p class="mb-0 text-muted">
-                            Please use the correct template and try uploading the file again.
-                        </p>
-                    </div>
-                `
-            });
-
-            $("#filebahv").val("");
-            return;
-        }
-
-        let totalData = 0;
-        for (let i = headerRow + 1; i < rows.length; i++) {
-            let noSep = String(rows[i][idxSep] || "").trim();
-            if (noSep !== "") {
-                totalData++;
-            }
-        }
-
-        Swal.fire({
-            title:"Preparing Data",
-            html: `
-                <div class="text-center">
-                    <div class="fs-5 mb-3">
-                        Please wait...
-                    </div>
-                    <div class="fs-3 fw-bold text-primary">
-                        <span id="swalProgress">0</span> /
-                        ${totalData.toLocaleString("id-ID")}
-                    </div>
-                    <div class="progress mt-3">
-                        <div id="swalProgressBar"class="progress-bar progress-bar-striped progress-bar-animated bg-primary"style="width:0%"></div>
-                    </div>
-                    <div class="mt-3 small text-muted">
-                        <div>
-                            Processing Speed:
-                            <span id="swalSpeed">0</span> records/sec
-                        </div>
-                        <div>
-                            Estimated Time Remaining:
-                            <span id="swalEta">Calculating...</span>
-                        </div>
-                    </div>
-                </div>
-            `,
-            allowOutsideClick: false,
-            showConfirmButton: false,
-            didOpen          : function () {
-                Swal.showLoading();
-
-                let html            = "";
-                let current         = headerRow + 1;
-                let processed       = 0;
-                let totalLayak      = 0;
-                let totalTidakLayak = 0;
-                let startTime       = Date.now();
-
-                function processChunk() {
-                    let chunk = 0;
-
-                    while (current < rows.length && chunk < 100) {
-
-                        let row   = rows[current];
-                        let noSep = String(row[idxSep] || "").trim().toUpperCase();
-                        let bahv  = String(row[idxStatus] || "").trim().toUpperCase();
-
-                        if (noSep !== "") {
-
-                            processed++;
-
-                            if(bahv === "Y" || bahv === "LAYAK"){
-                                totalLayak++;
-                            }else if(bahv === "T" || bahv === "TIDAK LAYAK"){
-                                totalTidakLayak++;
-                            }
-
-                            let statusBahv = "";
-
-                            if(bahv === "Y" || bahv === "LAYAK"){
-                                statusBahv = "<span class='badge badge-light-success'>Layak</span>";
-                            }else if(bahv === "T" || bahv === "TIDAK LAYAK") {
-                                statusBahv = "<span class='badge badge-light-danger'>Tidak Layak</span>";
-                            }else{
-                                statusBahv = "<span class='badge badge-light-warning'>" + bahv + "</span>";
-                            }
-
-                            dataBahv.push({
-                                NO_SEP: noSep,
-                                BAHV  : bahv
-                            });
-
-                            html += `
-                                <tr>
-                                    <td class="ps-4">${processed}</td>
-                                    <td class="fw-bold">${noSep}</td>
-                                    <td class="text-end pe-4">${statusBahv}</td>
-                                </tr>
-                            `;
-                        }
-
-                        current++;
-                        chunk++;
-                    }
-
-
-                    let percent = totalData > 0 ? Math.min((processed / totalData) * 100, 100) : 100;
-
-                    $("#swalProgress").text(processed.toLocaleString("id-ID"));
-                    $("#swalProgressBar").css("width", percent + "%").attr("aria-valuenow", percent);
-
-
-                    let elapsed = (Date.now() - startTime) / 1000;
-                    let speed = elapsed > 0 ? processed / elapsed : 0;
-                    $("#swalSpeed").text(speed.toFixed(2));
-
-
-                    let remaining = totalData - processed;
-                    let eta = speed > 0 ? remaining / speed : 0;
-                    $("#swalEta").text(remaining > 0 ? formatDuration(eta) : "Completed");
-
-
-                    if(current < rows.length){
-                        requestAnimationFrame(processChunk);
-                    }else{
-                        $("#swalProgress").text(totalData.toLocaleString("id-ID"));
-                        $("#swalProgressBar").css("width", "100%").attr("aria-valuenow", 100);
-                        $("#swalSpeed").text(speed.toFixed(2));
-                        $("#swalEta").text("Completed");
-                        $("#resultpreviewbahv").html(html);
-                        $("#jmlDataBahv").text(processed.toLocaleString("id-ID"));
-                        $("#totalLayakBahv").text(totalLayak.toLocaleString("id-ID"));
-                        $("#totalTidakLayakBahv").text(totalTidakLayak.toLocaleString("id-ID"));
-
-                        setTimeout(function () {
-                            Swal.fire({
-                                icon: "success",
-                                title: "Preview Ready",
-                                html: `
-                                    <div class="text-center">
-                                        <div class="fs-5 mb-2">
-                                            The file has been processed successfully.
-                                        </div>
-                                        <div class="fs-2 fw-bold text-primary">
-                                            ${processed.toLocaleString("id-ID")}
-                                        </div>
-                                        <div class="text-muted">
-                                            records are ready for import.
-                                        </div>
-                                    </div>
-                                `,
-                                timer: 3000,
-                                timerProgressBar: true,
-                                showConfirmButton: false
-                            });
-                        }, 150);
-                    }
-                }
-                processChunk();
-            }
-        });
-    };
-    reader.readAsArrayBuffer(file);
-});
-
-$("#filefarmasi").on("change", function () {
-    const file = this.files[0];
-
-    if(!file){return;}
-
-    dataFarmasi = [];
-
-    $("#resultpreviewfarmasi").html("");
-    $("#jmlDataFarmasi").text("0");
-    $("#totalNilaiFarmasi").text("0");
-
-    const reader = new FileReader();
-
-    reader.onload = function (e) {
-        const workbook = XLSX.read(e.target.result, {type: "array"});
-        const sheet    = workbook.Sheets[workbook.SheetNames[0]];
-        const rows     = XLSX.utils.sheet_to_json(sheet, {header: 1,defval: ""});
-
-        let headerRow = -1;
-        let idxSep    = -1;
-        let idxBiaya  = -1;
-
-        for (let i = 0; i < rows.length; i++) {
-            let header = rows[i].map(normalizeHeader);
-
-            idxSep   = header.indexOf("NOSEP");
-            idxBiaya = header.indexOf("BIAYADISETUJUI");
-
-            if (idxSep !== -1 && idxBiaya !== -1) {
-                headerRow = i;
-                break;
-            }
-        }
-
-        if (headerRow === -1) {
-            Swal.fire({
-                icon: "error",
-                title: "Invalid Excel Format",
-                html: `
-                    <div class="text-start">
-                        <p class="mb-3">
-                            The uploaded Excel file does not match the required template.
-                            Please ensure the following column headers are present:
-                        </p>
-                        <ul class="mb-3">
-                            <li><strong>NO SEP</strong></li>
-                            <li><strong>BIAYA DISETUJUI</strong></li>
-                        </ul>
-                        <p class="mb-0 text-muted">
-                            Please use the correct template and try uploading the file again.
-                        </p>
-                    </div>
-                `
-            });
-
-            $("#filefarmasi").val("");
-            return;
-        }
-
-        let totalData = 0;
-        for (let i = headerRow + 1; i < rows.length; i++) {
-            let noSep = String(rows[i][idxSep] || "").trim();
-
-            if (noSep !== "") {
-                totalData++;
-            }
-        }
-
-        Swal.fire({
-            title: "Preparing Data",
-            html: `
-                <div class="text-center">
-                    <div class="fs-5 mb-3">
-                        Please wait...
-                    </div>
-                    <div class="fs-3 fw-bold text-primary">
-                        <span id="swalProgress">0</span> /
-                        ${totalData.toLocaleString("id-ID")}
-                    </div>
-                    <div class="progress mt-3">
-                        <div
-                            id="swalProgressBar"
-                            class="progress-bar progress-bar-striped progress-bar-animated bg-primary"
-                            style="width:0%">
-                        </div>
-                    </div>
-                    <div class="mt-3 small text-muted">
-                        <div>
-                            Processing Speed :
-                            <span id="swalSpeed">0</span> records/sec
-                        </div>
-                        <div>
-                            Estimated Time Remaining :
-                            <span id="swalEta">Calculating...</span>
-                        </div>
-                    </div>
-                </div>
-            `,
-
-            allowOutsideClick: false,
-            showConfirmButton: false,
-
-            didOpen: function () {
-                Swal.showLoading();
-
-                let html       = "";
-                let current    = headerRow + 1;
-                let processed  = 0;
-                let totalNilai = 0;
-                let startTime  = Date.now();
-
-                function processChunk() {
-                    let chunk = 0;
-
-                    while (current < rows.length && chunk < 100) {
-                        let row   = rows[current];
-                        let noSep = String(row[idxSep] || "").trim().toUpperCase();
-                        let biaya = parseFloat(String(row[idxBiaya] || "0").replace(/\./g, "").replace(",", ".")) || 0;
-
-                        if (noSep !== "") {
-                            processed++;
-                            totalNilai += biaya;
-
-                            dataFarmasi.push({
-                                NO_SEP         : noSep,
-                                BIAYA_DISETUJUI: biaya
-                            });
-
-                            html += `
-                                <tr>
-                                    <td class="ps-4">${processed}</td>
-                                    <td class="fw-bold">
-                                        ${noSep}
-                                    </td>
-                                    <td class="text-end pe-4 fw-bold text-success">
-                                        ${biaya.toLocaleString("id-ID")}
-                                    </td>
-                                </tr>
-                            `;
-                        }
-
-                        current++;
-                        chunk++;
-                    }
-
-                    let percent = totalData > 0 ? Math.min((processed / totalData) * 100, 100) : 100;
-                    $("#swalProgress").text(processed.toLocaleString("id-ID"));
-                    $("#swalProgressBar").css("width", percent + "%").attr("aria-valuenow", percent);
-
-                    let elapsed = (Date.now() - startTime) / 1000;
-                    let speed   = elapsed > 0 ? processed / elapsed : 0;
-                    $("#swalSpeed").text(speed.toFixed(2));
-
-                    let remaining = totalData - processed;
-                    let eta       = speed > 0 ? remaining / speed : 0;
-                    $("#swalEta").text(remaining > 0 ? formatDuration(eta) : "Completed");
-
-                    if (current < rows.length) {
-                        requestAnimationFrame(processChunk);
-                    } else {
-
-                        $("#swalProgress").text(totalData.toLocaleString("id-ID"));
-                        $("#swalProgressBar").css("width", "100%").attr("aria-valuenow", 100);
-                        $("#swalSpeed").text(speed.toFixed(2));
-                        $("#swalEta").text("Completed");
-
-                        $("#resultpreviewfarmasi").html(html);
-                        $("#jmlDataFarmasi").text(processed.toLocaleString("id-ID"));
-                        $("#totalNilaiFarmasi").text(totalNilai.toLocaleString("id-ID"));
-
-                        setTimeout(function () {
-                            Swal.fire({
-                                icon: "success",
-                                title: "Preview Ready",
-                                html: `
-                                    <div class="text-center">
-                                        <div class="fs-5 mb-2">
-                                            The file has been processed successfully.
-                                        </div>
-                                        <div class="fs-2 fw-bold text-primary">
-                                            ${processed.toLocaleString("id-ID")}
-                                        </div>
-                                        <div class="text-muted">
-                                            records are ready for import.
-                                        </div>
-                                        <div class="mt-3">
-                                            <span class="badge badge-light-success fs-6">
-                                                Total Nilai :
-                                                ${totalNilai.toLocaleString("id-ID")}
-                                            </span>
-                                        </div>
-                                    </div>
-                                `,
-                                timer: 3000,
-                                timerProgressBar: true,
-                                showConfirmButton: false
-                            });
-                        }, 150);
-                    }
-                }
-                processChunk();
-            }
-        });
-    };
-    reader.readAsArrayBuffer(file);
-});
-
-$("#fileeklaim").on("change", function () {
-
-    const file = this.files[0];
-
+$("#filetxteklaim").on("change", function() {
+    const input = this, file = input.files[0];
     if (!file) return;
-
-    dataEklaim = [];
-
-    $("#resultprevieweklaim").html("");
-    $("#jmlDataEklaim").text("0");
-    $("#totalNilaiEklaim").text("0");
-
-    const reader = new FileReader();
-
-    reader.onload = function (e) {
-
-        const workbook = XLSX.read(e.target.result, { type: "array" });
-        const sheet    = workbook.Sheets[workbook.SheetNames[0]];
-        const rows     = XLSX.utils.sheet_to_json(sheet, {header: 1,defval: ""});
-
-        let headerRow = -1;
-        let idxSep    = -1;
-        let idxIna    = -1;
-
-        for (let i = 0; i < rows.length; i++) {
-
-            const header = rows[i].map(normalizeHeader);
-
-            idxSep = header.indexOf("NOSEP");
-            idxIna = header.indexOf("NILAIINACBG");
-
-            if (idxSep !== -1 && idxIna !== -1) {
-                headerRow = i;
-                break;
-            }
-
-        }
-
-        if (headerRow === -1) {
-
-            Swal.fire({
-                icon: "error",
-                title: "Invalid Excel Format",
-                html: `
-                    <div class="text-start">
-                        <p class="mb-3">
-                            The uploaded Excel file does not match the required template.
-                        </p>
-                        <p class="mb-2">
-                            Required columns:
-                        </p>
-                        <ul>
-                            <li><strong>NO SEP</strong></li>
-                            <li><strong>NILAI INACBG</strong></li>
-                        </ul>
-                    </div>
-                `
-            });
-
-            $("#fileeklaim").val("");
-            return;
-        }
-
-        let totalData = 0;
-
-        for (let i = headerRow + 1; i < rows.length; i++) {
-
-            if (String(rows[i][idxSep] || "").trim() !== "") {
-                totalData++;
-            }
-
-        }
-
-        Swal.fire({
-
-            title: "Preparing Data",
-            html: `
-                <div class="text-center">
-                    <div class="fs-5 mb-3">
-                        Please wait...
-                    </div>
-                    <div class="fs-3 fw-bold text-primary">
-                        <span id="swalProgress">0</span> /
-                        ${totalData.toLocaleString("id-ID")}
-                    </div>
-                    <div class="progress mt-3">
-                        <div
-                            id="swalProgressBar"
-                            class="progress-bar progress-bar-striped progress-bar-animated bg-primary"
-                            style="width:0%">
-                        </div>
-                    </div>
-                    <div class="mt-3 small text-muted">
-                        <div>
-                            Processing Speed :
-                            <span id="swalSpeed">0</span>
-                            records/sec
-                        </div>
-                        <div>
-                            Estimated Time Remaining :
-                            <span id="swalEta">Calculating...</span>
-                        </div>
-                    </div>
-                </div>
-            `,
-
-            allowOutsideClick: false,
-            showConfirmButton: false,
-
-            didOpen: function () {
-
-                Swal.showLoading();
-
-                let current = headerRow + 1;
-                let processed = 0;
-                let totalNilai = 0;
-                let html = "";
-
-                const startTime = Date.now();
-
-                function processChunk() {
-
-                    let chunk = 0;
-
-                    while (current < rows.length && chunk < 100) {
-                        const row   = rows[current];
-                        const noSep = String(row[idxSep] || "").trim().toUpperCase();
-                        const nilai = parseFloat(String(row[idxIna] || "0").replace(/\./g, "").replace(",", ".")) || 0;
-
-                        if (noSep !== "") {
-
-                            processed++;
-                            totalNilai += nilai;
-                            dataEklaim.push({
-                                NO_SEP      : noSep,
-                                NILAI_INACBG: nilai
-                            });
-
-                            html += `
-                                <tr>
-                                    <td class="ps-4">${processed}</td>
-                                    <td class="fw-bold">
-                                        ${noSep}
-                                    </td>
-                                    <td class="text-end pe-4 fw-bold text-success">
-                                        ${nilai.toLocaleString("id-ID")}
-                                    </td>
-                                </tr>
-                            `;
-                        }
-
-                        current++;
-                        chunk++;
-
-                    }
-
-                    const percent = totalData > 0 ? (processed / totalData) * 100 : 100;
-
-                    $("#swalProgress").text(
-                        processed.toLocaleString("id-ID")
-                    );
-
-                    $("#swalProgressBar")
-                        .css("width", percent + "%");
-
-                    const elapsed = (Date.now() - startTime) / 1000;
-
-                    const speed = elapsed > 0
-                        ? processed / elapsed
-                        : 0;
-
-                    $("#swalSpeed").text(speed.toFixed(2));
-
-                    const remaining = totalData - processed;
-
-                    const eta = speed > 0
-                        ? remaining / speed
-                        : 0;
-
-                    $("#swalEta").text(
-                        remaining > 0
-                            ? formatDuration(eta)
-                            : "Completed"
-                    );
-
-                    if (current < rows.length) {
-
-                        requestAnimationFrame(processChunk);
-
-                    } else {
-
-                        $("#resultprevieweklaim").html(html);
-
-                        $("#jmlDataEklaim").text(
-                            processed.toLocaleString("id-ID")
-                        );
-
-                        $("#totalNilaiEklaim").text(
-                            totalNilai.toLocaleString("id-ID")
-                        );
-
-                        setTimeout(function () {
-
-                            Swal.fire({
-
-                                icon: "success",
-
-                                title: "Preview Ready",
-
-                                html: `
-                                    <div class="text-center">
-
-                                        <div class="fs-5 mb-2">
-                                            The file has been processed successfully.
-                                        </div>
-
-                                        <div class="fs-2 fw-bold text-primary">
-                                            ${processed.toLocaleString("id-ID")}
-                                        </div>
-
-                                        <div class="text-muted">
-                                            records are ready for import.
-                                        </div>
-
-                                        <div class="mt-3">
-                                            <span class="badge badge-light-success fs-6">
-                                                Total Nilai :
-                                                ${totalNilai.toLocaleString("id-ID")}
-                                            </span>
-                                        </div>
-
-                                    </div>
-                                `,
-
-                                timer: 3000,
-                                timerProgressBar: true,
-                                showConfirmButton: false
-
-                            });
-
-                        }, 150);
-
-                    }
-
-                }
-
-                processChunk();
-
-            }
-
-        });
-
-    };
-
-    reader.readAsArrayBuffer(file);
-
-});
-
-$("#filetxteklaim").on("change", function () {
-
-    const file = this.files[0];
-
-    if (!file) {
-        return;
-    }
-
-    // =====================================================
-    // RESET
-    // =====================================================
 
     $("#jmlDataEklaim").text("0");
     $("#totalNilaiEklaim").text("Rp 0");
     $("#totalTarifRSEklaim").text("Rp 0");
     $("#selisihTarifEklaim").text("Rp 0");
-
     $("#headerPreviewtxtEklaim").empty();
     $("#resultpreviewtxteklaim").empty();
-
     window.dataTxtEklaim = [];
+    window.headerTxtEklaim = [];
 
-    // =====================================================
-    // VALIDASI FILE
-    // =====================================================
+    const extension = file.name.split(".").pop().toLowerCase();
 
-    if (!file.name.toLowerCase().endsWith(".txt")) {
-
-        Swal.fire({
-            icon: "warning",
-            title: "Format File Tidak Sesuai",
-            text: "Silakan pilih file Text Document (.TXT)."
-        });
-
-        $(this).val("");
-
+    if (!["txt", "xlsx", "xls"].includes(extension)) {
+        Swal.fire({ icon: "warning", title: "Format File Tidak Sesuai", text: "Silakan pilih file TXT, Microsoft Excel Worksheet (.xlsx), atau Excel 97-2003 (.xls)." });
+        $(input).val("");
         return;
     }
 
-    // =====================================================
-    // LOADING
-    // =====================================================
+    setTimeout(function() { input.blur(); }, 0);
 
     Swal.fire({
         title: "Membaca File",
-        text: "Sedang membaca data TXT E-Klaim...",
+        text: "Sedang membaca data E-Klaim...",
         allowOutsideClick: false,
         allowEscapeKey: false,
-        didOpen: function () {
-            Swal.showLoading();
-        }
+        showConfirmButton: false,
+        didOpen: function() { Swal.showLoading(); }
     });
 
-    const reader = new FileReader();
+    function prosesDataEklaim(headers, data, invalidRows) {
+        window.headerTxtEklaim = headers;
 
-    reader.onload = function (e) {
+        const indexSEP = headers.indexOf("SEP"), indexTarif = headers.indexOf("TARIF_INACBG"), indexTarifRS = headers.indexOf("TARIF_RS");
+        const requiredHeaders = [{ name: "SEP", index: indexSEP }, { name: "TARIF_INACBG", index: indexTarif }, { name: "TARIF_RS", index: indexTarifRS }];
+        const missingHeaders = requiredHeaders.filter(function(item) { return item.index === -1; }).map(function(item) { return item.name; });
 
-        try {
+        if (missingHeaders.length > 0) {
+            Swal.fire({ icon: "error", title: "Kolom Tidak Lengkap", html: "Kolom berikut tidak ditemukan pada file:<br><br><strong>" + missingHeaders.join(", ") + "</strong>" });
+            window.headerTxtEklaim = [];
+            window.dataTxtEklaim = [];
+            return;
+        }
 
-            let text = e.target.result;
+        const validData = [], filteredRows = [];
 
-            // =====================================================
-            // NORMALISASI LINE BREAK
-            // =====================================================
+        data.forEach(function(row, index) {
+            const sep = String(row[indexSEP] || "").trim();
 
-            text = text
-                .replace(/\r\n/g, "\n")
-                .replace(/\r/g, "\n");
-
-            const lines = text
-                .split("\n")
-                .filter(function (line) {
-                    return line.trim() !== "";
-                });
-
-            if (lines.length === 0) {
-
-                Swal.fire({
-                    icon: "warning",
-                    title: "File Kosong",
-                    text: "File TXT tidak memiliki data."
-                });
-
+            if (sep === "") {
+                filteredRows.push({ line: index + 2, reason: "SEP kosong" });
                 return;
             }
 
-            // =====================================================
-            // HEADER
-            // =====================================================
+            validData.push(row);
+        });
 
-            const headers = lines[0]
-                .replace(/^\uFEFF/, "")
-                .split("\t")
-                .map(function (header) {
-                    return header.trim();
-                });
+        data = validData;
+        invalidRows = invalidRows.concat(filteredRows);
 
-            console.log("HEADER:", headers);
+        if (data.length === 0) {
+            Swal.fire({ icon: "warning", title: "Data Tidak Valid", text: "Tidak terdapat data E-Klaim yang valid untuk diproses." });
+            window.headerTxtEklaim = [];
+            window.dataTxtEklaim = [];
+            return;
+        }
 
-            // =====================================================
-            // VALIDASI HEADER
-            // =====================================================
+        let headerHtml = "<tr class='fw-bolder'>";
 
-            const indexSEP = headers.indexOf("SEP");
-            const indexTarif = headers.indexOf("TARIF_INACBG");
-            const indexTarifRS = headers.indexOf("TARIF_RS");
+        headers.forEach(function(header, index) {
+            let className = "bg-dark text-white text-nowrap";
+            if (index === 0) className += " ps-4";
+            if (index === headers.length - 1) className += " pe-4";
+            headerHtml += "<th class='" + className + "'>" + escapeHtml(header) + "</th>";
+        });
 
-            if (indexTarif === -1) {
+        headerHtml += "</tr>";
+        $("#headerPreviewtxtEklaim").html(headerHtml);
+        window.dataTxtEklaim = data;
+        $("#jmlDataEklaim").text(data.length.toLocaleString("id-ID"));
 
-                Swal.fire({
-                    icon: "error",
-                    title: "Kolom Tidak Ditemukan",
-                    text: "Kolom TARIF_INACBG tidak ditemukan pada file TXT."
-                });
+        let totalTarif = 0, totalTarifRS = 0;
 
-                return;
-            }
+        data.forEach(function(row) {
+            totalTarif += parseNominalEklaim(row[indexTarif]);
+            totalTarifRS += parseNominalEklaim(row[indexTarifRS]);
+        });
 
-            if (indexTarifRS === -1) {
+        const selisihTarif = totalTarif - totalTarifRS;
+        const warnaSelisih = selisihTarif >= 0 ? "text-success" : "text-danger";
 
-                Swal.fire({
-                    icon: "error",
-                    title: "Kolom Tidak Ditemukan",
-                    text: "Kolom TARIF_RS tidak ditemukan pada file TXT."
-                });
+        $("#totalNilaiEklaim").text("Rp " + totalTarif.toLocaleString("id-ID"));
+        $("#totalTarifRSEklaim").text("Rp " + totalTarifRS.toLocaleString("id-ID"));
+        $("#selisihTarifEklaim").removeClass("text-success text-danger").addClass(warnaSelisih).text("Rp " + selisihTarif.toLocaleString("id-ID"));
 
-                return;
-            }
+        let bodyHtml = "";
 
-            // =====================================================
-            // HEADER TABLE
-            // =====================================================
+        data.slice(0, 100).forEach(function(row) {
+            bodyHtml += "<tr>";
 
-            let headerHtml = "<tr class='fw-bolder'>";
-
-            headers.forEach(function (header, index) {
-
-                let className =
-                    "bg-dark text-white text-nowrap";
-
-                if (index === 0) {
-                    className += " ps-4";
-                }
-
-                if (index === headers.length - 1) {
-                    className += " pe-4";
-                }
-
-                headerHtml += `
-                    <th class="${className}">
-                        ${escapeHtml(header)}
-                    </th>
-                `;
+            headers.forEach(function(header, columnIndex) {
+                const value = row[columnIndex] === null || row[columnIndex] === undefined ? "" : row[columnIndex];
+                bodyHtml += "<td class='text-nowrap'>" + escapeHtml(value) + "</td>";
             });
 
-            headerHtml += "</tr>";
+            bodyHtml += "</tr>";
+        });
 
-            $("#headerPreviewtxtEklaim").html(headerHtml);
+        $("#resultpreviewtxteklaim").html(bodyHtml);
+        Swal.close();
 
-            // =====================================================
-            // DATA
-            // =====================================================
+        if (invalidRows.length > 0) {
+            setTimeout(function() {
+                Swal.fire({
+                    icon: "warning",
+                    title: "Data Berhasil Dibaca",
+                    html: "Data valid: <strong>" + data.length.toLocaleString("id-ID") + "</strong><br>Data dilewati: <strong>" + invalidRows.length.toLocaleString("id-ID") + "</strong>",
+                    confirmButtonText: "OK"
+                });
+            }, 300);
+        }
+    }
 
-            const data = [];
+    function parseNominalEklaim(value) {
+        if (value === null || value === undefined || value === "") return 0;
+        if (typeof value === "number") return isFinite(value) ? value : 0;
 
-            for (let i = 1; i < lines.length; i++) {
+        value = String(value).trim();
+        if (value === "") return 0;
 
-                const row = lines[i].split("\t");
+        value = value.replace(/[^\d,.-]/g, "");
 
-                if (
-                    row.length === 1 &&
-                    row[0].trim() === ""
-                ) {
+        if (value.indexOf(",") !== -1 && value.indexOf(".") !== -1) {
+            const lastComma = value.lastIndexOf(","), lastDot = value.lastIndexOf(".");
+            value = lastComma > lastDot ? value.replace(/\./g, "").replace(",", ".") : value.replace(/,/g, "");
+        } else if (value.indexOf(",") !== -1) {
+            const parts = value.split(",");
+            value = parts.length === 2 && parts[1].length <= 2 ? value.replace(",", ".") : value.replace(/,/g, "");
+        } else if (value.indexOf(".") !== -1) {
+            const parts = value.split(".");
+            if (!(parts.length === 2 && parts[1].length <= 2)) value = value.replace(/\./g, "");
+        }
+
+        const result = parseFloat(value);
+        return isNaN(result) ? 0 : result;
+    }
+
+    if (extension === "txt") {
+        const reader = new FileReader();
+
+        reader.onload = function(e) {
+            try {
+                let text = e.target.result || "";
+                text = text.replace(/^\uFEFF/, "").replace(/\r\n/g, "\n").replace(/\r/g, "\n");
+
+                const lines = text.split("\n").filter(function(line) { return line.trim() !== ""; });
+
+                if (lines.length < 2) {
+                    Swal.fire({ icon: "warning", title: "Data Tidak Ditemukan", text: "File TXT tidak memiliki data E-Klaim." });
+                    return;
+                }
+
+                const headers = lines[0].replace(/^\uFEFF/, "").split("\t").map(function(header) { return header.trim(); });
+                const indexSEP = headers.indexOf("SEP"), data = [], invalidRows = [];
+
+                if (indexSEP === -1) {
+                    Swal.fire({ icon: "error", title: "Kolom Tidak Ditemukan", text: "Kolom SEP tidak ditemukan pada file TXT E-Klaim." });
+                    return;
+                }
+
+                for (let i = 1; i < lines.length; i++) {
+                    const row = lines[i].split("\t");
+
+                    if (row.length !== headers.length) {
+                        invalidRows.push({ line: i + 1, column: row.length, reason: "Jumlah kolom tidak sesuai" });
+                        continue;
+                    }
+
+                    const sep = String(row[indexSEP] || "").trim();
+
+                    if (sep === "") {
+                        invalidRows.push({ line: i + 1, column: row.length, reason: "SEP kosong" });
+                        continue;
+                    }
+
+                    data.push(row);
+                }
+
+                prosesDataEklaim(headers, data, invalidRows);
+            } catch (error) {
+                console.error("ERROR READ TXT E-KLAIM:", error);
+                Swal.fire({ icon: "error", title: "Gagal Membaca File", text: "Terjadi kesalahan saat membaca file TXT E-Klaim." });
+                window.dataTxtEklaim = [];
+                window.headerTxtEklaim = [];
+            }
+        };
+
+        reader.onerror = function() {
+            Swal.fire({ icon: "error", title: "Gagal Membaca File", text: "File TXT tidak dapat dibaca." });
+            window.dataTxtEklaim = [];
+            window.headerTxtEklaim = [];
+        };
+
+        reader.readAsText(file);
+        return;
+    }
+
+    const readerExcel = new FileReader();
+
+    readerExcel.onload = function(e) {
+        try {
+            if (typeof XLSX === "undefined") {
+                Swal.fire({ icon: "error", title: "Library Excel Tidak Ditemukan", text: "Library SheetJS XLSX belum dimuat pada halaman." });
+                return;
+            }
+
+            const workbook = XLSX.read(e.target.result, { type: "array", cellDates: false, cellNF: false, cellText: true });
+
+            if (!workbook.SheetNames || workbook.SheetNames.length === 0) {
+                Swal.fire({ icon: "warning", title: "Sheet Tidak Ditemukan", text: "File Excel tidak memiliki worksheet." });
+                return;
+            }
+
+            const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+            const rows = XLSX.utils.sheet_to_json(worksheet, { header: 1, defval: "", raw: true });
+
+            if (!rows || rows.length < 2) {
+                Swal.fire({ icon: "warning", title: "Data Tidak Ditemukan", text: "File Excel tidak memiliki data E-Klaim." });
+                return;
+            }
+
+            const headers = rows[0].map(function(header) {
+                return String(header === null || header === undefined ? "" : header).trim();
+            });
+
+            const indexSEP = headers.indexOf("SEP"), data = [], invalidRows = [];
+
+            if (indexSEP === -1) {
+                Swal.fire({ icon: "error", title: "Kolom Tidak Ditemukan", text: "Kolom SEP tidak ditemukan pada file Excel E-Klaim." });
+                return;
+            }
+
+            for (let i = 1; i < rows.length; i++) {
+                const row = rows[i];
+
+                if (!row || row.every(function(value) {
+                    return String(value === null || value === undefined ? "" : value).trim() === "";
+                })) continue;
+
+                if (row.length > headers.length) {
+                    invalidRows.push({ line: i + 1, column: row.length, reason: "Jumlah kolom tidak sesuai" });
                     continue;
                 }
 
-                data.push(row);
+                const normalizedRow = [];
+
+                for (let j = 0; j < headers.length; j++) {
+                    const value = row[j];
+                    normalizedRow.push(value === null || value === undefined ? "" : value);
+                }
+
+                const sep = String(normalizedRow[indexSEP] || "").trim();
+
+                if (sep === "") {
+                    invalidRows.push({ line: i + 1, column: normalizedRow.length, reason: "SEP kosong" });
+                    continue;
+                }
+
+                data.push(normalizedRow);
             }
 
-            console.log("JUMLAH DATA:", data.length);
-
-            // Simpan seluruh data untuk proses Import
-            window.dataTxtEklaim = data;
-
-            // =====================================================
-            // JUMLAH DATA
-            // =====================================================
-
-            $("#jmlDataEklaim").text(
-                data.length.toLocaleString("id-ID")
-            );
-
-            // =====================================================
-            // TOTAL
-            // =====================================================
-
-            let totalTarif = 0;
-            let totalTarifRS = 0;
-
-            data.forEach(function (row) {
-
-                // -------------------------------------------------
-                // TARIF INA-CBG
-                // -------------------------------------------------
-
-                let valueInacbg = row[indexTarif] || "0";
-
-                valueInacbg = parseNominalTxt(valueInacbg);
-
-                totalTarif += valueInacbg;
-
-                // -------------------------------------------------
-                // TARIF RS
-                // -------------------------------------------------
-
-                let valueTarifRS = row[indexTarifRS] || "0";
-
-                valueTarifRS = parseNominalTxt(valueTarifRS);
-
-                totalTarifRS += valueTarifRS;
-
-            });
-
-            // =====================================================
-            // SELISIH
-            // =====================================================
-
-            const selisihTarif = totalTarifRS - totalTarif;
-
-            // =====================================================
-            // TAMPILKAN SUMMARY
-            // =====================================================
-
-            $("#totalNilaiEklaim").text(
-                "Rp " + totalTarif.toLocaleString("id-ID")
-            );
-
-            $("#totalTarifRSEklaim").text(
-                "Rp " + totalTarifRS.toLocaleString("id-ID")
-            );
-
-            $("#selisihTarifEklaim").text(
-                "Rp " + selisihTarif.toLocaleString("id-ID")
-            );
-
-            // =====================================================
-            // PREVIEW
-            // =====================================================
-
-            let bodyHtml = "";
-
-            data.slice(0, 100).forEach(function (row) {
-
-                bodyHtml += "<tr>";
-
-                headers.forEach(function (header, columnIndex) {
-
-                    const value = row[columnIndex] || "";
-
-                    bodyHtml += `
-                        <td class="text-nowrap">
-                            ${escapeHtml(value)}
-                        </td>
-                    `;
-
-                });
-
-                bodyHtml += "</tr>";
-
-            });
-
-            $("#resultpreviewtxteklaim").html(bodyHtml);
-
-            // =====================================================
-            // SELESAI
-            // =====================================================
-
-            Swal.close();
-
+            prosesDataEklaim(headers, data, invalidRows);
         } catch (error) {
-
-            console.error("ERROR:", error);
-
-            Swal.fire({
-                icon: "error",
-                title: "Gagal Membaca File",
-                text: "Terjadi kesalahan saat membaca file TXT."
-            });
-
+            console.error("ERROR READ EXCEL E-KLAIM:", error);
+            Swal.fire({ icon: "error", title: "Gagal Membaca File", text: "File Excel tidak dapat dibaca." });
+            window.dataTxtEklaim = [];
+            window.headerTxtEklaim = [];
         }
-
     };
 
-    reader.onerror = function () {
-
-        Swal.fire({
-            icon: "error",
-            title: "Gagal Membaca File",
-            text: "File TXT tidak dapat dibaca."
-        });
-
+    readerExcel.onerror = function() {
+        Swal.fire({ icon: "error", title: "Gagal Membaca File", text: "File Excel tidak dapat dibaca." });
+        window.dataTxtEklaim = [];
+        window.headerTxtEklaim = [];
     };
 
-    // =====================================================
-    // BACA FILE
-    // =====================================================
-
-    reader.readAsText(file);
-
+    readerExcel.readAsArrayBuffer(file);
 });
 
-function parseNominalTxt(value) {
+$("#btnImportTxtEklaim").on("click", function() {
+    const data = Array.isArray(window.dataTxtEklaim) ? window.dataTxtEklaim : [];
 
-    if (value === null || value === undefined) {
-        return 0;
+    if (data.length === 0) {
+        Swal.fire({
+            icon: "warning",
+            title: "No Data Available",
+            text: "Please select and preview a TXT E-Klaim file before proceeding."
+        });
+        return;
     }
 
-    value = String(value).trim();
-
-    if (value === "") {
-        return 0;
-    }
-
-    /*
-     * Hapus karakter selain angka,
-     * minus, koma dan titik
-     */
-    value = value.replace(/[^\d,.-]/g, "");
-
-    /*
-     * Jika format:
-     *
-     * 1.250.000
-     * 12.500.000
-     *
-     * maka titik dianggap separator ribuan.
-     */
-    if (
-        value.indexOf(".") !== -1 &&
-        value.indexOf(",") === -1
-    ) {
-
-        value = value.replace(/\./g, "");
-
-    }
-
-    /*
-     * Jika format:
-     *
-     * 1,250,000
-     *
-     * maka koma dianggap separator ribuan.
-     */
-    else if (
-        value.indexOf(",") !== -1 &&
-        value.indexOf(".") === -1
-    ) {
-
-        value = value.replace(/,/g, "");
-
-    }
-
-    /*
-     * Jika ada titik dan koma:
-     *
-     * 1.250.000,50
-     *
-     * maka titik = ribuan
-     * koma = decimal
-     */
-    else if (
-        value.indexOf(".") !== -1 &&
-        value.indexOf(",") !== -1
-    ) {
-
-        value = value
-            .replace(/\./g, "")
-            .replace(",", ".");
-
-    }
-
-    const result = parseFloat(value);
-
-    return isNaN(result) ? 0 : result;
-}
+    Swal.fire({
+        title: "Import Data E-Klaim",
+        html: "Are you sure you want to import <strong>" + data.length.toLocaleString("id-ID") + "</strong> records?",
+        icon: "question",
+        showCancelButton: true,
+        confirmButtonText: "Yes, Import",
+        cancelButtonText: "Cancel",
+        confirmButtonColor: "#0d6efd",
+        cancelButtonColor: "#6c757d"
+    }).then(function(result) {
+        if (result.isConfirmed) prosesImportTxtEklaim(data);
+    });
+});
 
 function escapeHtml(text) {
     return String(text).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
-}
-
-function load(){
-    datarrjdetail();
-    // quadrantdokter();
-    // quadrantsmf();
-    // quadrantresource();
-    // datadetailtidakadasep();
-}
+};
 
 function formatDuration(seconds) {
     seconds = Math.max(0, Math.round(seconds));
@@ -1229,11 +343,135 @@ function formatDuration(seconds) {
     if (h > 0) {return h + " hour " + m + " minute " + s + " second";}
     if (m > 0) {return m + " minute " + s + " second";}
     return s + " second";
-}
+};
 
-function normalizeHeader(text) {
-    return String(text).replace(/^\uFEFF/, "").trim().toUpperCase().replace(/[\s\-_]+/g, "");
-}
+function prosesImportTxtEklaim(data) {
+    data = Array.isArray(data) ? data : [];
+    const headers = Array.isArray(window.headerTxtEklaim) ? window.headerTxtEklaim : [];
+    const total = data.length;
+    let index = 0;
+    const batchSize = 500;
+    const startTime = Date.now();
+
+    if (total === 0) {
+        Swal.fire({ icon: "warning", title: "No Data Available", text: "There is no TXT E-Klaim data to import." });
+        return;
+    }
+
+    if (headers.length === 0) {
+        Swal.fire({ icon: "error", title: "Header Tidak Ditemukan", text: "Header file E-Klaim tidak tersedia." });
+        return;
+    }
+
+    Swal.fire({
+        title: "Importing TXT E-Klaim Data",
+        html: `
+            <div class="text-center">
+                <div class="fs-5 mb-3">Please wait...</div>
+                <div class="fs-3 fw-bold text-primary"><span id="importProgressTxtEklaim">0</span> / ${total.toLocaleString("id-ID")}</div>
+                <div class="progress mt-3" style="height:10px;"><div id="importProgressBarTxtEklaim" class="progress-bar progress-bar-striped progress-bar-animated bg-primary" role="progressbar" style="width:0%"></div></div>
+                <div class="mt-3 small text-muted">
+                    <div>Processing Speed : <span id="importSpeedTxtEklaim">0</span> records/sec</div>
+                    <div>Estimated Time Remaining : <span id="importEtaTxtEklaim">Calculating...</span></div>
+                </div>
+            </div>
+        `,
+        allowOutsideClick: false,
+        allowEscapeKey: false,
+        showConfirmButton: false,
+        didOpen: function() {
+            Swal.showLoading();
+            kirimBatchTxtEklaim();
+        }
+    });
+
+    function kirimBatchTxtEklaim() {
+        const batch = data.slice(index, index + batchSize);
+        if (batch.length === 0) return;
+
+        $.ajax({
+            url: url + "index.php/urbpjs/syncurbpjsrj/importtxteklaim",
+            type: "POST",
+            dataType: "JSON",
+            data: { headers: JSON.stringify(headers), data: JSON.stringify(batch) },
+            success: function(res) {
+                if (res.responCode !== "00") {
+                    Swal.fire({ icon: "error", title: "Import Failed", text: res.responMsg || "Failed to import TXT E-Klaim data." });
+                    return;
+                }
+
+                index += batch.length;
+                $("#importProgressTxtEklaim").text(index.toLocaleString("id-ID"));
+
+                const percent = total > 0 ? (index / total) * 100 : 0;
+                $("#importProgressBarTxtEklaim").css("width", percent + "%").attr("aria-valuenow", percent);
+
+                const elapsed = (Date.now() - startTime) / 1000;
+                const speed = elapsed > 0 ? index / elapsed : 0;
+                $("#importSpeedTxtEklaim").text(speed.toFixed(2));
+
+                const remaining = total - index;
+                const eta = speed > 0 ? remaining / speed : 0;
+                $("#importEtaTxtEklaim").text(remaining > 0 ? formatDuration(eta) : "Completed");
+
+                if (index < total) {
+                    kirimBatchTxtEklaim();
+                    return;
+                }
+
+                $("#importProgressBarTxtEklaim").css("width", "100%");
+
+                setTimeout(function() {
+                    const result = res.responResult || {};
+                    const totalResult = Number(result.total || total);
+                    const successResult = Number(result.success || 0);
+                    const failedResult = Number(result.failed || 0);
+
+                    Swal.fire({
+                        icon: failedResult > 0 ? "warning" : "success",
+                        title: failedResult > 0 ? "Import Completed with Warning" : "Import Completed",
+                        html: `Total Data : <strong>${totalResult.toLocaleString("id-ID")}</strong><br>Berhasil : <strong>${successResult.toLocaleString("id-ID")}</strong><br>Gagal : <strong>${failedResult.toLocaleString("id-ID")}</strong>`,
+                        confirmButtonColor: "#009EF7",
+                        timer: 3000,
+                        timerProgressBar: true,
+                        showConfirmButton: false
+                    }).then(function() {
+                        window.dataTxtEklaim = [];
+                        window.headerTxtEklaim = [];
+                        $("#filetxteklaim").val("");
+                        $("#jmlDataEklaim").text("0");
+                        $("#totalNilaiEklaim").text("Rp 0");
+                        $("#totalTarifRSEklaim").text("Rp 0");
+                        $("#selisihTarifEklaim").text("Rp 0");
+                        $("#headerPreviewtxtEklaim").empty();
+                        $("#resultpreviewtxteklaim").empty();
+                        $("#modal_upload_txt_eklaim").modal("hide");
+                    });
+                }, 200);
+            },
+            error: function(xhr, status, error) {
+                console.error("IMPORT TXT E-KLAIM ERROR:", error);
+                console.error(xhr.responseText);
+
+                Swal.fire({
+                    icon: "error",
+                    title: "Request Failed",
+                    text: "We were unable to process your request due to a server error. Please try again later. If the problem persists, contact your system administrator.",
+                    confirmButtonText: "OK"
+                });
+            }
+        });
+    }
+};
+
+function load(){
+    datarrjdetail();
+    // quadrantdokter();
+    // quadrantsmf();
+    // quadrantresource();
+    datadetailtidakadasep();
+    datadetailungrouping();
+};
 
 function datarrjdetail(){
     let selectperiode = $("select[name='selectperiode']").val();
@@ -1451,830 +689,7 @@ function datarrjdetail(){
             });
         }
     });
-}
-
-function quadrantdokter(){
-    let selectperiode = $("select[name='selectperiode']").val();
-    $.ajax({
-        url      : url + "index.php/urbpjs/rawatjalan/quadrantdokter",
-        type     : "POST",
-        dataType : "JSON",
-        data     : {selectperiode:selectperiode},
-
-        beforeSend: function () {
-            Swal.fire({
-                title            : 'Processing',
-                html             : 'Please wait while the system displays the requested data.',
-                allowOutsideClick: false,
-                allowEscapeKey   : false,
-                showConfirmButton: false,
-                didOpen          : () => Swal.showLoading()
-            });
-
-            $("#resultdataquadrant").empty();
-        },
-
-        success: function (response) {
-
-            if (response.responCode !== "00") {
-                Swal.fire({
-                    icon             : 'warning',
-                    title            : 'No Records Found',
-                    text             : 'No records are available for the selected period.',
-                    showConfirmButton: false,
-                    timer            : 2000
-                });
-                return;
-            }
-
-            const result = Array.isArray(response.responResult) ? response.responResult : [];
-
-            const seriesData = result.map(item => ({
-                x      : Number(item.SELISIH) || 0,
-                y      : Number(item.JUMLAH_KUNJUNGAN) || 0,
-                nama   : item.NAMADOKTER,
-                dokter : item.DOKTER_ID,
-                tarifrs: Number(item.TOTAL_TARIF_RS) || 0,
-                inacbg : (Number(item.NILAI_GROUPING) || 0) + (Number(item.NILAI_ABD) || 0) + (Number(item.NILAI_FARMASI) || 0)
-
-            }));
-
-            const minRevenue = Math.min(
-                ...seriesData.map(item => item.x)
-            );
-
-            const maxRevenue = Math.max(
-                ...seriesData.map(item => item.x)
-            );
-
-            const revenueMin = minRevenue < 0 ? Math.floor(minRevenue / 50000000) * 50000000 : 0;
-            const revenueMax = maxRevenue > 0 ? Math.ceil(maxRevenue / 50000000) * 50000000 : 0;
-
-            const minPasien = Math.min(
-                ...seriesData.map(item => item.y)
-            );
-
-            const maxPasien = Math.max(
-                ...seriesData.map(item => item.y)
-            );
-
-            const patientLine = (minPasien + maxPasien) / 2;
-
-            const patientRange = Math.max(
-                patientLine - minPasien,
-                maxPasien - patientLine
-            );
-
-            const patientScale = Math.ceil(patientRange * 1.10);
-
-            seriesData.forEach(item => {
-                item.crr = item.tarifrs > 0 ? (item.inacbg / item.tarifrs) * 100 : 0;
-            });
-
-            seriesData.sort((a, b) => b.crr - a.crr);
-
-            let html = "";
-            seriesData.forEach((item, index) => {
-
-                let quadrant = "";
-                let badge = "";
-
-                if (item.x >= 0 && item.y >= patientLine) {
-                    quadrant = "Q1";
-                    badge    = "success";
-                } else if (item.x >= 0 && item.y < patientLine) {
-                    quadrant = "Q2";
-                    badge    = "primary";
-                } else if (item.x < 0 && item.y < patientLine) {
-                    quadrant = "Q3";
-                    badge    = "danger";
-                } else {
-                    quadrant = "Q4";
-                    badge    = "warning";
-                }
-
-                html += `
-                            <tr>
-                                <td class="ps-4">${index + 1}</td>
-                                <td>${item.nama}</td>
-                                <td class="text-center">${todesimal(item.y)}</td>
-                                <td class="text-end">${todesimal(item.tarifrs)}</td>
-                                <td class="text-end">${todesimal(item.inacbg)}</td>
-                                <td class="text-end fw-bold ${item.x >= 0 ? "text-success" : "text-danger"}">${item.x >= 0 ? "+" : ""}${todesimal(item.x)}</td>
-                                <td class="text-center fw-bold">${item.crr.toFixed(2)}%</td>
-                                <td class="text-end pe-4"><span class="badge badge-light-${badge}">${quadrant}</span></td>
-                            </tr>
-                        `;
-            });
-
-            $("#resultdataquadrant").html(html);
-
-            const table = initDataTable("#dataquadrant_table","#searchtable");
-
-            renderquadrant("#chartquadrant",seriesData,0,patientLine,patientScale);
-        },
-        complete: function () {
-            Swal.close();
-        },
-        error: function () {
-            Swal.fire({
-                icon             : "error",
-                title            : "Request Failed",
-                text             : "We were unable to process your request due to a server error. Please try again later. If the problem persists, contact your system administrator.",
-                confirmButtonText: "OK"
-            });
-        }
-    });
-}
-
-function quadrantsmf(){
-    let selectperiode = $("select[name='selectperiode']").val();
-    $.ajax({
-        url      : url + "index.php/urbpjs/rawatjalan/quadrantsmf",
-        type     : "POST",
-        dataType : "JSON",
-        data     : {selectperiode:selectperiode},
-
-        beforeSend: function () {
-            Swal.fire({
-                title            : 'Processing',
-                html             : 'Please wait while the system displays the requested data.',
-                allowOutsideClick: false,
-                allowEscapeKey   : false,
-                showConfirmButton: false,
-                didOpen          : () => Swal.showLoading()
-            });
-
-            $("#resultdataquadrantsmf").empty();
-        },
-
-        success: function (response) {
-
-            if (response.responCode !== "00") {
-                Swal.fire({
-                    icon             : 'warning',
-                    title            : 'No Records Found',
-                    text             : 'No records are available for the selected period.',
-                    showConfirmButton: false,
-                    timer            : 2000
-                });
-                return;
-            }
-
-            const result = Array.isArray(response.responResult) ? response.responResult : [];
-
-            const seriesData = result.map(item => ({
-                x      : Number(item.SELISIH) || 0,
-                y      : Number(item.JUMLAH_KUNJUNGAN) || 0,
-                nama   : item.KOLEGIUM,
-                dokter : item.KOLEGIUM_ID,
-                tarifrs: Number(item.TOTAL_TARIF_RS) || 0,
-                inacbg : (Number(item.NILAI_GROUPING) || 0) + (Number(item.NILAI_ABD) || 0) + (Number(item.NILAI_FARMASI) || 0)
-
-            }));
-
-            const minRevenue = Math.min(
-                ...seriesData.map(item => item.x)
-            );
-
-            const maxRevenue = Math.max(
-                ...seriesData.map(item => item.x)
-            );
-
-            const revenueMin = minRevenue < 0 ? Math.floor(minRevenue / 50000000) * 50000000 : 0;
-            const revenueMax = maxRevenue > 0 ? Math.ceil(maxRevenue / 50000000) * 50000000 : 0;
-
-            const minPasien = Math.min(
-                ...seriesData.map(item => item.y)
-            );
-
-            const maxPasien = Math.max(
-                ...seriesData.map(item => item.y)
-            );
-
-            const patientLine = (minPasien + maxPasien) / 2;
-
-            const patientRange = Math.max(
-                patientLine - minPasien,
-                maxPasien - patientLine
-            );
-
-            const patientScale = Math.ceil(patientRange * 1.10);
-
-            seriesData.forEach(item => {
-                item.crr = item.tarifrs > 0 ? (item.inacbg / item.tarifrs) * 100 : 0;
-            });
-
-            seriesData.sort((a, b) => b.crr - a.crr);
-
-            let html = "";
-            seriesData.forEach((item, index) => {
-
-                let quadrant = "";
-                let badge = "";
-
-                if (item.x >= 0 && item.y >= patientLine) {
-                    quadrant = "Q1";
-                    badge    = "success";
-                } else if (item.x >= 0 && item.y < patientLine) {
-                    quadrant = "Q2";
-                    badge    = "primary";
-                } else if (item.x < 0 && item.y < patientLine) {
-                    quadrant = "Q3";
-                    badge    = "danger";
-                } else {
-                    quadrant = "Q4";
-                    badge    = "warning";
-                }
-
-                html += `
-                            <tr>
-                                <td class="ps-4">${index + 1}</td>
-                                <td>${item.nama}</td>
-                                <td class="text-center">${todesimal(item.y)}</td>
-                                <td class="text-end">${todesimal(item.tarifrs)}</td>
-                                <td class="text-end">${todesimal(item.inacbg)}</td>
-                                <td class="text-end fw-bold ${item.x >= 0 ? "text-success" : "text-danger"}">${item.x >= 0 ? "+" : ""}${todesimal(item.x)}</td>
-                                <td class="text-center fw-bold">${item.crr.toFixed(2)}%</td>
-                                <td class="text-end pe-4"><span class="badge badge-light-${badge}">${quadrant}</span></td>
-                            </tr>
-                        `;
-            });
-
-            $("#resultdataquadrantsmf").html(html);
-
-            const table = initDataTable("#dataquadrantsmf_table","#searchtable");
-
-            renderquadrant("#chartquadrantsmf",seriesData,0,patientLine,patientScale);
-        },
-        complete: function () {
-            Swal.close();
-        },
-        error: function () {
-            Swal.fire({
-                icon             : "error",
-                title            : "Request Failed",
-                text             : "We were unable to process your request due to a server error. Please try again later. If the problem persists, contact your system administrator.",
-                confirmButtonText: "OK"
-            });
-        }
-    });
-}
-
-function quadrantresource(){
-    let selectperiode = $("select[name='selectperiode']").val();
-    $.ajax({
-        url      : url + "index.php/urbpjs/rawatjalan/quadrantresource",
-        type     : "POST",
-        dataType : "JSON",
-        data     : {selectperiode:selectperiode},
-
-        beforeSend: function () {
-            Swal.fire({
-                title            : 'Processing',
-                html             : 'Please wait while the system displays the requested data.',
-                allowOutsideClick: false,
-                allowEscapeKey   : false,
-                showConfirmButton: false,
-                didOpen          : () => Swal.showLoading()
-            });
-
-            $("#resultdataquadrantsmf").empty();
-        },
-
-        success: function (response) {
-
-            if (response.responCode !== "00") {
-                Swal.fire({
-                    icon             : 'warning',
-                    title            : 'No Records Found',
-                    text             : 'No records are available for the selected period.',
-                    showConfirmButton: false,
-                    timer            : 2000
-                });
-                return;
-            }
-
-            const result = Array.isArray(response.responResult) ? response.responResult : [];
-
-            const seriesData = result.map(item => {
-
-                const resource = {
-                    "REGISTRASI": Number(item.REGISTRASI) || 0,
-                    "JASA DOKTER": Number(item.JASA_DOKTER) || 0,
-                    "OBAT": Number(item.OBAT) || 0,
-                    "LABORATORIUM": Number(item.LABORATORIUM) || 0,
-                    "RADIOLOGI": Number(item.RADIOLOGI) || 0,
-                    "RADIOTERAPI": Number(item.RADIOTERAPI) || 0,
-                    "TINDAKAN": Number(item.TINDAKAN) || 0,
-                    "AMBULAN": Number(item.AMBULAN) || 0
-                };
-
-                const totalResource = Object.values(resource)
-                    .reduce((sum, value) => sum + value, 0);
-
-                let resourceTertinggi = "";
-                let nilaiTertinggi = 0;
-
-                Object.entries(resource).forEach(([nama, nilai]) => {
-
-                    if (nilai > nilaiTertinggi) {
-                        nilaiTertinggi = nilai;
-                        resourceTertinggi = nama;
-                    }
-
-                });
-
-                const persentaseResource = totalResource > 0
-                    ? (nilaiTertinggi / totalResource) * 100
-                    : 0;
-
-                const config = resourceConfig[resourceTertinggi];
-
-                return {
-
-                    x: config ? config.x : 0,
-
-                    y: persentaseResource,
-
-                    nama: item.NAMADOKTER || item.KOLEGIUM || "-",
-
-                    dokter: item.DOKTER_ID || item.KOLEGIUM_ID || "",
-
-                    resourceTertinggi: resourceTertinggi,
-
-                    persentaseResource: persentaseResource,
-
-                    nilaiResourceTertinggi: nilaiTertinggi,
-
-                    totalResource: totalResource,
-
-                    resource: resource,
-
-                    color: config ? config.color : "#6c757d"
-
-                };
-
-            }).filter(item => item.totalResource > 0);
-
-renderscatterresource(
-    "#chartquadrantresource",
-    seriesData
-);
-        },
-        complete: function () {
-            Swal.close();
-        },
-        error: function () {
-            Swal.fire({
-                icon             : "error",
-                title            : "Request Failed",
-                text             : "We were unable to process your request due to a server error. Please try again later. If the problem persists, contact your system administrator.",
-                confirmButtonText: "OK"
-            });
-        }
-    });
-}
-
-function prosesImportBahv() {
-    let total = dataBahv.length;
-    let index = 0;
-    let batchSize = 500;
-    let startTime = Date.now();
-
-    Swal.fire({
-        title: "Importing BAHV Data",
-        html: `
-            <div class="text-center">
-
-                <div class="fs-5 mb-3">
-                    Please wait...
-                </div>
-
-                <div class="fs-3 fw-bold text-primary">
-                    <span id="importProgressBahv">0</span> /
-                    ${total.toLocaleString("id-ID")}
-                </div>
-
-                <div class="progress mt-3" style="height:10px;">
-                    <div
-                        id="importProgressBarBahv"
-                        class="progress-bar progress-bar-striped progress-bar-animated bg-primary"
-                        role="progressbar"
-                        style="width:0%">
-                    </div>
-                </div>
-
-                <div class="mt-3 small text-muted">
-
-                    <div>
-                        Processing Speed :
-                        <span id="importSpeedBahv">0</span> records/sec
-                    </div>
-
-                    <div>
-                        Estimated Time Remaining :
-                        <span id="importEtaBahv">Calculating...</span>
-                    </div>
-
-                </div>
-
-            </div>
-        `,
-        allowOutsideClick: false,
-        allowEscapeKey: false,
-        showConfirmButton: false,
-        didOpen: function () {
-            Swal.showLoading();
-            kirimBatchbahv();
-        }
-    });
-
-    function kirimBatchbahv() {
-        let batch = dataBahv.slice(index, index + batchSize);
-        $.ajax({
-            url     : url + "index.php/urbpjs/syncurbpjsrj/importbahv",
-            type    : "POST",
-            dataType: "JSON",
-            data    : {data: JSON.stringify(batch)},
-            success : function (res) {
-
-                if (!res.status) {
-                    Swal.fire({
-                        icon: "error",
-                        title: "Import Failed",
-                        text: res.message
-                    });
-                    return;
-                }
-
-                index += batch.length;
-
-                if(index > total){index = total;}
-                $("#importProgressBahv").text(index.toLocaleString("id-ID"));
-
-                let percent = (index / total) * 100;
-                $("#importProgressBarBahv").css("width", percent + "%").attr("aria-valuenow", percent);
-
-                let elapsed = (Date.now() - startTime) / 1000;
-                let speed = elapsed > 0 ? index / elapsed : 0;
-                $("#importSpeedBahv").text(speed.toFixed(2));
-
-
-                let remaining = total - index;
-                let eta = speed > 0 ? remaining / speed : 0;
-
-                $("#importEtaBahv").text(remaining > 0 ? formatDuration(eta) : "Completed");
-
-                if(index < total){
-                    kirimBatchbahv();
-                }else{
-                    $("#importProgressBarBahv").css("width", "100%");
-
-                    setTimeout(function () {
-                        Swal.fire({
-                            icon: "success",
-                            title: "Import Completed",
-                            text: total.toLocaleString("id-ID") + " records have been imported successfully.",
-                            confirmButtonColor: "#009EF7",
-                            timer: 3000,
-                            timerProgressBar: true,
-                            showConfirmButton: false
-                        }).then(function () {
-                            dataBahv = [];
-
-                            $("#filebahv").val("");
-                            $("#jmlDataBahv").text("0");
-                            $("#totalLayakBahv").text("0");
-                            $("#totalTidakLayakBahv").text("0");
-                            $("#resultpreviewbahv").html("");
-                            $("#modal_upload_bahv").modal("hide");
-
-                            datarrjdetail();
-                        });
-                    }, 200);
-                }
-            },
-            error: function () {
-                Swal.fire({
-                    icon             : "error",
-                    title            : "Request Failed",
-                    text             : "We were unable to process your request due to a server error. Please try again later. If the problem persists, contact your system administrator.",
-                    confirmButtonText: "OK"
-                });
-            }
-        });
-    }
-
-}
-
-function prosesImportFarmasi() {
-    let total     = dataFarmasi.length;
-    let index     = 0;
-    let batchSize = 500;
-    let startTime = Date.now();
-
-    Swal.fire({
-        title: "Importing Pharmacy Claim Data",
-        html: `
-            <div class="text-center">
-                <div class="fs-5 mb-3">
-                    Please wait...
-                </div>
-                <div class="fs-3 fw-bold text-primary">
-                    <span id="importProgressFarmasi">0</span> /
-                    ${total.toLocaleString("id-ID")}
-                </div>
-                <div class="progress mt-3" style="height:10px;">
-                    <div
-                        id="importProgressBarFarmasi"
-                        class="progress-bar progress-bar-striped progress-bar-animated bg-primary"
-                        role="progressbar"
-                        style="width:0%">
-                    </div>
-                </div>
-                <div class="mt-3 small text-muted">
-                    <div>
-                        Processing Speed :
-                        <span id="importSpeedFarmasi">0</span> records/sec
-                    </div>
-                    <div>
-                        Estimated Time Remaining :
-                        <span id="importEtaFarmasi">Calculating...</span>
-                    </div>
-                </div>
-            </div>
-        `,
-
-        allowOutsideClick: false,
-        allowEscapeKey: false,
-        showConfirmButton: false,
-
-        didOpen: function () {
-            Swal.showLoading();
-            kirimBatchFarmasi();
-        }
-
-    });
-
-    function kirimBatchFarmasi() {
-        let batch = dataFarmasi.slice(index, index + batchSize);
-
-        $.ajax({
-            url     : url + "index.php/urbpjs/syncurbpjsrj/importfarmasi",
-            type    : "POST",
-            dataType: "JSON",
-            data    : {data: JSON.stringify(batch)},
-
-            success: function (res) {
-
-                if (!res.status) {
-                    Swal.fire({
-                        icon: "error",
-                        title: "Import Failed",
-                        text: res.message
-                    });
-                    return;
-                }
-
-                index += batch.length;
-
-                if (index > total) {
-                    index = total;
-                }
-
-                $("#importProgressFarmasi").text(index.toLocaleString("id-ID"));
-
-                let percent = (index / total) * 100;
-
-                $("#importProgressBarFarmasi").css("width", percent + "%").attr("aria-valuenow", percent);
-
-                let elapsed = (Date.now() - startTime) / 1000;
-                let speed = elapsed > 0 ? index / elapsed : 0;
-                $("#importSpeedFarmasi").text(speed.toFixed(2));
-
-                let remaining = total - index;
-                let eta = speed > 0 ? remaining / speed : 0;
-
-                $("#importEtaFarmasi").text(remaining > 0 ? formatDuration(eta) : "Completed");
-
-                if (index < total) {
-                    kirimBatchFarmasi();
-                } else {
-
-                    $("#importProgressBarFarmasi").css("width", "100%");
-
-                    setTimeout(function () {
-                        Swal.fire({
-                            icon              : "success",
-                            title             : "Import Completed",
-                            text              : total.toLocaleString("id-ID") + " records have been imported successfully.",
-                            confirmButtonColor: "#009EF7",
-                            timer             : 3000,
-                            timerProgressBar  : true,
-                            showConfirmButton : false
-
-                        }).then(function () {
-                            dataFarmasi = [];
-
-                            $("#filefarmasi").val("");
-                            $("#jmlDataFarmasi").text("0");
-                            $("#totalNilaiFarmasi").text("0");
-                            $("#resultpreviewfarmasi").html("");
-                            $("#modal_upload_farmasi").modal("hide");
-
-                            datarrjdetail();
-                        });
-                    }, 200);
-                }
-            },
-            error: function () {
-                Swal.fire({
-                    icon: "error",
-                    title: "Request Failed",
-                    text: "We were unable to process your request due to a server error. Please try again later. If the problem persists, contact your system administrator.",
-                    confirmButtonText: "OK"
-                });
-            }
-        });
-    }
-}
-
-function prosesImportEklaim() {
-
-    let total = dataEklaim.length;
-    let index = 0;
-    let batchSize = 500;
-    let startTime = Date.now();
-
-    Swal.fire({
-
-        title: "Importing E-Klaim Data",
-
-        html: `
-            <div class="text-center">
-
-                <div class="fs-5 mb-3">
-                    Please wait...
-                </div>
-
-                <div class="fs-3 fw-bold text-primary">
-                    <span id="importProgressEklaim">0</span> /
-                    ${total.toLocaleString("id-ID")}
-                </div>
-
-                <div class="progress mt-3" style="height:10px;">
-                    <div
-                        id="importProgressBarEklaim"
-                        class="progress-bar progress-bar-striped progress-bar-animated bg-primary"
-                        role="progressbar"
-                        style="width:0%">
-                    </div>
-                </div>
-
-                <div class="mt-3 small text-muted">
-
-                    <div>
-                        Processing Speed :
-                        <span id="importSpeedEklaim">0</span>
-                        records/sec
-                    </div>
-
-                    <div>
-                        Estimated Time Remaining :
-                        <span id="importEtaEklaim">
-                            Calculating...
-                        </span>
-                    </div>
-
-                </div>
-
-            </div>
-        `,
-
-        allowOutsideClick: false,
-        allowEscapeKey: false,
-        showConfirmButton: false,
-
-        didOpen: function () {
-
-            Swal.showLoading();
-
-            kirimBatchEklaim();
-
-        }
-
-    });
-
-    function kirimBatchEklaim() {
-
-        const batch = dataEklaim.slice(index, index + batchSize);
-
-        $.ajax({
-
-            url: url + "index.php/urbpjs/syncurbpjsrj/importeklaim",
-
-            type: "POST",
-
-            dataType: "JSON",
-
-            data: {
-                data: JSON.stringify(batch)
-            },
-
-            success: function (res) {
-
-                if (!res.status) {
-
-                    Swal.fire({
-                        icon: "error",
-                        title: "Import Failed",
-                        text: res.message
-                    });
-
-                    return;
-
-                }
-
-                index += batch.length;
-
-                if (index > total) {
-                    index = total;
-                }
-
-                $("#importProgressEklaim").text(
-                    index.toLocaleString("id-ID")
-                );
-
-                const percent = (index / total) * 100;
-
-                $("#importProgressBarEklaim")
-                    .css("width", percent + "%")
-                    .attr("aria-valuenow", percent);
-
-                const elapsed = (Date.now() - startTime) / 1000;
-
-                const speed = elapsed > 0
-                    ? index / elapsed
-                    : 0;
-
-                $("#importSpeedEklaim")
-                    .text(speed.toFixed(2));
-
-                const remaining = total - index;
-
-                const eta = speed > 0
-                    ? remaining / speed
-                    : 0;
-
-                $("#importEtaEklaim").text(
-                    remaining > 0
-                        ? formatDuration(eta)
-                        : "Completed"
-                );
-
-                if (index < total) {
-
-                    kirimBatchEklaim();
-
-                } else {
-
-                    $("#importProgressBarEklaim")
-                        .css("width", "100%");
-
-                    setTimeout(function () {
-                        Swal.fire({
-                            icon              : "success",
-                            title             : "Import Completed",
-                            text              : total.toLocaleString("id-ID") + " records have been imported successfully.",
-                            confirmButtonColor: "#009EF7",
-                            timer             : 3000,
-                            timerProgressBar  : true,
-                            showConfirmButton : false
-                        }).then(function () {
-                            dataEklaim = [];
-                            $("#fileeklaim").val("");
-                            $("#jmlDataEklaim").text("0");
-                            $("#totalNilaiEklaim").text("0");
-                            $("#resultprevieweklaim").html("");
-                            $("#modal_upload_eklaim").modal("hide");
-                            datarrjdetail();
-                        });
-                    }, 200);
-                }
-            },
-            error: function () {
-                Swal.fire({
-                    icon: "error",
-                    title: "Request Failed",
-                    text: "We were unable to process your request due to a server error. Please try again later. If the problem persists, contact your system administrator.",
-                    confirmButtonText: "OK"
-                });
-            }
-        });
-    }
-
-}
+};
 
 function datadetailtidakadasep(){
     const selectperiode = $("select[name='selectperiode']").val();
@@ -2319,6 +734,7 @@ function datadetailtidakadasep(){
                 tableresult += "<tr>";
                 tableresult += "<td class='ps-4'>" + (parseInt(i)+1) + "</td>";
                 tableresult += "<td>"+(result[i].MRPAS||"")+"</td>";
+                tableresult += "<td>"+(result[i].EPISODE_ID||"")+"</td>";
                 tableresult += "<td>"+(result[i].NAMAPASIEN||"")+"</td>";
                 tableresult += "<td>"+(result[i].POLIKLINIK||"")+"</td>";
                 tableresult += "<td>"+(result[i].NAMADOKTER||"")+"</td>";
@@ -2336,6 +752,82 @@ function datadetailtidakadasep(){
 
             $("#resultdatadetailtidakadasep").html(tableresult);
             const table = initDataTable("#datadetailtidakadasep_table","#searchtable");
+        },
+        complete: function () {
+            Swal.close();
+        },
+        error: function () {
+            Swal.fire({
+                icon: "error",
+                title: "Request Failed",
+                text: "We were unable to process your request due to a server error. Please try again later. If the problem persists, contact your system administrator.",
+                confirmButtonText: "OK"
+            });
+        }
+    });
+};
+
+function datadetailungrouping(){
+    const selectperiode = $("select[name='selectperiode']").val();
+    $.ajax({
+        url       : url +"index.php/urbpjs/rawatjalan/datadetailungrouping",
+        data      : {selectperiode:selectperiode},
+        type      : "POST",
+        dataType  : "JSON",
+        beforeSend: function () {
+            Swal.fire({
+                title            : 'Processing',
+                html             : 'Please wait while the system displays the requested data.',
+                allowOutsideClick: false,
+                allowEscapeKey   : false,
+                showConfirmButton: false,
+                didOpen          : () => Swal.showLoading()
+            });
+
+            $("#resultdatadetailbelumgrouping").empty();
+        },
+        success:function(response){
+
+            if (response.responCode !== "00") {
+                Swal.fire({
+                    icon             : 'warning',
+                    title            : 'No Records Found',
+                    text             : 'No records are available for the selected period.',
+                    showConfirmButton: false,
+                    timer            : 2000
+                });
+                return;
+            }
+
+            const result      = Array.isArray(response.responResult) ? response.responResult : [];
+            globaldatacarakeluar = result;
+
+            var tableresult    = "";
+            for (var i in result) {
+
+                let btnaction = "<a class='dropdown-item btn btn-sm' href='#' onclick=\"openSejarah('" + result[i].PASIEN_ID + "')\"><i class='bi bi-clock-history text-primary pe-4'></i>Sejarah</a>";
+
+                tableresult += "<tr>";
+                tableresult += "<td class='ps-4'>" + (parseInt(i)+1) + "</td>";
+                tableresult += "<td>"+(result[i].MRPAS||"")+"</td>";
+                tableresult += "<td>"+(result[i].EPISODE_ID||"")+"</td>";
+                tableresult += "<td>"+(result[i].NAMAPASIEN||"")+"</td>";
+                tableresult += "<td>"+(result[i].POLIKLINIK||"")+"</td>";
+                tableresult += "<td>"+(result[i].NAMADOKTER||"")+"</td>";
+                tableresult += "<td class='text-center'>"+(result[i].TGLMASUK||"")+"</td>";
+                tableresult += "<td>" + ((result[i].LASTUPDATE || "") === "MJKN-TOLOP" ? '<span class="badge badge-light-success">Tol-Ops</span>' : ("" || "")) + "</td>";
+                tableresult += "<td class='fw-bold text-end'>";
+                    tableresult += "<div class='btn-group'>";
+                    tableresult += "<button type='button' class='btn btn-light-primary dropdown-toggle btn-sm' data-bs-toggle='dropdown'>Actions</button>";
+                    tableresult += "<div class='dropdown-menu'>";
+                    tableresult += btnaction;
+                    tableresult += "</div></div>";
+                tableresult +="</td>";
+                tableresult += "</tr>";
+            }
+
+            $("#resultdatadetailbelumgrouping").html(tableresult);
+            const table = initDataTable("#datadetailbelumgrouping_table","#searchtable");
         },
         complete: function () {
             Swal.close();

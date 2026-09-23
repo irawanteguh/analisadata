@@ -89,104 +89,153 @@
 		// 	echo json_encode(["status" => true]);
 		// }
 
-		public function importeklaim(){
-			$rows = json_decode($this->input->post('data'), true);
+		// public function importeklaim(){
+		// 	$rows = json_decode($this->input->post('data'), true);
 
-			if (!$rows) {
-				echo json_encode([
-					"status" => false,
-					"message" => "Data kosong."
-				]);
-				return;
-			}
+		// 	if (!$rows) {
+		// 		echo json_encode([
+		// 			"status" => false,
+		// 			"message" => "Data kosong."
+		// 		]);
+		// 		return;
+		// 	}
 
-			foreach ($rows as $row) {
-				$cekdatasep = $this->md->cekdatasep($row["NO_SEP"]);
-				$data = [
-					"PASIEN_ID"     => isset($cekdatasep->PASIEN_ID) ? $cekdatasep->PASIEN_ID : null,
-					"EPISODE_ID"    => isset($cekdatasep->EPISODE_ID) ? $cekdatasep->EPISODE_ID : null,
-					"TGL_MASUK"     => isset($cekdatasep->TGLKUNJUNGAN) ? $cekdatasep->TGLKUNJUNGAN : null,
-					"NO_SEP"        => $row["NO_SEP"],
-					"TARIF_INACBG"  => $row["NILAI_INACBG"],
-					"JENIS_EPISODE" => isset($cekdatasep->SEP_JENISLAYAN) ? ($cekdatasep->SEP_JENISLAYAN == '2' ? 'O' : 'I') : null,
-					"JENIS"         => "1",
-					"AKTIF"         => "1",
-					"CREATED_BY"    => "SIRS01_" . $_SESSION["userid"]
-				];
+		// 	foreach ($rows as $row) {
+		// 		$cekdatasep = $this->md->cekdatasep($row["NO_SEP"]);
+		// 		$data = [
+		// 			"PASIEN_ID"     => isset($cekdatasep->PASIEN_ID) ? $cekdatasep->PASIEN_ID : null,
+		// 			"EPISODE_ID"    => isset($cekdatasep->EPISODE_ID) ? $cekdatasep->EPISODE_ID : null,
+		// 			"TGL_MASUK"     => isset($cekdatasep->TGLKUNJUNGAN) ? $cekdatasep->TGLKUNJUNGAN : null,
+		// 			"NO_SEP"        => $row["NO_SEP"],
+		// 			"TARIF_INACBG"  => $row["NILAI_INACBG"],
+		// 			"JENIS_EPISODE" => isset($cekdatasep->SEP_JENISLAYAN) ? ($cekdatasep->SEP_JENISLAYAN == '2' ? 'O' : 'I') : null,
+		// 			"JENIS"         => "1",
+		// 			"AKTIF"         => "1",
+		// 			"CREATED_BY"    => "SIRS01_" . $_SESSION["userid"]
+		// 		];
 
-				$resultcekdataeklaim = $this->md->cekdataeklaim(isset($cekdatasep->SEP_JENISLAYAN) ? ($cekdatasep->SEP_JENISLAYAN == '2' ? 'O' : 'I') : null,$row["NO_SEP"]);
-				if(empty($resultcekdataeklaim)){
-					$this->md->inserturbpjs($data);
-				}else{
-					$this->md->updateurbpjs($row["NO_SEP"], $data);
-				}
+		// 		$resultcekdataeklaim = $this->md->cekdataeklaim(isset($cekdatasep->SEP_JENISLAYAN) ? ($cekdatasep->SEP_JENISLAYAN == '2' ? 'O' : 'I') : null,$row["NO_SEP"]);
+		// 		if(empty($resultcekdataeklaim)){
+		// 			$this->md->inserturbpjs($data);
+		// 		}else{
+		// 			$this->md->updateurbpjs($row["NO_SEP"], $data);
+		// 		}
 
-				if (!empty($cekdatasep->PASIEN_ID) && !empty($cekdatasep->EPISODE_ID)) {
-					$datacoding = [
-						'CODING_ID'     => 'IMP_'.$cekdatasep->EPISODE_ID,
-						'PASIEN_ID'     => $cekdatasep->PASIEN_ID,
-						'EPISODE_ID'    => $cekdatasep->EPISODE_ID,
-						'NOMOR_KARTU'   => $cekdatasep->NOKARTU,
-						'NOMOR_SEP'     => $row["NO_SEP"],
-						"TARIF_INACBG"  => $row["NILAI_INACBG"],
-						'KELAS_RAWAT'   => '3',
-						'JENIS_RAWAT'   => $cekdatasep->SEP_JENISLAYAN,
-						'NOMOR_RM'      => $cekdatasep->MRPAS,
-						'NAMA_PASIEN'   => $cekdatasep->NAMAPASIEN,
-						'AKTIF'         => '1',
-						'CODING_SOURCE' => 'GROUPING'
-					];
+		// 		if (!empty($cekdatasep->PASIEN_ID) && !empty($cekdatasep->EPISODE_ID)) {
+		// 			$datacoding = [
+		// 				'CODING_ID'     => 'IMP_'.$cekdatasep->EPISODE_ID,
+		// 				'PASIEN_ID'     => $cekdatasep->PASIEN_ID,
+		// 				'EPISODE_ID'    => $cekdatasep->EPISODE_ID,
+		// 				'NOMOR_KARTU'   => $cekdatasep->NOKARTU,
+		// 				'NOMOR_SEP'     => $row["NO_SEP"],
+		// 				"TARIF_INACBG"  => $row["NILAI_INACBG"],
+		// 				'KELAS_RAWAT'   => '3',
+		// 				'JENIS_RAWAT'   => $cekdatasep->SEP_JENISLAYAN,
+		// 				'NOMOR_RM'      => $cekdatasep->MRPAS,
+		// 				'NAMA_PASIEN'   => $cekdatasep->NAMAPASIEN,
+		// 				'AKTIF'         => '1',
+		// 				'CODING_SOURCE' => 'GROUPING'
+		// 			];
 
-					$resultcekdatacoding = $this->md->cekdatacoding($cekdatasep->PASIEN_ID,$cekdatasep->EPISODE_ID);
-					if (empty($resultcekdatacoding)) {
-						$this->md->insertcoding($datacoding);
-					} else {
-						$this->md->updatecoding($cekdatasep->PASIEN_ID, $cekdatasep->EPISODE_ID, $row["NO_SEP"], $datacoding);
-					}
-				}
-			}
-			echo json_encode(["status" => true]);
-		}
+		// 			$resultcekdatacoding = $this->md->cekdatacoding($cekdatasep->PASIEN_ID,$cekdatasep->EPISODE_ID);
+		// 			if (empty($resultcekdatacoding)) {
+		// 				$this->md->insertcoding($datacoding);
+		// 			} else {
+		// 				$this->md->updatecoding($cekdatasep->PASIEN_ID, $cekdatasep->EPISODE_ID, $row["NO_SEP"], $datacoding);
+		// 			}
+		// 		}
+		// 	}
+		// 	echo json_encode(["status" => true]);
+		// }
 
 		public function importtxteklaim(){
+			$headers = json_decode($this->input->post('headers'), true);
 			$rows = json_decode($this->input->post('data'), true);
 
-			if (!$rows) {
+			if (!$headers || !is_array($headers) || !$rows || !is_array($rows)) {
 				echo json_encode([
-					"status" => false,
-					"message" => "Data kosong."
+					"responCode" => "01",
+					"responMsg" => "Data atau header kosong.",
+					"responResult" => []
 				]);
 				return;
 			}
 
+			$success = 0;
+			$failed = 0;
+
 			foreach ($rows as $row) {
-				$cekdatasep = $this->md->cekdatasep($row["NO_SEP"]);
+				if (!is_array($row)) {
+					$failed++;
+					continue;
+				}
+
+				if (count($row) < count($headers)) {
+					$row = array_pad($row, count($headers), "");
+				} elseif (count($row) > count($headers)) {
+					$row = array_slice($row, 0, count($headers));
+				}
+
+				$row = array_combine($headers, $row);
+
+				if ($row === false) {
+					$failed++;
+					continue;
+				}
+
+				$no_sep = isset($row["SEP"]) ? trim((string)$row["SEP"]) : "";
+
+				if ($no_sep == "") {
+					$failed++;
+					continue;
+				}
+
+				$cekdatasep = $this->md->cekdatasep($no_sep);
 
 				if (!empty($cekdatasep->PASIEN_ID) && !empty($cekdatasep->EPISODE_ID)) {
+
 					$datacoding = [
-						'CODING_ID'     => 'IMP_'.$cekdatasep->EPISODE_ID,
+						'CODING_ID'     => 'IMP_' . $cekdatasep->EPISODE_ID,
 						'PASIEN_ID'     => $cekdatasep->PASIEN_ID,
 						'EPISODE_ID'    => $cekdatasep->EPISODE_ID,
-						'NOMOR_KARTU'   => $cekdatasep->NOKARTU,
-						'NOMOR_SEP'     => $row["NO_SEP"],
-						"TARIF_INACBG"  => $row["NILAI_INACBG"],
-						'KELAS_RAWAT'   => '3',
+						'NOMOR_KARTU'   => !empty($row["NOKARTU"]) ? $row["NOKARTU"] : $cekdatasep->NOKARTU,
+						'NOMOR_SEP'     => $no_sep,
+						'TARIF_INACBG'  => isset($row["TARIF_INACBG"]) ? $row["TARIF_INACBG"] : 0,
+						'KELAS_RAWAT'   => isset($row["KELAS_RAWAT"]) ? $row["KELAS_RAWAT"] : '3',
 						'JENIS_RAWAT'   => $cekdatasep->SEP_JENISLAYAN,
-						'NOMOR_RM'      => $cekdatasep->MRPAS,
-						'NAMA_PASIEN'   => $cekdatasep->NAMAPASIEN,
+						'NOMOR_RM'      => !empty($row["MRN"]) ? $row["MRN"] : $cekdatasep->MRPAS,
+						'NAMA_PASIEN'   => !empty($row["NAMA_PASIEN"]) ? $row["NAMA_PASIEN"] : $cekdatasep->NAMAPASIEN,
 						'AKTIF'         => '1',
-						'CODING_SOURCE' => 'GROUPING'
+						'CODING_SOURCE' => 'GROUPING',
+						'CREATED_BY'    => $_SESSION['userid']
 					];
 
-					$resultcekdatacoding = $this->md->cekdatacoding($cekdatasep->PASIEN_ID,$cekdatasep->EPISODE_ID);
+					$resultcekdatacoding = $this->md->cekdatacoding($cekdatasep->PASIEN_ID, $cekdatasep->EPISODE_ID);
+
 					if (empty($resultcekdatacoding)) {
 						$this->md->insertcoding($datacoding);
 					} else {
-						$this->md->updatecoding($cekdatasep->PASIEN_ID, $cekdatasep->EPISODE_ID, $row["NO_SEP"], $datacoding);
+						$resultcekdatacodingimporttxt = $this->md->cekdatacodingimporttxt($cekdatasep->PASIEN_ID, $cekdatasep->EPISODE_ID);
+						if(!empty($resultcekdatacodingimporttxt)){
+							$this->md->updatecoding($resultcekdatacodingimporttxt->CODING_ID, $cekdatasep->PASIEN_ID, $cekdatasep->EPISODE_ID, $no_sep, $datacoding);
+						}
 					}
+
+					$success++;
+				} else {
+					$failed++;
 				}
 			}
-			echo json_encode(["status" => true]);
+
+			echo json_encode([
+				"responCode" => "00",
+				"responMsg" => "Import berhasil.",
+				"responResult" => [
+					"total" => count($rows),
+					"success" => $success,
+					"failed" => $failed
+				]
+			]);
 		}
 	}
 ?>

@@ -53,7 +53,7 @@
                     "
                         SELECT A.NOMOR_SEP
                         FROM SR01_BPJS_CODING A
-                        WHERE A.JENIS_RAWAT='2'
+                        WHERE A.AKTIF='1'
                         AND   A.PASIEN_ID='".$pasienid."'
                         AND   A.EPISODE_ID='".$episodeid."'
                     ";
@@ -63,33 +63,49 @@
             return $recordset;
         }
 
-        function insertstatusur($data){           
-            $sql =   $this->db->insert("SR01_BPJS_UR_STATUS",$data);
-            return $sql;
+        function cekdatacodingimporttxt($pasienid,$episodeid){
+            $query =
+                    "
+                        SELECT A.CODING_ID
+                        FROM SR01_BPJS_CODING A
+                        WHERE A.AKTIF='1'
+                        AND   A.CODING_ID LIKE 'IMP_%'
+                        AND   A.PASIEN_ID='".$pasienid."'
+                        AND   A.EPISODE_ID='".$episodeid."'
+                    ";
+
+            $recordset = $this->db->query($query);
+            $recordset = $recordset->row();
+            return $recordset;
         }
 
-        function updatestatusur($nomorsep,$data){           
-            $sql =   $this->db->update("SR01_BPJS_UR_STATUS",$data,array("NO_SEP"=>$nomorsep));
-            return $sql;
-        }
+        // function insertstatusur($data){           
+        //     $sql =   $this->db->insert("SR01_BPJS_UR_STATUS",$data);
+        //     return $sql;
+        // }
 
-        function inserturbpjs($data){           
-            $sql =   $this->db->insert("SR01_BPJS_UR_DT",$data);
-            return $sql;
-        }
+        // function updatestatusur($nomorsep,$data){           
+        //     $sql =   $this->db->update("SR01_BPJS_UR_STATUS",$data,array("NO_SEP"=>$nomorsep));
+        //     return $sql;
+        // }
 
-        function updateurbpjs($nomorsep,$data){           
-            $sql =   $this->db->update("SR01_BPJS_UR_DT",$data,array("NO_SEP"=>$nomorsep));
-            return $sql;
-        }
+        // function inserturbpjs($data){           
+        //     $sql =   $this->db->insert("SR01_BPJS_UR_DT",$data);
+        //     return $sql;
+        // }
+
+        // function updateurbpjs($nomorsep,$data){           
+        //     $sql =   $this->db->update("SR01_BPJS_UR_DT",$data,array("NO_SEP"=>$nomorsep));
+        //     return $sql;
+        // }
         
         function insertcoding($data){           
             $sql =   $this->db->insert("SR01_BPJS_CODING",$data);
             return $sql;
         }
 
-        function updatecoding($pasienid,$episodeid,$nomorsep,$data){           
-            $sql =   $this->db->update("SR01_BPJS_CODING",$data,array("PASIEN_ID"=>$pasienid,"EPISODE_ID"=>$episodeid,"NOMOR_SEP"=>$nomorsep));
+        function updatecoding($codingid,$pasienid,$episodeid,$nomorsep,$data){           
+            $sql =   $this->db->update("SR01_BPJS_CODING",$data,array("CODING_ID"=>$codingid,"PASIEN_ID"=>$pasienid,"EPISODE_ID"=>$episodeid,"NOMOR_SEP"=>$nomorsep));
             return $sql;
         }
 
