@@ -842,3 +842,387 @@ function datadetailungrouping(){
         }
     });
 };
+
+
+function quadrantdokter(){
+    let selectperiode = $("select[name='selectperiode']").val();
+    $.ajax({
+        url      : url + "index.php/urbpjs/rawatjalan/quadrantdokter",
+        type     : "POST",
+        dataType : "JSON",
+        data     : {selectperiode:selectperiode},
+
+        beforeSend: function () {
+            Swal.fire({
+                title            : 'Processing',
+                html             : 'Please wait while the system displays the requested data.',
+                allowOutsideClick: false,
+                allowEscapeKey   : false,
+                showConfirmButton: false,
+                didOpen          : () => Swal.showLoading()
+            });
+
+            $("#resultdataquadrant").empty();
+        },
+
+        success: function (response) {
+
+            if (response.responCode !== "00") {
+                Swal.fire({
+                    icon             : 'warning',
+                    title            : 'No Records Found',
+                    text             : 'No records are available for the selected period.',
+                    showConfirmButton: false,
+                    timer            : 2000
+                });
+                return;
+            }
+
+            const result = Array.isArray(response.responResult) ? response.responResult : [];
+
+            const seriesData = result.map(item => ({
+                x      : Number(item.SELISIH) || 0,
+                y      : Number(item.JUMLAH_KUNJUNGAN) || 0,
+                nama   : item.NAMADOKTER,
+                dokter : item.DOKTER_ID,
+                tarifrs: Number(item.TOTAL_TARIF_RS) || 0,
+                inacbg : (Number(item.NILAI_GROUPING) || 0) + (Number(item.NILAI_ABD) || 0) + (Number(item.NILAI_FARMASI) || 0)
+
+            }));
+
+            const minRevenue = Math.min(
+                ...seriesData.map(item => item.x)
+            );
+
+            const maxRevenue = Math.max(
+                ...seriesData.map(item => item.x)
+            );
+
+            const revenueMin = minRevenue < 0 ? Math.floor(minRevenue / 50000000) * 50000000 : 0;
+            const revenueMax = maxRevenue > 0 ? Math.ceil(maxRevenue / 50000000) * 50000000 : 0;
+
+            const minPasien = Math.min(
+                ...seriesData.map(item => item.y)
+            );
+
+            const maxPasien = Math.max(
+                ...seriesData.map(item => item.y)
+            );
+
+            const patientLine = (minPasien + maxPasien) / 2;
+
+            const patientRange = Math.max(
+                patientLine - minPasien,
+                maxPasien - patientLine
+            );
+
+            const patientScale = Math.ceil(patientRange * 1.10);
+
+            seriesData.forEach(item => {
+                item.crr = item.tarifrs > 0 ? (item.inacbg / item.tarifrs) * 100 : 0;
+            });
+
+            seriesData.sort((a, b) => b.crr - a.crr);
+
+            let html = "";
+            seriesData.forEach((item, index) => {
+
+                let quadrant = "";
+                let badge = "";
+
+                if (item.x >= 0 && item.y >= patientLine) {
+                    quadrant = "Q1";
+                    badge    = "success";
+                } else if (item.x >= 0 && item.y < patientLine) {
+                    quadrant = "Q2";
+                    badge    = "primary";
+                } else if (item.x < 0 && item.y < patientLine) {
+                    quadrant = "Q3";
+                    badge    = "danger";
+                } else {
+                    quadrant = "Q4";
+                    badge    = "warning";
+                }
+
+                html += `
+                            <tr>
+                                <td class="ps-4">${index + 1}</td>
+                                <td>${item.nama}</td>
+                                <td class="text-center">${todesimal(item.y)}</td>
+                                <td class="text-end">${todesimal(item.tarifrs)}</td>
+                                <td class="text-end">${todesimal(item.inacbg)}</td>
+                                <td class="text-end fw-bold ${item.x >= 0 ? "text-success" : "text-danger"}">${item.x >= 0 ? "+" : ""}${todesimal(item.x)}</td>
+                                <td class="text-center fw-bold">${item.crr.toFixed(2)}%</td>
+                                <td class="text-end pe-4"><span class="badge badge-light-${badge}">${quadrant}</span></td>
+                            </tr>
+                        `;
+            });
+
+            $("#resultdataquadrant").html(html);
+
+            const table = initDataTable("#dataquadrant_table","#searchtable");
+
+            renderquadrant("#chartquadrant",seriesData,0,patientLine,patientScale);
+        },
+        complete: function () {
+            Swal.close();
+        },
+        error: function () {
+            Swal.fire({
+                icon             : "error",
+                title            : "Request Failed",
+                text             : "We were unable to process your request due to a server error. Please try again later. If the problem persists, contact your system administrator.",
+                confirmButtonText: "OK"
+            });
+        }
+    });
+}
+
+function quadrantsmf(){
+    let selectperiode = $("select[name='selectperiode']").val();
+    $.ajax({
+        url      : url + "index.php/urbpjs/rawatjalan/quadrantsmf",
+        type     : "POST",
+        dataType : "JSON",
+        data     : {selectperiode:selectperiode},
+
+        beforeSend: function () {
+            Swal.fire({
+                title            : 'Processing',
+                html             : 'Please wait while the system displays the requested data.',
+                allowOutsideClick: false,
+                allowEscapeKey   : false,
+                showConfirmButton: false,
+                didOpen          : () => Swal.showLoading()
+            });
+
+            $("#resultdataquadrantsmf").empty();
+        },
+
+        success: function (response) {
+
+            if (response.responCode !== "00") {
+                Swal.fire({
+                    icon             : 'warning',
+                    title            : 'No Records Found',
+                    text             : 'No records are available for the selected period.',
+                    showConfirmButton: false,
+                    timer            : 2000
+                });
+                return;
+            }
+
+            const result = Array.isArray(response.responResult) ? response.responResult : [];
+
+            const seriesData = result.map(item => ({
+                x      : Number(item.SELISIH) || 0,
+                y      : Number(item.JUMLAH_KUNJUNGAN) || 0,
+                nama   : item.KOLEGIUM,
+                dokter : item.KOLEGIUM_ID,
+                tarifrs: Number(item.TOTAL_TARIF_RS) || 0,
+                inacbg : (Number(item.NILAI_GROUPING) || 0) + (Number(item.NILAI_ABD) || 0) + (Number(item.NILAI_FARMASI) || 0)
+
+            }));
+
+            const minRevenue = Math.min(
+                ...seriesData.map(item => item.x)
+            );
+
+            const maxRevenue = Math.max(
+                ...seriesData.map(item => item.x)
+            );
+
+            const revenueMin = minRevenue < 0 ? Math.floor(minRevenue / 50000000) * 50000000 : 0;
+            const revenueMax = maxRevenue > 0 ? Math.ceil(maxRevenue / 50000000) * 50000000 : 0;
+
+            const minPasien = Math.min(
+                ...seriesData.map(item => item.y)
+            );
+
+            const maxPasien = Math.max(
+                ...seriesData.map(item => item.y)
+            );
+
+            const patientLine = (minPasien + maxPasien) / 2;
+
+            const patientRange = Math.max(
+                patientLine - minPasien,
+                maxPasien - patientLine
+            );
+
+            const patientScale = Math.ceil(patientRange * 1.10);
+
+            seriesData.forEach(item => {
+                item.crr = item.tarifrs > 0 ? (item.inacbg / item.tarifrs) * 100 : 0;
+            });
+
+            seriesData.sort((a, b) => b.crr - a.crr);
+
+            let html = "";
+            seriesData.forEach((item, index) => {
+
+                let quadrant = "";
+                let badge = "";
+
+                if (item.x >= 0 && item.y >= patientLine) {
+                    quadrant = "Q1";
+                    badge    = "success";
+                } else if (item.x >= 0 && item.y < patientLine) {
+                    quadrant = "Q2";
+                    badge    = "primary";
+                } else if (item.x < 0 && item.y < patientLine) {
+                    quadrant = "Q3";
+                    badge    = "danger";
+                } else {
+                    quadrant = "Q4";
+                    badge    = "warning";
+                }
+
+                html += `
+                            <tr>
+                                <td class="ps-4">${index + 1}</td>
+                                <td>${item.nama}</td>
+                                <td class="text-center">${todesimal(item.y)}</td>
+                                <td class="text-end">${todesimal(item.tarifrs)}</td>
+                                <td class="text-end">${todesimal(item.inacbg)}</td>
+                                <td class="text-end fw-bold ${item.x >= 0 ? "text-success" : "text-danger"}">${item.x >= 0 ? "+" : ""}${todesimal(item.x)}</td>
+                                <td class="text-center fw-bold">${item.crr.toFixed(2)}%</td>
+                                <td class="text-end pe-4"><span class="badge badge-light-${badge}">${quadrant}</span></td>
+                            </tr>
+                        `;
+            });
+
+            $("#resultdataquadrantsmf").html(html);
+
+            const table = initDataTable("#dataquadrantsmf_table","#searchtable");
+
+            renderquadrant("#chartquadrantsmf",seriesData,0,patientLine,patientScale);
+        },
+        complete: function () {
+            Swal.close();
+        },
+        error: function () {
+            Swal.fire({
+                icon             : "error",
+                title            : "Request Failed",
+                text             : "We were unable to process your request due to a server error. Please try again later. If the problem persists, contact your system administrator.",
+                confirmButtonText: "OK"
+            });
+        }
+    });
+}
+
+function quadrantresource(){
+    let selectperiode = $("select[name='selectperiode']").val();
+    $.ajax({
+        url      : url + "index.php/urbpjs/rawatjalan/quadrantresource",
+        type     : "POST",
+        dataType : "JSON",
+        data     : {selectperiode:selectperiode},
+
+        beforeSend: function () {
+            Swal.fire({
+                title            : 'Processing',
+                html             : 'Please wait while the system displays the requested data.',
+                allowOutsideClick: false,
+                allowEscapeKey   : false,
+                showConfirmButton: false,
+                didOpen          : () => Swal.showLoading()
+            });
+
+            $("#resultdataquadrantsmf").empty();
+        },
+
+        success: function (response) {
+
+            if (response.responCode !== "00") {
+                Swal.fire({
+                    icon             : 'warning',
+                    title            : 'No Records Found',
+                    text             : 'No records are available for the selected period.',
+                    showConfirmButton: false,
+                    timer            : 2000
+                });
+                return;
+            }
+
+            const result = Array.isArray(response.responResult) ? response.responResult : [];
+
+            const seriesData = result.map(item => {
+
+                const resource = {
+                    "REGISTRASI": Number(item.REGISTRASI) || 0,
+                    "JASA DOKTER": Number(item.JASA_DOKTER) || 0,
+                    "OBAT": Number(item.OBAT) || 0,
+                    "LABORATORIUM": Number(item.LABORATORIUM) || 0,
+                    "RADIOLOGI": Number(item.RADIOLOGI) || 0,
+                    "RADIOTERAPI": Number(item.RADIOTERAPI) || 0,
+                    "TINDAKAN": Number(item.TINDAKAN) || 0,
+                    "AMBULAN": Number(item.AMBULAN) || 0
+                };
+
+                const totalResource = Object.values(resource)
+                    .reduce((sum, value) => sum + value, 0);
+
+                let resourceTertinggi = "";
+                let nilaiTertinggi = 0;
+
+                Object.entries(resource).forEach(([nama, nilai]) => {
+
+                    if (nilai > nilaiTertinggi) {
+                        nilaiTertinggi = nilai;
+                        resourceTertinggi = nama;
+                    }
+
+                });
+
+                const persentaseResource = totalResource > 0
+                    ? (nilaiTertinggi / totalResource) * 100
+                    : 0;
+
+                const config = resourceConfig[resourceTertinggi];
+
+                return {
+
+                    x: config ? config.x : 0,
+
+                    y: persentaseResource,
+
+                    nama: item.NAMADOKTER || item.KOLEGIUM || "-",
+
+                    dokter: item.DOKTER_ID || item.KOLEGIUM_ID || "",
+
+                    resourceTertinggi: resourceTertinggi,
+
+                    persentaseResource: persentaseResource,
+
+                    nilaiResourceTertinggi: nilaiTertinggi,
+
+                    totalResource: totalResource,
+
+                    resource: resource,
+
+                    color: config ? config.color : "#6c757d"
+
+                };
+
+            }).filter(item => item.totalResource > 0);
+
+renderscatterresource(
+    "#chartquadrantresource",
+    seriesData
+);
+        },
+        complete: function () {
+            Swal.close();
+        },
+        error: function () {
+            Swal.fire({
+                icon             : "error",
+                title            : "Request Failed",
+                text             : "We were unable to process your request due to a server error. Please try again later. If the problem persists, contact your system administrator.",
+                confirmButtonText: "OK"
+            });
+        }
+    });
+}
