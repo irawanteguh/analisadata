@@ -466,9 +466,9 @@ function prosesImportTxtEklaim(data) {
 
 function load(){
     datarrjdetail();
-    // quadrantdokter();
-    // quadrantsmf();
-    // quadrantresource();
+    quadrantdokter();
+    quadrantsmf();
+    quadrantresource();
     datadetailtidakadasep();
     datadetailungrouping();
 };
