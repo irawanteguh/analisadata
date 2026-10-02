@@ -1007,7 +1007,6 @@ function renderBarHorizontal(name, seriesConfig, data, categoryField = 'kategori
 }
 
 function renderchartpie(name, data) {
-
     if (chartInstances[name]) {
         chartInstances[name].destroy();
         chartInstances[name] = null;
@@ -1017,8 +1016,9 @@ function renderchartpie(name, data) {
     const series = [];
 
     data.forEach(item => {
-
         labels.push(
+            item.category ??
+            item.CATEGORY ??
             item.label ??
             item.LABEL ??
             item.PROVIDER ??
@@ -1029,55 +1029,42 @@ function renderchartpie(name, data) {
             Number(
                 item.value ??
                 item.VALUE ??
+                item.total ??
                 item.TOTAL ??
                 0
             )
         );
-
     });
 
     const options = {
-
         chart: {
             type: "donut",
             height: 395
         },
-
         labels: labels,
-
         series: series,
-
         legend: {
             position: "bottom"
         },
-
         dataLabels: {
             enabled: true,
-            formatter: function(val){
+            formatter: function(val) {
                 return val.toFixed(1) + "%";
             }
         },
-
         tooltip: {
             y: {
-                formatter: function(val){
+                formatter: function(val) {
                     return val.toLocaleString("id-ID") + " Pasien";
                 }
             }
         }
-
     };
 
     const chartContainer = document.querySelector(`#${name}`);
-
-    if (!chartContainer) {
-        // console.warn(`Element #${name} tidak ditemukan.`);
-        return;
-    }
+    if (!chartContainer) return;
 
     chartContainer.innerHTML = "";
-
     chartInstances[name] = new ApexCharts(chartContainer, options);
     chartInstances[name].render();
-
 }
