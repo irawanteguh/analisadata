@@ -499,6 +499,100 @@
 			</div>
 		</div>
 
+		<div class="col-xl-12">
+			<div class="row">
+
+				<!-- Discharge Planning Kelas 1 -->
+				<div class="col-xl-4 col-lg-4 col-md-6 mb-5">
+					<div class="card border border-primary bg-light-primary shadow-sm h-100">
+						<div class="card-body p-5">
+							<div class="d-flex align-items-center mb-4">
+								<div class="symbol symbol-50px me-4">
+									<span class="symbol-label bg-primary">
+										<i class="fas fa-procedures fs-2x text-white"></i>
+									</span>
+								</div>
+								<div>
+									<div class="fw-bold fs-4 text-primary">
+										Discharge Planning Kelas 1
+									</div>
+									<div class="text-muted fs-7">
+										Jumlah pasien kelas 1
+									</div>
+								</div>
+							</div>
+
+							<div class="d-flex align-items-baseline">
+								<span id="jml_discharge_kelas1"
+									class="fw-bolder fs-2x text-primary">0</span>
+								<span class="text-muted fw-semibold ms-2">Pasien</span>
+							</div>
+						</div>
+					</div>
+				</div>
+
+				<!-- Discharge Planning Kelas 2 -->
+				<div class="col-xl-4 col-lg-4 col-md-6 mb-5">
+					<div class="card border border-info bg-light-info shadow-sm h-100">
+						<div class="card-body p-5">
+							<div class="d-flex align-items-center mb-4">
+								<div class="symbol symbol-50px me-4">
+									<span class="symbol-label bg-info">
+										<i class="fas fa-procedures fs-2x text-white"></i>
+									</span>
+								</div>
+								<div>
+									<div class="fw-bold fs-4 text-info">
+										Discharge Planning Kelas 2
+									</div>
+									<div class="text-muted fs-7">
+										Jumlah pasien kelas 2
+									</div>
+								</div>
+							</div>
+
+							<div class="d-flex align-items-baseline">
+								<span id="jml_discharge_kelas2"
+									class="fw-bolder fs-2x text-info">0</span>
+								<span class="text-muted fw-semibold ms-2">Pasien</span>
+							</div>
+						</div>
+					</div>
+				</div>
+
+				<!-- Discharge Planning Kelas 3 -->
+				<div class="col-xl-4 col-lg-4 col-md-6 mb-5">
+					<div class="card border border-success bg-light-success shadow-sm h-100">
+						<div class="card-body p-5">
+							<div class="d-flex align-items-center mb-4">
+								<div class="symbol symbol-50px me-4">
+									<span class="symbol-label bg-success">
+										<i class="fas fa-procedures fs-2x text-white"></i>
+									</span>
+								</div>
+								<div>
+									<div class="fw-bold fs-4 text-success">
+										Discharge Planning Kelas 3
+									</div>
+									<div class="text-muted fs-7">
+										Jumlah pasien kelas 3
+									</div>
+								</div>
+							</div>
+
+							<div class="d-flex align-items-baseline">
+								<span id="jml_discharge_kelas3"
+									class="fw-bolder fs-2x text-success">0</span>
+								<span class="text-muted fw-semibold ms-2">Pasien</span>
+							</div>
+						</div>
+					</div>
+				</div>
+
+			</div>
+		</div>
+
+
 		<div class="col-xl-6 mb-5">
 			<div class="card card-flush">
 				<div class="card-header pt-5">
@@ -545,6 +639,7 @@
 									<th>Patient Name</th>
 									<th>Doctor</th>
 									<th>Room</th>
+									<th>Class</th>
 									<th>Discharge Date</th>
 									<th>Status</th>
 									<th class="pe-4 rounded-end text-end">Actions</th>

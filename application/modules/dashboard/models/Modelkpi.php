@@ -603,6 +603,7 @@
                             X.EPISODE_ID,
                             X.DOKTER_ID,
                             X.RUANGRWT_ID,
+                            X.KELAS_ID,
                             TO_CHAR(X.TGLKELUAR, 'DD.MM.YYYY HH24:MI:SS') AS TGLKELUAR,
                             X.STATUS,
                             GETPIDINT(X.PASIEN_ID) AS MRPASIEN,
@@ -615,6 +616,7 @@
                                 A.EPISODE_ID,
                                 A.DOKTER_ID,
                                 A.RUANGRWT_ID,
+                                A.KELAS_ID,
                                 A.TGL_KELUAR AS TGLKELUAR,
                                 '1' AS STATUS
                             FROM SR01_KEU_EPISODE A
@@ -646,6 +648,7 @@
                                 A.EPISODE_ID,
                                 A.DOKTER_ID,
                                 A.RUANGRWT_ID,
+                                A.KELAS_ID,
                                 A.TGL_KELUAR AS TGLKELUAR,
                                 '2' AS STATUS
                             FROM SR01_KEU_EPISODE A
@@ -664,12 +667,13 @@
                             )
 
                             UNION ALL
-                            
+
                             SELECT
                                 A.PASIEN_ID,
                                 A.EPISODE_ID,
                                 A.DOKTER_ID,
                                 A.RUANGRWT_ID,
+                                A.KELAS_ID,
                                 A.TGL_KELUAR AS TGLKELUAR,
                                 '3' AS STATUS
                             FROM SR01_KEU_EPISODE A
@@ -691,7 +695,7 @@
                         ) X
                         LEFT JOIN SR01_MED_DOKTER_MS D
                             ON D.DOKTER_ID = X.DOKTER_ID
-                        ORDER BY X.STATUS ASC
+                        ORDER BY X.STATUS ASC, X.KELAS_ID ASC
 
 
                     ";

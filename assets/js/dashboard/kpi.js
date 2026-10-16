@@ -516,7 +516,7 @@ function datapasienpulanglebihjam12(){
                 didOpen          : () => Swal.showLoading()
             });
 
-            $("#resultdatapasientresultdatapasienpulanglebihjam12ransit").empty();
+            $("#resultdatapasienpulanglebihjam12").empty();
         },
         success:function(response){
 
@@ -533,8 +533,30 @@ function datapasienpulanglebihjam12(){
 
             const result      = Array.isArray(response.responResult) ? response.responResult : [];
 
-            var tableresult    = "";
+            let jumlahKelas1 = 0;
+            let jumlahKelas2 = 0;
+            let jumlahKelas3 = 0;
 
+            result.forEach(function(item) {
+                const kelas = parseInt(item.KELAS_ID, 10);
+                const status = parseInt(item.STATUS, 10);
+
+                if (status === 1 || status === 2) {
+                    if (kelas === 1) {
+                        jumlahKelas1++;
+                    } else if (kelas === 2) {
+                        jumlahKelas2++;
+                    } else if (kelas === 3) {
+                        jumlahKelas3++;
+                    }
+                }
+            });
+
+            $("#jml_discharge_kelas1").text(jumlahKelas1.toLocaleString("id-ID"));
+            $("#jml_discharge_kelas2").text(jumlahKelas2.toLocaleString("id-ID"));
+            $("#jml_discharge_kelas3").text(jumlahKelas3.toLocaleString("id-ID"));
+
+            var tableresult    = "";
             for (var i in result) {
                 let btnaction = "<a class='dropdown-item btn btn-sm' href='#' onclick=\"openSejarah('" + result[i].PASIEN_ID + "')\"><i class='bi bi-clock-history text-primary pe-4'></i>Sejarah</a>";
 
@@ -544,6 +566,7 @@ function datapasienpulanglebihjam12(){
                 tableresult += "<td><div>"+(result[i].MRPASIEN||"")+"</div><div>"+(result[i].NAMAPASIEN||"")+"</div></td>";
                 tableresult += "<td>"+(result[i].NAMADOKTER||"")+"</td>";
                 tableresult += "<td>"+(result[i].RUANGRWT_ID||"")+"</td>";
+                tableresult += "<td>Kelas "+(result[i].KELAS_ID||"")+"</td>";
                 tableresult += "<td>"+(result[i].TGLKELUAR||"")+"</td>";
                 tableresult += "<td>"+(result[i].STATUS == 1 ? "<span class='badge badge-light-danger'>TUD</span> <span class='badge badge-light-info'>Belum Pulang</span>" : result[i].STATUS == 2 ? "<span class='badge badge-light-info'>Belum Pulang</span>" : result[i].STATUS == 3 ? "<span class='badge badge-light-success'>Sudah Pulang</span>" : "")+"</td>";
                 tableresult += "<td class='text-end'>";
@@ -557,8 +580,7 @@ function datapasienpulanglebihjam12(){
             }
 
             $("#resultdatapasienpulanglebihjam12").html(tableresult);
-            const table = initDataTable("#datapasienpulanglebihjam12_table","#searchtable");
-
+            initDataTable("#datapasienpulanglebihjam12_table","#searchtable");
         },
         complete: function () {
             Swal.close();
