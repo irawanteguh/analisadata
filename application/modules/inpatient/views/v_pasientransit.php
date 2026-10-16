@@ -1,5 +1,5 @@
 <div class="row">
-    <div class="col-xl-6 mb-5">
+    <div class="col-xl-12 mb-5">
         <div class="card card-flush">
             <div class="card-header pt-5">
                 <h3 class="card-title align-items-start flex-column">
@@ -59,7 +59,8 @@
                                 <th>PATIENT NAME</th>
                                 <th class="text-center">DATE IN</th>
                                 <th class="text-center">DATE OUT</th>
-                                <th class="pe-4 rounded-end text-end">LENGTH OF STAY</th>
+                                <th class="text-center">LENGTH OF STAY</th>
+                                <th class="pe-4 rounded-end text-end">NOTES</th>
                             </tr>
                         </thead>
                         <tbody class="fw-bold text-gray-600" id="resultdatapasientransit"></tbody>

@@ -52,6 +52,7 @@
                             AND TO_CHAR(KMR.TGL_MASUK,'YYYY')='".$periode."'
                         )
                         WHERE RN = 1
+                        ORDER BY TO_DATE(TGLMASUKTRANSIT,'DD.MM.YYYY HH24:MI:SS') DESC
                     ";
 
             $recordset = $this->db->query($query);

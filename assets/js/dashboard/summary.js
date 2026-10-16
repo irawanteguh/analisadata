@@ -56,6 +56,7 @@ function loaddata(startDate){
     datakunjunganrawatjalan(startDate);
     dataantrianhelpdesk();
     dataagamapasienri();
+    pasientransit();
 }
 
 function datakunjunganrawatjalan(startDate){
@@ -309,6 +310,65 @@ function datakunjunganrawatjalan(startDate){
             });
 
             $("#dutymanager_txt").val(reportDM.join("\n"));
+
+        },
+        complete:function(){
+            Swal.close();
+        },
+        error:function(){
+            Swal.fire({
+                icon             : "error",
+                title            : "Request Failed",
+                text             : "We were unable to process your request due to a server error. Please try again later. If the problem persists, contact your system administrator.",
+                confirmButtonText: "OK"
+            });
+        }
+    });
+}
+
+function pasientransit(){
+    $.ajax({
+        url     : url + "index.php/dashboard/summary/pasientransit",
+        type    : "POST",
+        dataType: "JSON",
+        beforeSend: function () {
+            Swal.fire({
+                title            : 'Processing',
+                html             : 'Please wait while the system retrieves the requested data.',
+                allowOutsideClick: false,
+                allowEscapeKey   : false,
+                showConfirmButton: false,
+                didOpen          : () => Swal.showLoading()
+            });
+        },
+
+        success: function (response) {
+
+            if (response.responCode !== "00") {
+                Swal.fire({
+                    icon             : 'warning',
+                    title            : 'No Records Found',
+                    text             : 'No records are available for the selected period.',
+                    showConfirmButton: false,
+                    timer            : 2000
+                });
+                return;
+            }
+
+            const result             = Array.isArray(response.responResult) ? response.responResult : [];
+            const totalPasienTransit = result.length;
+
+            if (result.length === 0) {
+                $("#jmlpasientransitsekarang").text("0");
+                $("#jmlpasientransitsebelumnya").text("0 Px");
+                $("#presentasipasientransitsekarang").removeClass("badge-light-success badge-light-danger").addClass("badge-light-secondary").html(`<i class="bi bi-dash-circle text-muted me-1"></i><span class="text-muted fw-bold">0%</span>`);
+
+                return;
+            }
+
+            $("#jmlpasientransitsekarang").text(totalPasienTransit.toLocaleString("id-ID"));
+            $("#jmlpasientransitsebelumnya").text("0 Px");
+            $("#presentasipasientransitsekarang").removeClass("badge-light-success badge-light-danger").addClass("badge-light-secondary").html(`<i class="bi bi-dash-circle text-muted me-1"></i><span class="text-muted fw-bold">0%</span>`);
 
         },
         complete:function(){

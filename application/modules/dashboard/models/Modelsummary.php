@@ -102,6 +102,43 @@
             $recordset = $recordset->result();
             return $recordset;
         }
+
+        function pasientransit(){
+            $query =
+                    "
+                        SELECT A.PASIEN_ID, A.EPISODE_ID,
+                                TO_CHAR(KMR.TGL_MASUK,'DD.MM.YYYY HH24:MI:SS') TGLMASUKTRANSIT,
+                                PS.INT_PASIEN_ID                  AS MRPAS,
+                                PS.SEX_ID                         AS SEXID,
+                                SR01_GET_SUFFIX(A.PASIEN_ID)      AS NAMAPASIEN
+
+                        FROM SR01_KEU_EPISODE A
+                        LEFT JOIN SR01_GEN_PASIEN_MS PS
+                            ON PS.LOKASI_ID = '001'
+                            AND PS.AKTIF = '1'
+                            AND PS.PASIEN_ID = A.PASIEN_ID
+                        LEFT JOIN SR01_KEU_TRANSKMR_IT KMR
+                            ON  KMR.LOKASI_ID = '001'
+                            AND KMR.AKTIF = '1'
+                            AND KMR.RUANG_ID = 'TRANSIT'
+                            AND KMR.PASIEN_ID = A.PASIEN_ID
+                            AND KMR.EPISODE_ID = A.EPISODE_ID
+
+                        WHERE A.LOKASI_ID='001'
+                        AND   A.AKTIF='1'
+                        AND   A.STATUS_EPISODE='00'
+                        AND   A.JENIS_EPISODE='I'
+                        AND   A.RUANGRWT_ID LIKE 'TRANSIT%'
+                        AND   EXISTS (SELECT 1 FROM SR01_MED_RUANG_PRWT WHERE LOKASI_ID='001' AND AKTIF='1' AND PASIEN_ID=A.PASIEN_ID AND EPISODE_ID=A.EPISODE_ID)
+
+                        ORDER by TGLMASUKTRANSIT ASC
+
+                    ";
+
+            $recordset = $this->db->query($query);
+            $recordset = $recordset->result();
+            return $recordset;
+        }
         
     }
 ?>

@@ -583,9 +583,117 @@
                                         AND A.KELAS_ID <> 'V'
                                         AND A.EPISODE_ID=(SELECT EPISODE_ID FROM SR01_PASIEN_RANAP WHERE PERLU_VISIT='T' AND PASIEN_ID=A.PASIEN_ID AND EPISODE_ID=A.EPISODE_ID)
                                         AND A.TGL_KELUAR IS NOT NULL
-                                        AND A.TGL_KELUAR >= TRUNC (SYSDATE) - 14
+                                        AND A.TGL_KELUAR >= TRUNC (SYSDATE) - 30
                                         AND A.TGL_KELUAR < TRUNC (SYSDATE)
                                 GROUP BY TO_CHAR (A.TGL_KELUAR, 'DD.MM.YYYY')) X
+                                ORDER BY TO_DATE(PERIODE, 'DD.MM.YYYY') ASC
+                    ";
+
+            $recordset = $this->db->query($query);
+            $recordset = $recordset->result();
+            return $recordset;
+        }
+
+        function datapasienpulanglebihjam12(){
+            $query =
+                    "
+                        
+                        SELECT
+                            X.PASIEN_ID,
+                            X.EPISODE_ID,
+                            X.DOKTER_ID,
+                            X.RUANGRWT_ID,
+                            TO_CHAR(X.TGLKELUAR, 'DD.MM.YYYY HH24:MI:SS') AS TGLKELUAR,
+                            X.STATUS,
+                            GETPIDINT(X.PASIEN_ID) AS MRPASIEN,
+                            SR01_GET_SUFFIX(X.PASIEN_ID) AS NAMAPASIEN,
+                            D.NAMA AS NAMADOKTER
+                        FROM (
+                            /* STATUS 0: Pasien discharge hari ini */
+                            SELECT
+                                A.PASIEN_ID,
+                                A.EPISODE_ID,
+                                A.DOKTER_ID,
+                                A.RUANGRWT_ID,
+                                A.TGL_KELUAR AS TGLKELUAR,
+                                '1' AS STATUS
+                            FROM SR01_KEU_EPISODE A
+                            WHERE A.LOKASI_ID = '001'
+                            AND A.AKTIF = '1'
+                            AND A.JENIS_EPISODE = 'I'
+                            AND A.STATUS_EPISODE = '00'
+                            AND A.KELAS_ID <> 'V'
+                            AND EXISTS (
+                                SELECT 1
+                                FROM SR01_MED_DISCHARGE_TL M
+                                WHERE M.PASIEN_ID = A.PASIEN_ID
+                                    AND M.EPISODE_ID = A.EPISODE_ID
+                                    AND M.TGL_DISCHARGE >= TRUNC(SYSDATE)
+                                    AND M.TGL_DISCHARGE < TRUNC(SYSDATE) + 1
+                            )
+                            AND EXISTS (
+                                SELECT 1
+                                FROM SR01_PASIEN_RANAP R
+                                WHERE R.PASIEN_ID = A.PASIEN_ID
+                                    AND R.EPISODE_ID = A.EPISODE_ID
+                                    AND R.PERLU_VISIT = 'T'
+                            )
+
+                            UNION ALL
+                            
+                            SELECT
+                                A.PASIEN_ID,
+                                A.EPISODE_ID,
+                                A.DOKTER_ID,
+                                A.RUANGRWT_ID,
+                                A.TGL_KELUAR AS TGLKELUAR,
+                                '2' AS STATUS
+                            FROM SR01_KEU_EPISODE A
+                            WHERE A.LOKASI_ID = '001'
+                            AND A.AKTIF = '1'
+                            AND A.JENIS_EPISODE = 'I'
+                            AND A.STATUS_EPISODE = '00'
+                            AND A.KELAS_ID <> 'V'
+                            AND EXISTS (
+                                SELECT 1
+                                FROM SR01_MED_DISCHARGE_TL M
+                                WHERE M.PASIEN_ID = A.PASIEN_ID
+                                    AND M.EPISODE_ID = A.EPISODE_ID
+                                    AND M.TGL_DISCHARGE >= TRUNC(SYSDATE)
+                                    AND M.TGL_DISCHARGE < TRUNC(SYSDATE) + 1
+                            )
+
+                            UNION ALL
+                            
+                            SELECT
+                                A.PASIEN_ID,
+                                A.EPISODE_ID,
+                                A.DOKTER_ID,
+                                A.RUANGRWT_ID,
+                                A.TGL_KELUAR AS TGLKELUAR,
+                                '3' AS STATUS
+                            FROM SR01_KEU_EPISODE A
+                            WHERE A.LOKASI_ID = '001'
+                            AND A.AKTIF = '1'
+                            AND A.JENIS_EPISODE = 'I'
+                            AND A.PULANG_ID NOT IN ('P02', 'P04', 'P10', 'P11', 'P0X')
+                            AND A.KELAS_ID <> 'V'
+                            AND A.TGL_KELUAR IS NOT NULL
+                            AND A.TGL_KELUAR >= TRUNC(SYSDATE) - 30 + 12/24
+                            AND A.TGL_KELUAR < TRUNC(SYSDATE) + 1
+                            AND EXISTS (
+                                SELECT 1
+                                FROM SR01_PASIEN_RANAP R
+                                WHERE R.PASIEN_ID = A.PASIEN_ID
+                                    AND R.EPISODE_ID = A.EPISODE_ID
+                                    AND R.PERLU_VISIT = 'T'
+                            )
+                        ) X
+                        LEFT JOIN SR01_MED_DOKTER_MS D
+                            ON D.DOKTER_ID = X.DOKTER_ID
+                        ORDER BY X.STATUS ASC
+
+
                     ";
 
             $recordset = $this->db->query($query);

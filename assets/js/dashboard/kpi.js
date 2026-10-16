@@ -147,6 +147,7 @@ function loaddata(){
     datajampulangharian();
     datawaktutunggurawatjalan();
     pemabatalanoperasielektif();
+    datapasienpulanglebihjam12();
 };
 
 function pemabatalanoperasielektif(){
@@ -473,11 +474,14 @@ function datajampulangharian(){
             const chartData = result.map(item => ({
                 periode: item.PERIODE,
                 Value1 : item.PERSENTASE ?? 0,
-                Value2 : item.BIAYA_MAKAN ?? 0
+                Value2 : item.BIAYA_MAKAN ?? 0,
+                Value3 : item.SEBELUM_12 ?? 0,
+                Value4 : item.SESUDAH_12 ?? 0,
+                Value5 : parseInt(item.SEBELUM_12 ?? 0, 10) + parseInt(item.SESUDAH_12 ?? 0, 10)
             }));
 
 
-            renderchartarea("grafikkpipasienpulangharian",chartData,"Periode Pelayanan","% Pulang < Pukul 12:00",["Presentasi","Biaya"],["Value1","Value2"],true,"Biaya Gizi","Value1","Avg % Pulang < Pukul 12:00",null);
+            renderchartarea("grafikkpipasienpulangharian",chartData,"Periode Pelayanan","% Pulang < Pukul 12:00",["Presentasi","Jml TUD","< Jam 12:00",">= Jam 12:00"],["Value1","Value5","Value3","Value4"],true,"Jumlah Pasien","Value1","Avg % Pulang < Pukul 12:00",null);
         },
 
         complete: function () {
@@ -489,6 +493,81 @@ function datajampulangharian(){
                 icon: "error",
                 title: "Request Failed",
                 text: "We were unable to process your request due to a server error. Please try again later. If the problem persists, contact your system administrator.",
+                confirmButtonText: "OK"
+            });
+        }
+    });
+};
+
+function datapasienpulanglebihjam12(){
+    const selectperiode = $("select[name='selectperiode']").val();
+    $.ajax({
+        url       : url +"index.php/dashboard/kpi/datapasienpulanglebihjam12",
+        data      : {selectperiode:selectperiode},
+        type      : "POST",
+        dataType  : "JSON",
+        beforeSend: function () {
+            Swal.fire({
+                title            : 'Processing',
+                html             : 'Please wait while the system displays the requested data.',
+                allowOutsideClick: false,
+                allowEscapeKey   : false,
+                showConfirmButton: false,
+                didOpen          : () => Swal.showLoading()
+            });
+
+            $("#resultdatapasientresultdatapasienpulanglebihjam12ransit").empty();
+        },
+        success:function(response){
+
+            if (response.responCode !== "00") {
+                Swal.fire({
+                    icon             : 'warning',
+                    title            : 'No Records Found',
+                    text             : 'No records are available for the selected period.',
+                    showConfirmButton: false,
+                    timer            : 2000
+                });
+                return;
+            }
+
+            const result      = Array.isArray(response.responResult) ? response.responResult : [];
+
+            var tableresult    = "";
+
+            for (var i in result) {
+                let btnaction = "<a class='dropdown-item btn btn-sm' href='#' onclick=\"openSejarah('" + result[i].PASIEN_ID + "')\"><i class='bi bi-clock-history text-primary pe-4'></i>Sejarah</a>";
+
+
+                tableresult += "<tr>";
+                tableresult += "<td class='ps-4'>" + (parseInt(i)+1) + "</td>";
+                tableresult += "<td><div>"+(result[i].MRPASIEN||"")+"</div><div>"+(result[i].NAMAPASIEN||"")+"</div></td>";
+                tableresult += "<td>"+(result[i].NAMADOKTER||"")+"</td>";
+                tableresult += "<td>"+(result[i].RUANGRWT_ID||"")+"</td>";
+                tableresult += "<td>"+(result[i].TGLKELUAR||"")+"</td>";
+                tableresult += "<td>"+(result[i].STATUS == 1 ? "<span class='badge badge-light-danger'>TUD</span> <span class='badge badge-light-info'>Belum Pulang</span>" : result[i].STATUS == 2 ? "<span class='badge badge-light-info'>Belum Pulang</span>" : result[i].STATUS == 3 ? "<span class='badge badge-light-success'>Sudah Pulang</span>" : "")+"</td>";
+                tableresult += "<td class='text-end'>";
+                tableresult += "<div class='btn-group'>";
+                tableresult += "<button type='button' class='btn btn-light-primary dropdown-toggle btn-sm' data-bs-toggle='dropdown'>Actions</button>";
+                tableresult += "<div class='dropdown-menu'>";
+                tableresult += btnaction;
+                tableresult += "</div></div></td>";
+                tableresult += "</tr>";
+                tableresult += "</tr>";
+            }
+
+            $("#resultdatapasienpulanglebihjam12").html(tableresult);
+            const table = initDataTable("#datapasienpulanglebihjam12_table","#searchtable");
+
+        },
+        complete: function () {
+            Swal.close();
+        },
+        error: function () {
+            Swal.fire({
+                icon             : "error",
+                title            : "Request Failed",
+                text             : "We were unable to process your request due to a server error. Please try again later. If the problem persists, contact your system administrator.",
                 confirmButtonText: "OK"
             });
         }

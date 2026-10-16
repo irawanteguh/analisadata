@@ -1,34 +1,74 @@
-<div class="col-xl-2 col-lg-4 col-md-6 mb-5" onclick="location.href='../dashboard/dashboard';" style="cursor:pointer;">
-    <div class="card">
-        <div class="card-body p-4">
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <div>
-                    <div class="fw-bolder fs-3 text-gray-800">Rawat Jalan</div>
-                    <div class="fw-bold fs-8">Jumlah Kunjungan Pasien</div>
-                </div>
-                <span class="btn btn-icon btn-light-primary rounded-circle w-50px h-50px">
-                    <i class="fas fa-hospital-user fs-2 text-primary"></i>
-                </span>
-            </div>
-            <div class="mb-4">
-                <div class="fw-bolder text-dark display-5">
-                    <span id="jmlrawatjalansekarang">0</span>
-                    <span class="fs-3 fw-semibold text-muted">Px</span>
-                </div>
-            </div>
-            <div class="d-flex justify-content-between align-items-end border-top pt-3">
-                <div>
-                    <span id="presentasirawatjalansekarang" class="badge badge-light-success fw-bold fs-7 px-3 py-2">
-                        <i class="bi bi-caret-up-fill"></i>
-                        0%
+<div class="row col-xl-12">
+    <div class="col-xl-2 col-lg-4 col-md-6 mb-5" onclick="location.href='../dashboard/dashboard';" style="cursor:pointer;">
+        <div class="card">
+            <div class="card-body p-4">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <div>
+                        <div class="fw-bolder fs-3 text-gray-800">Rawat Jalan</div>
+                        <div class="fw-bold fs-8">Jumlah Kunjungan Pasien</div>
+                    </div>
+                    <span class="btn btn-icon btn-light-primary rounded-circle w-50px h-50px">
+                        <i class="fas fa-hospital-user fs-2 text-primary"></i>
                     </span>
                 </div>
-                <div class="text-end">
-                    <div class="text-muted fs-8">
-                        Last Period
+                <div class="mb-4">
+                    <div class="fw-bolder text-dark display-5">
+                        <span id="jmlrawatjalansekarang">0</span>
+                        <span class="fs-3 fw-semibold text-muted">Px</span>
                     </div>
-                    <div id="jmlrawatjalansebelumnya" class="fw-bold fs-5 text-gray-700">
-                        0 Px
+                </div>
+                <div class="d-flex justify-content-between align-items-end border-top pt-3">
+                    <div>
+                        <span id="presentasirawatjalansekarang" class="badge badge-light-success fw-bold fs-7 px-3 py-2">
+                            <i class="bi bi-caret-up-fill"></i>
+                            0%
+                        </span>
+                    </div>
+                    <div class="text-end">
+                        <div class="text-muted fs-8">
+                            Last Period
+                        </div>
+                        <div id="jmlrawatjalansebelumnya" class="fw-bold fs-5 text-gray-700">
+                            0 Px
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-2 col-lg-4 col-md-6 mb-5" onclick="location.href='../inpatient/pasientransit';" style="cursor:pointer;">
+        <div class="card">
+            <div class="card-body p-4">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <div>
+                        <div class="fw-bolder fs-3 text-gray-800">Pasien Transit</div>
+                        <div class="fw-bold fs-8">Jumlah Pasien Transit</div>
+                    </div>
+                    <span class="btn btn-icon btn-light-primary rounded-circle w-50px h-50px">
+                        <i class="fas fa-person-walking fs-2 text-primary"></i>
+                    </span>
+                </div>
+                <div class="mb-4">
+                    <div class="fw-bolder text-dark display-5">
+                        <span id="jmlpasientransitsekarang">0</span>
+                        <span class="fs-3 fw-semibold text-muted">Px</span>
+                    </div>
+                </div>
+                <div class="d-flex justify-content-between align-items-end border-top pt-3">
+                    <div>
+                        <span id="presentasipasientransitsekarang" class="badge badge-light-success fw-bold fs-7 px-3 py-2">
+                            <i class="bi bi-caret-up-fill"></i>
+                            0%
+                        </span>
+                    </div>
+                    <div class="text-end">
+                        <div class="text-muted fs-8">
+                            Last Period
+                        </div>
+                        <div id="jmlpasientransitsebelumnya" class="fw-bold fs-5 text-gray-700">
+                            0 Px
+                        </div>
                     </div>
                 </div>
             </div>

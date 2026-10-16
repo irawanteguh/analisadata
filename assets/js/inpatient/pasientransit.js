@@ -39,42 +39,43 @@ function datapasientransit(){
             const result      = Array.isArray(response.responResult) ? response.responResult : [];
 
             var tableresult    = "";
-            for (var i in result) {
 
+            for (var i in result) {
                 tableresult += "<tr>";
                 tableresult += "<td class='ps-4'>" + (parseInt(i)+1) + "</td>";
                 tableresult += "<td><div>"+(result[i].MRPAS||"")+"</div><div>"+(result[i].NAMAPASIEN||"")+"</div></td>";
                 tableresult += "<td>"+(result[i].TGLMASUKTRANSIT||"")+"</td>";
                 tableresult += "<td>"+(result[i].TGLKELUARTRANSIT||"")+"</td>";
-                tableresult += "<td class='text-end pe-4'>"+calculateDuration(result[i].TGLMASUKTRANSIT,result[i].TGLKELUARTRANSIT)+"</td>";
+                tableresult += "<td class='text-end'>"+calculateDuration(result[i].TGLMASUKTRANSIT,result[i].TGLKELUARTRANSIT)+"</td>";
+                tableresult += "<td class='text-end'>"+(result[i].TGLKELUARTRANSIT ? "" : "<span class='badge badge-light-info fw-bold'>Pasien Masih Di Transit</span>")+"</td>";
                 tableresult += "</tr>";
             }
 
             $("#resultdatapasientransit").html(tableresult);
             const table = initDataTable("#datapasientransit_table","#searchtable");
 
-            const total        = aggregate(result, "count", "PERIODE");
+            const total        = aggregate(result, "count", "PERIODE",["EPISODE_ID"]);
             const bulanLengkap = ["01","02","03","04","05","06","07","08","09","10","11","12"];
             const namaBulan    = ["Jan","Feb","Mar","Apr","Mei","Jun","Jul","Agu","Sep","Okt","Nov","Des"];
 
             const dataMap = {};
 
             total.forEach(item => {
-                dataMap[item.periode] = item.value;
+                dataMap[item.periode] = item;
             });
 
             const chartData = bulanLengkap.map((bulan, index) => ({
                 periode: namaBulan[index],
-                value  : dataMap[bulan] || 0
-            }));
+                value  : dataMap[bulan]?.EPISODE_ID || 0
+            }));            
 
             renderchartarea(
                 "trenpasientransit",
                 chartData,
-                "Periode Masuk Ruang Transit",          // title X
-                "Jumlah Pasien",    // title Y
-                "Pasien Transit",   // nama series
-                "value"             // field data
+                "Periode Masuk Ruang Transit",
+                "Jumlah Pasien",
+                "Pasien Transit",
+                "value"
             );
 
         },

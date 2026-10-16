@@ -345,124 +345,124 @@ function formatDuration(seconds) {
     return s + " second";
 };
 
-function prosesImportTxtEklaim(data) {
-    data = Array.isArray(data) ? data : [];
-    const headers = Array.isArray(window.headerTxtEklaim) ? window.headerTxtEklaim : [];
-    const total = data.length;
-    let index = 0;
-    const batchSize = 500;
-    const startTime = Date.now();
+// function prosesImportTxtEklaim(data) {
+//     data = Array.isArray(data) ? data : [];
+//     const headers = Array.isArray(window.headerTxtEklaim) ? window.headerTxtEklaim : [];
+//     const total = data.length;
+//     let index = 0;
+//     const batchSize = 500;
+//     const startTime = Date.now();
 
-    if (total === 0) {
-        Swal.fire({ icon: "warning", title: "No Data Available", text: "There is no TXT E-Klaim data to import." });
-        return;
-    }
+//     if (total === 0) {
+//         Swal.fire({ icon: "warning", title: "No Data Available", text: "There is no TXT E-Klaim data to import." });
+//         return;
+//     }
 
-    if (headers.length === 0) {
-        Swal.fire({ icon: "error", title: "Header Tidak Ditemukan", text: "Header file E-Klaim tidak tersedia." });
-        return;
-    }
+//     if (headers.length === 0) {
+//         Swal.fire({ icon: "error", title: "Header Tidak Ditemukan", text: "Header file E-Klaim tidak tersedia." });
+//         return;
+//     }
 
-    Swal.fire({
-        title: "Importing TXT E-Klaim Data",
-        html: `
-            <div class="text-center">
-                <div class="fs-5 mb-3">Please wait...</div>
-                <div class="fs-3 fw-bold text-primary"><span id="importProgressTxtEklaim">0</span> / ${total.toLocaleString("id-ID")}</div>
-                <div class="progress mt-3" style="height:10px;"><div id="importProgressBarTxtEklaim" class="progress-bar progress-bar-striped progress-bar-animated bg-primary" role="progressbar" style="width:0%"></div></div>
-                <div class="mt-3 small text-muted">
-                    <div>Processing Speed : <span id="importSpeedTxtEklaim">0</span> records/sec</div>
-                    <div>Estimated Time Remaining : <span id="importEtaTxtEklaim">Calculating...</span></div>
-                </div>
-            </div>
-        `,
-        allowOutsideClick: false,
-        allowEscapeKey: false,
-        showConfirmButton: false,
-        didOpen: function() {
-            Swal.showLoading();
-            kirimBatchTxtEklaim();
-        }
-    });
+//     Swal.fire({
+//         title: "Importing TXT E-Klaim Data",
+//         html: `
+//             <div class="text-center">
+//                 <div class="fs-5 mb-3">Please wait...</div>
+//                 <div class="fs-3 fw-bold text-primary"><span id="importProgressTxtEklaim">0</span> / ${total.toLocaleString("id-ID")}</div>
+//                 <div class="progress mt-3" style="height:10px;"><div id="importProgressBarTxtEklaim" class="progress-bar progress-bar-striped progress-bar-animated bg-primary" role="progressbar" style="width:0%"></div></div>
+//                 <div class="mt-3 small text-muted">
+//                     <div>Processing Speed : <span id="importSpeedTxtEklaim">0</span> records/sec</div>
+//                     <div>Estimated Time Remaining : <span id="importEtaTxtEklaim">Calculating...</span></div>
+//                 </div>
+//             </div>
+//         `,
+//         allowOutsideClick: false,
+//         allowEscapeKey: false,
+//         showConfirmButton: false,
+//         didOpen: function() {
+//             Swal.showLoading();
+//             kirimBatchTxtEklaim();
+//         }
+//     });
 
-    function kirimBatchTxtEklaim() {
-        const batch = data.slice(index, index + batchSize);
-        if (batch.length === 0) return;
+//     function kirimBatchTxtEklaim() {
+//         const batch = data.slice(index, index + batchSize);
+//         if (batch.length === 0) return;
 
-        $.ajax({
-            url: url + "index.php/urbpjs/syncurbpjsrj/importtxteklaim",
-            type: "POST",
-            dataType: "JSON",
-            data: { headers: JSON.stringify(headers), data: JSON.stringify(batch) },
-            success: function(res) {
-                if (res.responCode !== "00") {
-                    Swal.fire({ icon: "error", title: "Import Failed", text: res.responMsg || "Failed to import TXT E-Klaim data." });
-                    return;
-                }
+//         $.ajax({
+//             url: url + "index.php/urbpjs/syncurbpjsrj/importtxteklaim",
+//             type: "POST",
+//             dataType: "JSON",
+//             data: { headers: JSON.stringify(headers), data: JSON.stringify(batch) },
+//             success: function(res) {
+//                 if (res.responCode !== "00") {
+//                     Swal.fire({ icon: "error", title: "Import Failed", text: res.responMsg || "Failed to import TXT E-Klaim data." });
+//                     return;
+//                 }
 
-                index += batch.length;
-                $("#importProgressTxtEklaim").text(index.toLocaleString("id-ID"));
+//                 index += batch.length;
+//                 $("#importProgressTxtEklaim").text(index.toLocaleString("id-ID"));
 
-                const percent = total > 0 ? (index / total) * 100 : 0;
-                $("#importProgressBarTxtEklaim").css("width", percent + "%").attr("aria-valuenow", percent);
+//                 const percent = total > 0 ? (index / total) * 100 : 0;
+//                 $("#importProgressBarTxtEklaim").css("width", percent + "%").attr("aria-valuenow", percent);
 
-                const elapsed = (Date.now() - startTime) / 1000;
-                const speed = elapsed > 0 ? index / elapsed : 0;
-                $("#importSpeedTxtEklaim").text(speed.toFixed(2));
+//                 const elapsed = (Date.now() - startTime) / 1000;
+//                 const speed = elapsed > 0 ? index / elapsed : 0;
+//                 $("#importSpeedTxtEklaim").text(speed.toFixed(2));
 
-                const remaining = total - index;
-                const eta = speed > 0 ? remaining / speed : 0;
-                $("#importEtaTxtEklaim").text(remaining > 0 ? formatDuration(eta) : "Completed");
+//                 const remaining = total - index;
+//                 const eta = speed > 0 ? remaining / speed : 0;
+//                 $("#importEtaTxtEklaim").text(remaining > 0 ? formatDuration(eta) : "Completed");
 
-                if (index < total) {
-                    kirimBatchTxtEklaim();
-                    return;
-                }
+//                 if (index < total) {
+//                     kirimBatchTxtEklaim();
+//                     return;
+//                 }
 
-                $("#importProgressBarTxtEklaim").css("width", "100%");
+//                 $("#importProgressBarTxtEklaim").css("width", "100%");
 
-                setTimeout(function() {
-                    const result = res.responResult || {};
-                    const totalResult = Number(result.total || total);
-                    const successResult = Number(result.success || 0);
-                    const failedResult = Number(result.failed || 0);
+//                 setTimeout(function() {
+//                     const result = res.responResult || {};
+//                     const totalResult = Number(result.total || total);
+//                     const successResult = Number(result.success || 0);
+//                     const failedResult = Number(result.failed || 0);
 
-                    Swal.fire({
-                        icon: failedResult > 0 ? "warning" : "success",
-                        title: failedResult > 0 ? "Import Completed with Warning" : "Import Completed",
-                        html: `Total Data : <strong>${totalResult.toLocaleString("id-ID")}</strong><br>Berhasil : <strong>${successResult.toLocaleString("id-ID")}</strong><br>Gagal : <strong>${failedResult.toLocaleString("id-ID")}</strong>`,
-                        confirmButtonColor: "#009EF7",
-                        timer: 3000,
-                        timerProgressBar: true,
-                        showConfirmButton: false
-                    }).then(function() {
-                        window.dataTxtEklaim = [];
-                        window.headerTxtEklaim = [];
-                        $("#filetxteklaim").val("");
-                        $("#jmlDataEklaim").text("0");
-                        $("#totalNilaiEklaim").text("Rp 0");
-                        $("#totalTarifRSEklaim").text("Rp 0");
-                        $("#selisihTarifEklaim").text("Rp 0");
-                        $("#headerPreviewtxtEklaim").empty();
-                        $("#resultpreviewtxteklaim").empty();
-                        $("#modal_upload_txt_eklaim").modal("hide");
-                    });
-                }, 200);
-            },
-            error: function(xhr, status, error) {
-                console.error("IMPORT TXT E-KLAIM ERROR:", error);
-                console.error(xhr.responseText);
+//                     Swal.fire({
+//                         icon: failedResult > 0 ? "warning" : "success",
+//                         title: failedResult > 0 ? "Import Completed with Warning" : "Import Completed",
+//                         html: `Total Data : <strong>${totalResult.toLocaleString("id-ID")}</strong><br>Berhasil : <strong>${successResult.toLocaleString("id-ID")}</strong><br>Gagal : <strong>${failedResult.toLocaleString("id-ID")}</strong>`,
+//                         confirmButtonColor: "#009EF7",
+//                         timer: 3000,
+//                         timerProgressBar: true,
+//                         showConfirmButton: false
+//                     }).then(function() {
+//                         window.dataTxtEklaim = [];
+//                         window.headerTxtEklaim = [];
+//                         $("#filetxteklaim").val("");
+//                         $("#jmlDataEklaim").text("0");
+//                         $("#totalNilaiEklaim").text("Rp 0");
+//                         $("#totalTarifRSEklaim").text("Rp 0");
+//                         $("#selisihTarifEklaim").text("Rp 0");
+//                         $("#headerPreviewtxtEklaim").empty();
+//                         $("#resultpreviewtxteklaim").empty();
+//                         $("#modal_upload_txt_eklaim").modal("hide");
+//                     });
+//                 }, 200);
+//             },
+//             error: function(xhr, status, error) {
+//                 console.error("IMPORT TXT E-KLAIM ERROR:", error);
+//                 console.error(xhr.responseText);
 
-                Swal.fire({
-                    icon: "error",
-                    title: "Request Failed",
-                    text: "We were unable to process your request due to a server error. Please try again later. If the problem persists, contact your system administrator.",
-                    confirmButtonText: "OK"
-                });
-            }
-        });
-    }
-};
+//                 Swal.fire({
+//                     icon: "error",
+//                     title: "Request Failed",
+//                     text: "We were unable to process your request due to a server error. Please try again later. If the problem persists, contact your system administrator.",
+//                     confirmButtonText: "OK"
+//                 });
+//             }
+//         });
+//     }
+// };
 
 function load(){
     datarrjdetail();
