@@ -14,18 +14,12 @@ $(function () {
         const password = $.trim($("[name='password']").val());
 
         if (!username) {
-            Swal.fire({
-                icon: "warning",
-                text: "Please enter your username."
-            });
+            Swal.fire({icon: "warning",text: "Please enter your username."});
             return;
         }
 
         if (!password) {
-            Swal.fire({
-                icon: "warning",
-                text: "Please enter your password."
-            });
+            Swal.fire({icon: "warning",text: "Please enter your password."});
             return;
         }
 
@@ -65,28 +59,54 @@ $(function () {
                     const popup = Swal.getPopup();
                     popup.style.cursor = "pointer";
 
-                    // Klik popup
-                    popup.addEventListener("click", function () {
-                        if ((code === "00" || code === "02") && response.url) {
-                            window.location.href = response.url;
-                        }
-                    });
-
-                    // Tekan ENTER
-                    document.addEventListener("keydown", function (event) {
+                    const redirect = function () {
                         if (
-                            event.key === "Enter" &&
                             (code === "00" || code === "02") &&
+                            response &&
                             response.url
                         ) {
                             window.location.href = response.url;
                         }
-                    });
+                    };
+
+                    // Klik popup untuk redirect
+                    popup.addEventListener("click", redirect);
+
+                    // Tekan Enter untuk langsung redirect
+                    const handleEnter = function (event) {
+                        if (event.key === "Enter") {
+                            event.preventDefault();
+                            event.stopPropagation();
+                            event.stopImmediatePropagation();
+
+                            redirect();
+                        }
+                    };
+
+                    // Capture agar event Enter tertangkap lebih awal
+                    window.addEventListener("keydown", handleEnter, true);
+
+                    // Simpan handler untuk dibersihkan
+                    popup._handleEnter = handleEnter;
+                },
+
+                willClose: function () {
+                    const popup = Swal.getPopup();
+
+                    if (popup && popup._handleEnter) {
+                        window.removeEventListener(
+                            "keydown",
+                            popup._handleEnter,
+                            true
+                        );
+
+                        delete popup._handleEnter;
+                    }
                 },
 
                 didClose: function () {
-                    // Redirect otomatis setelah timer selesai
-                    if (code === "00" && response.url) {
+                    // Redirect otomatis setelah timer untuk kode 00
+                    if (code === "00" && response && response.url) {
                         window.location.href = response.url;
                     }
                 }

@@ -24,9 +24,9 @@
             return $data;
 		}
 
-        public function datawaktutunggurawatjalan(){
-            $periode = $this->input->post("selectperiode");
-            $result  = $this->md->datawaktutunggurawatjalan($periode);
+        public function kpipasienrawatinappulangagregate(){
+			$periode = $this->input->post("selectperiode");
+            $result  = $this->md->kpipasienrawatinappulangagregate($periode);
             
 			if(!empty($result)){
 				$json["responCode"]   = "00";
@@ -42,9 +42,8 @@
             echo json_encode($json);
         }
 
-        public function datajampulangpasienbln(){
-            $periode = $this->input->post("selectperiode");
-            $result  = $this->md->datajampulangpasienbln($periode);
+        public function kpipasienrawatinappulangdetail(){
+            $result  = $this->md->kpipasienrawatinappulangdetail();
             
 			if(!empty($result)){
 				$json["responCode"]   = "00";
@@ -60,43 +59,9 @@
             echo json_encode($json);
         }
 
-        public function pemabatalanoperasielektif(){
-            $periode = $this->input->post("selectperiode");
-            $result  = $this->md->pemabatalanoperasielektif($periode);
-            
-			if(!empty($result)){
-				$json["responCode"]   = "00";
-				$json["responHead"]   = "success";
-				$json["responDesc"]   = "Data Di Temukan";
-				$json['responResult'] = $result;
-            }else{
-                $json["responCode"] = "01";
-                $json["responHead"] = "info";
-                $json["responDesc"] = "Data Tidak Di Temukan";
-            }
-
-            echo json_encode($json);
-        }
-
-        public function datajampulangharian(){
-            $result  = $this->md->datajampulangharian();
-            
-			if(!empty($result)){
-				$json["responCode"]   = "00";
-				$json["responHead"]   = "success";
-				$json["responDesc"]   = "Data Di Temukan";
-				$json['responResult'] = $result;
-            }else{
-                $json["responCode"] = "01";
-                $json["responHead"] = "info";
-                $json["responDesc"] = "Data Tidak Di Temukan";
-            }
-
-            echo json_encode($json);
-        }
-
-        public function datapasienpulanglebihjam12(){
-            $result  = $this->md->datapasienpulanglebihjam12();
+        public function pembatalanoperasielektif(){
+			$periode = $this->input->post("selectperiode");
+            $result  = $this->md->pembatalanoperasielektif($periode);
             
 			if(!empty($result)){
 				$json["responCode"]   = "00";
