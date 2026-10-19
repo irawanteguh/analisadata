@@ -18,7 +18,7 @@
                         <a class="nav-link" data-bs-toggle="tab" href="#tab2">Waktu tunggu Rawat Jalan</a>
                     </li> -->
                     <li class="nav-item">
-                        <a class="nav-link" data-bs-toggle="tab" href="#tab3">Pembatalan Operasi Elektif</a>
+                        <a class="nav-link active" data-bs-toggle="tab" href="#tab3">Pembatalan Operasi Elektif</a>
                     </li>
                     <!-- <li class="nav-item">
                         <a class="nav-link" data-bs-toggle="tab" href="#tab4">Lama Layanan IGD</a>
@@ -27,7 +27,7 @@
                         <a class="nav-link" data-bs-toggle="tab" href="#tab5">Waktu Masuk Pasien Ranap</a>
                     </li> -->
                     <li class="nav-item">
-                        <a class="nav-link active" data-bs-toggle="tab" href="#tab6">Realisasi Pasien Pulang H-1</a>
+                        <a class="nav-link" data-bs-toggle="tab" href="#tab6">Realisasi Pasien Pulang H-1</a>
                     </li>
                 </ul>
             </div>
@@ -259,7 +259,7 @@
 		</div>
     </div>
 
-    <div class="tab-pane fade " id="tab3" role="tabpanel">
+    <div class="tab-pane fade show active" id="tab3" role="tabpanel">
         <!-- Pembatalan Operasi -->
         <div class="alert alert-dismissible bg-light-info border border-info border-3 border-dashed d-flex flex-column flex-sm-row w-100 p-5 mb-10 fa-fade">
 			<span class="svg-icon svg-icon-2hx svg-icon-info me-4 mb-5 mb-sm-0">
@@ -417,7 +417,7 @@
 		</div>
     </div>
 
-    <div class="tab-pane fade show active" id="tab6" role="tabpanel">
+    <div class="tab-pane fade" id="tab6" role="tabpanel">
         <div class="alert alert-dismissible bg-light-info border border-info border-3 border-dashed d-flex flex-column flex-sm-row w-100 p-5 mb-5 fa-fade">
 			<span class="svg-icon svg-icon-2hx svg-icon-info me-4 mb-5 mb-sm-0">
 				<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
