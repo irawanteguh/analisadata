@@ -135,10 +135,7 @@
                                 "\n   Kelas: " . $a->KELAS_ID .
                                 "\n   Masuk transit: " . $a->TGLMSASUKTRANSIT.
                                 "\n   DPJP: " . str_replace('.', ' ', $a->DPJP).
-                                "\n   Diagnosis: " . $a->DIAGNOSA;
-                                
-                                
-                                
+                                "\n   Diagnosis: " . $a->DIAGNOSA;               
             }
 
             $vars = [
