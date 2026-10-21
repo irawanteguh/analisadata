@@ -24,9 +24,9 @@
             return $data;
 		}
 
-        public function kpipasienrawatinappulangagregate(){
+        public function radiologi(){
 			$periode = $this->input->post("selectperiode");
-            $result  = $this->md->kpipasienrawatinappulangagregate($periode);
+            $result  = $this->md->radiologi($periode);
             
 			if(!empty($result)){
 				$json["responCode"]   = "00";
@@ -42,40 +42,58 @@
             echo json_encode($json);
         }
 
-        public function kpipasienrawatinappulangdetail(){
-            $result  = $this->md->kpipasienrawatinappulangdetail();
+        // public function kpipasienrawatinappulangagregate(){
+		// 	$periode = $this->input->post("selectperiode");
+        //     $result  = $this->md->kpipasienrawatinappulangagregate($periode);
             
-			if(!empty($result)){
-				$json["responCode"]   = "00";
-				$json["responHead"]   = "success";
-				$json["responDesc"]   = "Data Di Temukan";
-				$json['responResult'] = $result;
-            }else{
-                $json["responCode"] = "01";
-                $json["responHead"] = "info";
-                $json["responDesc"] = "Data Tidak Di Temukan";
-            }
+		// 	if(!empty($result)){
+		// 		$json["responCode"]   = "00";
+		// 		$json["responHead"]   = "success";
+		// 		$json["responDesc"]   = "Data Di Temukan";
+		// 		$json['responResult'] = $result;
+        //     }else{
+        //         $json["responCode"] = "01";
+        //         $json["responHead"] = "info";
+        //         $json["responDesc"] = "Data Tidak Di Temukan";
+        //     }
 
-            echo json_encode($json);
-        }
+        //     echo json_encode($json);
+        // }
 
-        public function pembatalanoperasielektif(){
-			$periode = $this->input->post("selectperiode");
-            $result  = $this->md->pembatalanoperasielektif($periode);
+        // public function kpipasienrawatinappulangdetail(){
+        //     $result  = $this->md->kpipasienrawatinappulangdetail();
             
-			if(!empty($result)){
-				$json["responCode"]   = "00";
-				$json["responHead"]   = "success";
-				$json["responDesc"]   = "Data Di Temukan";
-				$json['responResult'] = $result;
-            }else{
-                $json["responCode"] = "01";
-                $json["responHead"] = "info";
-                $json["responDesc"] = "Data Tidak Di Temukan";
-            }
+		// 	if(!empty($result)){
+		// 		$json["responCode"]   = "00";
+		// 		$json["responHead"]   = "success";
+		// 		$json["responDesc"]   = "Data Di Temukan";
+		// 		$json['responResult'] = $result;
+        //     }else{
+        //         $json["responCode"] = "01";
+        //         $json["responHead"] = "info";
+        //         $json["responDesc"] = "Data Tidak Di Temukan";
+        //     }
 
-            echo json_encode($json);
-        }
+        //     echo json_encode($json);
+        // }
+
+        // public function pembatalanoperasielektif(){
+		// 	$periode = $this->input->post("selectperiode");
+        //     $result  = $this->md->pembatalanoperasielektif($periode);
+            
+		// 	if(!empty($result)){
+		// 		$json["responCode"]   = "00";
+		// 		$json["responHead"]   = "success";
+		// 		$json["responDesc"]   = "Data Di Temukan";
+		// 		$json['responResult'] = $result;
+        //     }else{
+        //         $json["responCode"] = "01";
+        //         $json["responHead"] = "info";
+        //         $json["responDesc"] = "Data Tidak Di Temukan";
+        //     }
+
+        //     echo json_encode($json);
+        // }
 
 	}
 ?>

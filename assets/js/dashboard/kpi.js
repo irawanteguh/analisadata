@@ -6,27 +6,28 @@ $('#selectperiode').on('change', function () {
 
 
 function loaddata(){
-    kpipasienrawatinappulangagregate();
-    kpipasienrawatinappulangdetail();
-    pembatalanoperasielektif();
+    // kpipasienrawatinappulangagregate();
+    // kpipasienrawatinappulangdetail();
+    // pembatalanoperasielektif();
+    radiologi();
 };
 
-function kpipasienrawatinappulangagregate(){
+function radiologi(){
     let selectperiode = $("select[name='selectperiode']").val();
     $.ajax({
-        url      : url + "index.php/dashboard/kpi/kpipasienrawatinappulangagregate",
+        url      : url + "index.php/dashboard/kpi/radiologi",
         type     : "POST",
         dataType : "JSON",
         data     : { selectperiode: selectperiode },
 
         beforeSend: function () {
             Swal.fire({
-                title: 'Processing',
-                html : 'Please wait while the system displays the requested data.',
+                title            : 'Processing',
+                html             : 'Please wait while the system displays the requested data.',
                 allowOutsideClick: false,
                 allowEscapeKey   : false,
                 showConfirmButton: false,
-                didOpen: () => Swal.showLoading()
+                didOpen          : () => Swal.showLoading()
             });
         },
 
@@ -50,157 +51,56 @@ function kpipasienrawatinappulangagregate(){
             const chartgrafikmonthlykpi = (() => {
                 const monthlyData = {};
 
-                const tahunData = [
-                    ...new Set(
-                        result
-                            .filter(item => item.PERIODE)
-                            .map(item => item.PERIODE.split(".")[2])
-                            .filter(Boolean)
-                    )
-                ];
-
-                tahunData.forEach(tahun => {
-                    bulanLengkap.forEach(bulan => {
-                        const key = `${bulan}.${tahun}`;
-
-                        monthlyData[key] = {
-                            periode: key,
-                            bulan,
-                            tahun,
-                            sebelum12: 0,
-                            sesudah12: 0,
-                            tutdSebelum12: 0,
-                            tutdSesudah12: 0
-                        };
-                    });
+                bulanLengkap.forEach(bulan => {
+                    monthlyData[bulan] = {
+                        bulan,
+                        pemeriksaan        : 0,
+                        tercapai           : 0,
+                        tidakTercapai      : 0,
+                        persenTercapai     : 0,
+                        persenTidakTercapai: 0
+                    };
                 });
 
                 result.forEach(item => {
-                    if (!item.PERIODE) return;
+                    const bulan = String(item.BULAN || "").padStart(2, "0");
+                    if (!monthlyData[bulan]) return;
 
-                    const [tanggal, bulan, tahun] = item.PERIODE.split(".");
-                    if (!bulan || !tahun) return;
-
-                    const key = `${bulan}.${tahun}`;
-
-                    if (!monthlyData[key]) {
-                        monthlyData[key] = {
-                            periode: key,
-                            bulan,
-                            tahun,
-                            sebelum12: 0,
-                            sesudah12: 0,
-                            tutdSebelum12: 0,
-                            tutdSesudah12: 0
-                        };
-                    }
-
-                    monthlyData[key].sebelum12 += Number(item.SEBELUM_12) || 0;
-                    monthlyData[key].sesudah12 += Number(item.SESUDAH_12) || 0;
-                    monthlyData[key].tutdSebelum12 += Number(item.TUTD_SEBELUM_12) || 0;
-                    monthlyData[key].tutdSesudah12 += Number(item.TUTD_SESUDAH_12) || 0;
+                    monthlyData[bulan] = {
+                        bulan,
+                        pemeriksaan        : Number(item.JML_PEMERIKSAAN) || 0,
+                        tercapai           : Number(item.JML_TERCAPAI) || 0,
+                        tidakTercapai      : Number(item.JML_TIDAK_TERCAPAI) || 0,
+                        persenTercapai     : Number(item.PERSEN_TERCAPAI) || 0,
+                        persenTidakTercapai: Number(item.PERSEN_TIDAK_TERCAPAI) || 0
+                    };
                 });
 
-                return Object.values(monthlyData)
-                    .sort((a, b) =>
-                        Number(a.tahun) - Number(b.tahun) ||
-                        Number(a.bulan) - Number(b.bulan)
-                    )
-                    .map(item => {
-                        const total = item.sebelum12 + item.sesudah12;
-                        const totalTUTD = item.tutdSebelum12 + item.tutdSesudah12;
+                return bulanLengkap.map(bulan => {
+                    const item = monthlyData[bulan];
 
-                        return {
-                            periode: namaBulan[Number(item.bulan) - 1] || item.bulan,
-
-                            Value1: item.sebelum12,
-                            Value2: item.sesudah12,
-                            Value3: item.tutdSebelum12,
-                            Value4: item.tutdSesudah12,
-
-                            Value5: total > 0
-                                ? Number(((item.sebelum12 / total) * 100).toFixed(2))
-                                : 0,
-
-                            Value6: totalTUTD > 0
-                                ? Number(((item.tutdSebelum12 / totalTUTD) * 100).toFixed(2))
-                                : 0
-                        };
-                    });
+                    return {
+                        periode: namaBulan[Number(bulan) - 1],
+                        Value1: item.persenTercapai,
+                        Value2: item.persenTidakTercapai,
+                        Value3: item.pemeriksaan,
+                        Value4: item.tercapai,
+                        Value5: item.tidakTercapai
+                    };
+                });
             })();
 
-            const chartgrafikdailykpi = result.slice(0, 60).reverse().map(item => {
-                const sebelum12      = parseInt(item.SEBELUM_12, 10) || 0;
-                const sesudah12      = parseInt(item.SESUDAH_12, 10) || 0;
-                const tutdSebelum12  = parseInt(item.TUTD_SEBELUM_12, 10) || 0;
-                const tutdSesudah12  = parseInt(item.TUTD_SESUDAH_12, 10) || 0;
-
-                return {
-                    periode: item.PERIODE,
-                    Value1 : sebelum12,
-                    Value2 : sesudah12,
-                    Value3 : tutdSebelum12,
-                    Value4 : tutdSesudah12,
-                    Value5 : (sebelum12 + sesudah12) > 0 ? parseFloat(((sebelum12 / (sebelum12 + sesudah12)) * 100).toFixed(2)) : 0,
-                    Value6 : (tutdSebelum12 + tutdSesudah12) > 0 ? parseFloat(((tutdSebelum12 / (tutdSebelum12 + tutdSesudah12)) * 100).toFixed(2)) : 0
-                };
-            });
-
-
             renderchartarea(
-                "grafikkpitutdmountly",
+                "grafikradiologi",
                 chartgrafikmonthlykpi,
-                "Discharge Date",
+                "Bulan",
                 "Persentase (%)",
-                ["Persentase", "Sebelum Jam 12:00", "Sesudah Jam 12:00"],
-                ["Value6", "Value3", "Value4"],
+                ["Persentase Tercapai", "Jml Tercapai", "Jml Tidak Tercapai"],
+                ["Value1", "Value4","Value5"],
                 true,
-                "Jumlah Pasien",
-                "",
-                "",
-                null
-            );
-
-            renderchartarea(
-                "grafikkpinontutdmountly",
-                chartgrafikmonthlykpi,
-                "Discharge Date",
-                "Persentase (%)",
-                ["Persentase", "Sebelum Jam 12:00", "Sesudah Jam 12:00"],
-                ["Value5", "Value1", "Value2"],
-                true,
-                "Jumlah Pasien",
-                "",
-                "",
-                null
-            );
-            
-
-            renderchartarea(
-                "grafikkpitutd",
-                chartgrafikdailykpi,
-                "Discharge Date",
-                "Persentase (%)",
-                ["Persentase", "Sebelum Jam 12:00", "Sesudah Jam 12:00"],
-                ["Value6", "Value3", "Value4"],
-                true,
-                "Jumlah Pasien",
-                null,
-                "Rata-rata",
-                null
-            );
-
-            renderchartarea(
-                "grafikkpinontutd",
-                chartgrafikdailykpi,
-                "Discharge Date",
-                "Persentase (%)",
-                ["Persentase", "Sebelum Jam 12:00", "Sesudah Jam 12:00"],
-                ["Value5", "Value1", "Value2"],
-                true,
-                "Jumlah Pasien",
-                null,
-                "Rata-rata",
+                "Jumlah Pemeriksaan",
+                "Value3",
+                "KPI Waktu Pelayanan ≤ 60 Menit",
                 null
             );
         },
@@ -220,102 +120,311 @@ function kpipasienrawatinappulangagregate(){
     });
 };
 
-function kpipasienrawatinappulangdetail(){
-    const selectperiode = $("select[name='selectperiode']").val();
-    $.ajax({
-        url       : url +"index.php/dashboard/kpi/kpipasienrawatinappulangdetail",
-        data      : {selectperiode:selectperiode},
-        type      : "POST",
-        dataType  : "JSON",
-        beforeSend: function () {
-            Swal.fire({
-                title            : 'Processing',
-                html             : 'Please wait while the system displays the requested data.',
-                allowOutsideClick: false,
-                allowEscapeKey   : false,
-                showConfirmButton: false,
-                didOpen          : () => Swal.showLoading()
-            });
+// function kpipasienrawatinappulangagregate(){
+//     let selectperiode = $("select[name='selectperiode']").val();
+//     $.ajax({
+//         url      : url + "index.php/dashboard/kpi/kpipasienrawatinappulangagregate",
+//         type     : "POST",
+//         dataType : "JSON",
+//         data     : { selectperiode: selectperiode },
 
-            $("#resultdatapasienpulanglebihjam12").empty();
-        },
-        success:function(response){
+//         beforeSend: function () {
+//             Swal.fire({
+//                 title: 'Processing',
+//                 html : 'Please wait while the system displays the requested data.',
+//                 allowOutsideClick: false,
+//                 allowEscapeKey   : false,
+//                 showConfirmButton: false,
+//                 didOpen: () => Swal.showLoading()
+//             });
+//         },
 
-            if (response.responCode !== "00") {
-                Swal.fire({
-                    icon             : 'warning',
-                    title            : 'No Records Found',
-                    text             : 'No records are available for the selected period.',
-                    showConfirmButton: false,
-                    timer            : 2000
-                });
-                return;
-            }
+//         success: function (response) {
 
-            const result      = Array.isArray(response.responResult) ? response.responResult : [];
+//             if (response.responCode !== "00") {
+//                 Swal.fire({
+//                     icon             : 'warning',
+//                     title            : 'No Records Found',
+//                     text             : 'No records are available for the selected period.',
+//                     showConfirmButton: false,
+//                     timer            : 2000
+//                 });
+//                 return;
+//             }
 
-            let jumlahKelas1 = 0;
-            let jumlahKelas2 = 0;
-            let jumlahKelas3 = 0;
+//             const result       = Array.isArray(response.responResult) ? response.responResult : [];
+//             const bulanLengkap = ["01","02","03","04","05","06","07","08","09","10","11","12"];
+//             const namaBulan    = ["Jan","Feb","Mar","Apr","Mei","Jun","Jul","Agu","Sep","Okt","Nov","Des"];
 
-            result.forEach(function(item) {
-                const kelas = parseInt(item.KELAS_ID, 10);
-                const jenis = item.JENIS;
+//             const chartgrafikmonthlykpi = (() => {
+//                 const monthlyData = {};
 
-                if (jenis === "TUTD" || jenis === "NONTUTD") {
-                    if (kelas === 1) {
-                        jumlahKelas1++;
-                    } else if (kelas === 2) {
-                        jumlahKelas2++;
-                    } else if (kelas === 3) {
-                        jumlahKelas3++;
-                    }
-                }
-            });
+//                 const tahunData = [
+//                     ...new Set(
+//                         result
+//                             .filter(item => item.PERIODE)
+//                             .map(item => item.PERIODE.split(".")[2])
+//                             .filter(Boolean)
+//                     )
+//                 ];
+
+//                 tahunData.forEach(tahun => {
+//                     bulanLengkap.forEach(bulan => {
+//                         const key = `${bulan}.${tahun}`;
+
+//                         monthlyData[key] = {
+//                             periode: key,
+//                             bulan,
+//                             tahun,
+//                             sebelum12: 0,
+//                             sesudah12: 0,
+//                             tutdSebelum12: 0,
+//                             tutdSesudah12: 0
+//                         };
+//                     });
+//                 });
+
+//                 result.forEach(item => {
+//                     if (!item.PERIODE) return;
+
+//                     const [tanggal, bulan, tahun] = item.PERIODE.split(".");
+//                     if (!bulan || !tahun) return;
+
+//                     const key = `${bulan}.${tahun}`;
+
+//                     if (!monthlyData[key]) {
+//                         monthlyData[key] = {
+//                             periode: key,
+//                             bulan,
+//                             tahun,
+//                             sebelum12: 0,
+//                             sesudah12: 0,
+//                             tutdSebelum12: 0,
+//                             tutdSesudah12: 0
+//                         };
+//                     }
+
+//                     monthlyData[key].sebelum12 += Number(item.SEBELUM_12) || 0;
+//                     monthlyData[key].sesudah12 += Number(item.SESUDAH_12) || 0;
+//                     monthlyData[key].tutdSebelum12 += Number(item.TUTD_SEBELUM_12) || 0;
+//                     monthlyData[key].tutdSesudah12 += Number(item.TUTD_SESUDAH_12) || 0;
+//                 });
+
+//                 return Object.values(monthlyData)
+//                     .sort((a, b) =>
+//                         Number(a.tahun) - Number(b.tahun) ||
+//                         Number(a.bulan) - Number(b.bulan)
+//                     )
+//                     .map(item => {
+//                         const total = item.sebelum12 + item.sesudah12;
+//                         const totalTUTD = item.tutdSebelum12 + item.tutdSesudah12;
+
+//                         return {
+//                             periode: namaBulan[Number(item.bulan) - 1] || item.bulan,
+
+//                             Value1: item.sebelum12,
+//                             Value2: item.sesudah12,
+//                             Value3: item.tutdSebelum12,
+//                             Value4: item.tutdSesudah12,
+
+//                             Value5: total > 0
+//                                 ? Number(((item.sebelum12 / total) * 100).toFixed(2))
+//                                 : 0,
+
+//                             Value6: totalTUTD > 0
+//                                 ? Number(((item.tutdSebelum12 / totalTUTD) * 100).toFixed(2))
+//                                 : 0
+//                         };
+//                     });
+//             })();
+
+//             const chartgrafikdailykpi = result.slice(0, 60).reverse().map(item => {
+//                 const sebelum12      = parseInt(item.SEBELUM_12, 10) || 0;
+//                 const sesudah12      = parseInt(item.SESUDAH_12, 10) || 0;
+//                 const tutdSebelum12  = parseInt(item.TUTD_SEBELUM_12, 10) || 0;
+//                 const tutdSesudah12  = parseInt(item.TUTD_SESUDAH_12, 10) || 0;
+
+//                 return {
+//                     periode: item.PERIODE,
+//                     Value1 : sebelum12,
+//                     Value2 : sesudah12,
+//                     Value3 : tutdSebelum12,
+//                     Value4 : tutdSesudah12,
+//                     Value5 : (sebelum12 + sesudah12) > 0 ? parseFloat(((sebelum12 / (sebelum12 + sesudah12)) * 100).toFixed(2)) : 0,
+//                     Value6 : (tutdSebelum12 + tutdSesudah12) > 0 ? parseFloat(((tutdSebelum12 / (tutdSebelum12 + tutdSesudah12)) * 100).toFixed(2)) : 0
+//                 };
+//             });
+
+
+//             renderchartarea(
+//                 "grafikkpitutdmountly",
+//                 chartgrafikmonthlykpi,
+//                 "Discharge Date",
+//                 "Persentase (%)",
+//                 ["Persentase", "Sebelum Jam 12:00", "Sesudah Jam 12:00"],
+//                 ["Value6", "Value3", "Value4"],
+//                 true,
+//                 "Jumlah Pasien",
+//                 "",
+//                 "",
+//                 null
+//             );
+
+//             renderchartarea(
+//                 "grafikkpinontutdmountly",
+//                 chartgrafikmonthlykpi,
+//                 "Discharge Date",
+//                 "Persentase (%)",
+//                 ["Persentase", "Sebelum Jam 12:00", "Sesudah Jam 12:00"],
+//                 ["Value5", "Value1", "Value2"],
+//                 true,
+//                 "Jumlah Pasien",
+//                 "",
+//                 "",
+//                 null
+//             );
             
-            $("#jml_discharge_kelas1").text(jumlahKelas1.toLocaleString("id-ID"));
-            $("#jml_discharge_kelas2").text(jumlahKelas2.toLocaleString("id-ID"));
-            $("#jml_discharge_kelas3").text(jumlahKelas3.toLocaleString("id-ID"));
 
-            var tableresult    = "";
-            for (var i in result) {
+//             renderchartarea(
+//                 "grafikkpitutd",
+//                 chartgrafikdailykpi,
+//                 "Discharge Date",
+//                 "Persentase (%)",
+//                 ["Persentase", "Sebelum Jam 12:00", "Sesudah Jam 12:00"],
+//                 ["Value6", "Value3", "Value4"],
+//                 true,
+//                 "Jumlah Pasien",
+//                 null,
+//                 "Rata-rata",
+//                 null
+//             );
 
-                let btnaction = "<a class='dropdown-item btn btn-sm' href='#' onclick=\"openSejarah('" + result[i].PASIEN_ID + "')\"><i class='bi bi-clock-history text-primary pe-4'></i>Sejarah</a>";
+//             renderchartarea(
+//                 "grafikkpinontutd",
+//                 chartgrafikdailykpi,
+//                 "Discharge Date",
+//                 "Persentase (%)",
+//                 ["Persentase", "Sebelum Jam 12:00", "Sesudah Jam 12:00"],
+//                 ["Value5", "Value1", "Value2"],
+//                 true,
+//                 "Jumlah Pasien",
+//                 null,
+//                 "Rata-rata",
+//                 null
+//             );
+//         },
 
-                tableresult += "<tr>";
-                tableresult += "<td class='ps-4'>" + (parseInt(i)+1) + "</td>";
-                tableresult += "<td><div>"+(result[i].MRPASIEN||"")+"</div><div>"+(result[i].NAMAPASIEN||"")+"</div></td>";
-                tableresult += "<td>"+(result[i].NAMADOKTER||"")+"</td>";
-                tableresult += "<td>"+(result[i].RUANGRWT_ID||"")+"</td>";
-                tableresult += "<td class='text-center'>"+(result[i].KELAS_ID||"")+"</td>";
-                tableresult += "<td>"+(result[i].TGLKELUAR||"")+"</td>";
-                tableresult += "<td>"+(result[i].JENIS == "TUTD" ? "<span class='badge badge-light-danger'>TUTD</span></br><span class='badge badge-light-info'>Belum Pulang</span>" : result[i].JENIS == "NONTUTD" ? "<span class='badge badge-light-danger'>NON TUTD</span></br><span class='badge badge-light-info'>Belum Pulang</span>" : result[i].JENIS == "CLOSSING" ? "<span class='badge badge-light-success'>Sudah Pulang</span>" : "")+"</td>";
-                tableresult += "<td class='text-end'>";
-                tableresult += "<div class='btn-group'>";
-                tableresult += "<button type='button' class='btn btn-light-primary dropdown-toggle btn-sm' data-bs-toggle='dropdown'>Actions</button>";
-                tableresult += "<div class='dropdown-menu'>";
-                tableresult += btnaction;
-                tableresult += "</div></div></td>";
-                tableresult += "</tr>";
-                tableresult += "</tr>";
-            }
+//         complete: function () {
+//             Swal.close();
+//         },
 
-            $("#resultdatapasienpulanglebihjam12").html(tableresult);
-            initDataTable("#datapasienpulanglebihjam12_table","#searchtable");
-        },
-        complete: function () {
-            Swal.close();
-        },
-        error: function () {
-            Swal.fire({
-                icon             : "error",
-                title            : "Request Failed",
-                text             : "We were unable to process your request due to a server error. Please try again later. If the problem persists, contact your system administrator.",
-                confirmButtonText: "OK"
-            });
-        }
-    });
-};
+//         error: function () {
+//             Swal.fire({
+//                 icon: "error",
+//                 title: "Request Failed",
+//                 text: "We were unable to process your request due to a server error. Please try again later. If the problem persists, contact your system administrator.",
+//                 confirmButtonText: "OK"
+//             });
+//         }
+//     });
+// };
+
+// function kpipasienrawatinappulangdetail(){
+//     const selectperiode = $("select[name='selectperiode']").val();
+//     $.ajax({
+//         url       : url +"index.php/dashboard/kpi/kpipasienrawatinappulangdetail",
+//         data      : {selectperiode:selectperiode},
+//         type      : "POST",
+//         dataType  : "JSON",
+//         beforeSend: function () {
+//             Swal.fire({
+//                 title            : 'Processing',
+//                 html             : 'Please wait while the system displays the requested data.',
+//                 allowOutsideClick: false,
+//                 allowEscapeKey   : false,
+//                 showConfirmButton: false,
+//                 didOpen          : () => Swal.showLoading()
+//             });
+
+//             $("#resultdatapasienpulanglebihjam12").empty();
+//         },
+//         success:function(response){
+
+//             if (response.responCode !== "00") {
+//                 Swal.fire({
+//                     icon             : 'warning',
+//                     title            : 'No Records Found',
+//                     text             : 'No records are available for the selected period.',
+//                     showConfirmButton: false,
+//                     timer            : 2000
+//                 });
+//                 return;
+//             }
+
+//             const result      = Array.isArray(response.responResult) ? response.responResult : [];
+
+//             let jumlahKelas1 = 0;
+//             let jumlahKelas2 = 0;
+//             let jumlahKelas3 = 0;
+
+//             result.forEach(function(item) {
+//                 const kelas = parseInt(item.KELAS_ID, 10);
+//                 const jenis = item.JENIS;
+
+//                 if (jenis === "TUTD" || jenis === "NONTUTD") {
+//                     if (kelas === 1) {
+//                         jumlahKelas1++;
+//                     } else if (kelas === 2) {
+//                         jumlahKelas2++;
+//                     } else if (kelas === 3) {
+//                         jumlahKelas3++;
+//                     }
+//                 }
+//             });
+            
+//             $("#jml_discharge_kelas1").text(jumlahKelas1.toLocaleString("id-ID"));
+//             $("#jml_discharge_kelas2").text(jumlahKelas2.toLocaleString("id-ID"));
+//             $("#jml_discharge_kelas3").text(jumlahKelas3.toLocaleString("id-ID"));
+
+//             var tableresult    = "";
+//             for (var i in result) {
+
+//                 let btnaction = "<a class='dropdown-item btn btn-sm' href='#' onclick=\"openSejarah('" + result[i].PASIEN_ID + "')\"><i class='bi bi-clock-history text-primary pe-4'></i>Sejarah</a>";
+
+//                 tableresult += "<tr>";
+//                 tableresult += "<td class='ps-4'>" + (parseInt(i)+1) + "</td>";
+//                 tableresult += "<td><div>"+(result[i].MRPASIEN||"")+"</div><div>"+(result[i].NAMAPASIEN||"")+"</div></td>";
+//                 tableresult += "<td>"+(result[i].NAMADOKTER||"")+"</td>";
+//                 tableresult += "<td>"+(result[i].RUANGRWT_ID||"")+"</td>";
+//                 tableresult += "<td class='text-center'>"+(result[i].KELAS_ID||"")+"</td>";
+//                 tableresult += "<td>"+(result[i].TGLKELUAR||"")+"</td>";
+//                 tableresult += "<td>"+(result[i].JENIS == "TUTD" ? "<span class='badge badge-light-danger'>TUTD</span></br><span class='badge badge-light-info'>Belum Pulang</span>" : result[i].JENIS == "NONTUTD" ? "<span class='badge badge-light-danger'>NON TUTD</span></br><span class='badge badge-light-info'>Belum Pulang</span>" : result[i].JENIS == "CLOSSING" ? "<span class='badge badge-light-success'>Sudah Pulang</span>" : "")+"</td>";
+//                 tableresult += "<td class='text-end'>";
+//                 tableresult += "<div class='btn-group'>";
+//                 tableresult += "<button type='button' class='btn btn-light-primary dropdown-toggle btn-sm' data-bs-toggle='dropdown'>Actions</button>";
+//                 tableresult += "<div class='dropdown-menu'>";
+//                 tableresult += btnaction;
+//                 tableresult += "</div></div></td>";
+//                 tableresult += "</tr>";
+//                 tableresult += "</tr>";
+//             }
+
+//             $("#resultdatapasienpulanglebihjam12").html(tableresult);
+//             initDataTable("#datapasienpulanglebihjam12_table","#searchtable");
+//         },
+//         complete: function () {
+//             Swal.close();
+//         },
+//         error: function () {
+//             Swal.fire({
+//                 icon             : "error",
+//                 title            : "Request Failed",
+//                 text             : "We were unable to process your request due to a server error. Please try again later. If the problem persists, contact your system administrator.",
+//                 confirmButtonText: "OK"
+//             });
+//         }
+//     });
+// };
 
 function pembatalanoperasielektif(){
     let selectperiode = $("select[name='selectperiode']").val();

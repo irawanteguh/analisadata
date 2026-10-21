@@ -29,6 +29,9 @@
                     <li class="nav-item">
                         <a class="nav-link" data-bs-toggle="tab" href="#tab6">Realisasi Pasien Pulang H-1</a>
                     </li>
+					<li class="nav-item">
+                        <a class="nav-link" data-bs-toggle="tab" href="#tab7">Pemeriksaan Konvensional Non Kontras</a>
+                    </li>
                 </ul>
             </div>
         </div>
@@ -656,6 +659,21 @@
 							<tbody class="fw-bold text-gray-600" id="resultdatapasienpulanglebihjam12"></tbody>
 						</table>
 					</div>
+				</div>
+			</div>
+		</div>
+    </div>
+	<div class="tab-pane fade" id="tab7" role="tabpanel">
+		<div class="col-xl-12 mb-5">
+			<div class="card card-flush">
+				<div class="card-header pt-5">
+					<h3 class="card-title align-items-start flex-column">
+						<span class="card-label fw-bolder fs-3 mb-1">KPI Waktu Pelayanan Radiologi ≤ 60 Menit</span>
+						<span class="text-muted mt-1 fw-bold fs-7">Pemeriksaan Konvensional Non Kontras, dengan Target Penyelesaian ≤ 60 Menit</span>
+					</h3>
+				</div>
+				<div class="card-body py-3">
+					<div class="card-rounded-bottom" id="grafikradiologi"></div>
 				</div>
 			</div>
 		</div>
