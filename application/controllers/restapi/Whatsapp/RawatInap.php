@@ -64,7 +64,7 @@
 
             $pesanpasien = [];
 
-            foreach (['T' => '🟢 TIDAK USAH TUNGGU DOKTER', 'N' => '🟠 MENUNGGU DOKTER'] as $tutd => $judul) {
+            foreach (['T' => '🟢 DISCHARGE PLANNING [TUTD]', 'N' => '🟠 DISCHARGE PLANNING [NON TUTD]'] as $tutd => $judul) {
                 $pesanpasien[] = "*" . $judul . "*";
                 $pesanpasien[] = "";
 
@@ -90,7 +90,24 @@
                 'listpasien'    => implode("\n", $pesanpasien)
             ];
 
-            $phone = ['6281288646630','6285249823047','6281326456523'];
+            $phone = [
+                '6281288646630',
+                '6285249823047',
+                '6281326456523',
+                '6287820440958',  // Handphone Lantai 4
+                '6282310931880',  // Handphone Lantai 5
+                '628112094296',   // Lavender Lt. 6 Tim Baru
+                '628114191098',   // Handphone Lantai 7 Tim 1
+                '6281389745791',  // Lantai 7 (nomor tambahan)
+                '628115931195',   // Handphone Lantai 8 Tim 1
+                '6281295362291',  // Lantai 8 (nomor tambahan)
+                '628111356573',   // Handphone Lantai 9
+                '6281389745780',  // Lantai 9 (nomor tambahan)
+                '628119469974',   // Lantai 9 (nomor tambahan)
+                '628114306652',   // Cempaka Lantai 10 Tim 1
+                '6281218422033',  // Handphone Lantai 10 Tim 2
+                '6281223321734'   // Handphone Lantai 11
+            ];
 
             foreach ($phone as $number) {
                 $result = $this->openwa->sendTemplate(OPENWA_SESSION_ID_DUTYMANAGER,$number,$templateid,$templatename,$vars);
@@ -117,7 +134,7 @@
                 $listpasien[] = ($i + 1) . ". " . $a->MRPASIEN . "\t" . $a->NAMAPASIEN .
                                 "\n   Kelas: " . $a->KELAS_ID .
                                 "\n   Masuk transit: " . $a->TGLMSASUKTRANSIT.
-                                "\n   DPJP: " . $a->DPJP .
+                                "\n   DPJP: " . str_replace('.', ' ', $a->DPJP).
                                 "\n   Diagnosis: " . $a->DIAGNOSA;
                                 
                                 
@@ -129,7 +146,24 @@
                 'listpasien'    => $pesanpasien = implode("\n\n", $listpasien)
             ];
 
-            $phone = ['6281288646630','6285249823047','6281326456523'];
+            $phone = [
+                '6281288646630',
+                '6285249823047',
+                '6281326456523',
+                '6287820440958',  // Handphone Lantai 4
+                '6282310931880',  // Handphone Lantai 5
+                '628112094296',   // Lavender Lt. 6 Tim Baru
+                '628114191098',   // Handphone Lantai 7 Tim 1
+                '6281389745791',  // Lantai 7 (nomor tambahan)
+                '628115931195',   // Handphone Lantai 8 Tim 1
+                '6281295362291',  // Lantai 8 (nomor tambahan)
+                '628111356573',   // Handphone Lantai 9
+                '6281389745780',  // Lantai 9 (nomor tambahan)
+                '628119469974',   // Lantai 9 (nomor tambahan)
+                '628114306652',   // Cempaka Lantai 10 Tim 1
+                '6281218422033',  // Handphone Lantai 10 Tim 2
+                '6281223321734'   // Handphone Lantai 11
+            ];
 
             foreach ($phone as $number) {
                 $result = $this->openwa->sendTemplate(OPENWA_SESSION_ID_DUTYMANAGER,$number,$templateid,$templatename,$vars);
