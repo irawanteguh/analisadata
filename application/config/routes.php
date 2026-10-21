@@ -17,19 +17,20 @@
     $route['nlp/multi']           = 'restapi/Whatsapp/Nlptesting/multi';
     $route['nlp/confusion']       = 'restapi/Whatsapp/Nlptesting/confusion';
 
-    $route['listpasienbooking']   = 'restapi/Whatsapp/Rawatjalan/listpasienbooking';
-    $route['listreminderbooking'] = 'restapi/Whatsapp/Rawatjalan/listreminderbooking';
-    $route['listbatalbooking']    = 'restapi/Whatsapp/Rawatjalan/listbatalbooking';
-    $route['listpasienadaobat']   = 'restapi/Whatsapp/Rawatjalan/listpasienadaobat';
-    $route['googlereview']        = 'restapi/Whatsapp/Rawatjalan/googlereview';
-    $route['mcu']                 = 'restapi/Whatsapp/Rawatjalan/mcu';
-
-    $route['greeting']            = 'restapi/Whatsapp/PeoMagnolia/greeting';
-    $route['biaya']               = 'restapi/Whatsapp/PeoMagnolia/biaya';
-    $route['pendaftaran']         = 'restapi/Whatsapp/PeoMagnolia/pendaftaran';
-    $route['bpjs']                = 'restapi/Whatsapp/PeoMagnolia/bpjs';
-    $route['alamat']              = 'restapi/Whatsapp/PeoMagnolia/alamat';
-    $route['keluhan']             = 'restapi/Whatsapp/PeoMagnolia/keluhan';
-    $route['jambesuk']            = 'restapi/Whatsapp/PeoMagnolia/jambesuk';
+    $route['listpasienrencanapulang'] = 'restapi/Whatsapp/RawatInap/listpasienrencanapulang';
+    $route['listpasientransit']       = 'restapi/Whatsapp/RawatInap/listpasientransit';
+    $route['listpasienbooking']       = 'restapi/Whatsapp/Rawatjalan/listpasienbooking';
+    $route['listreminderbooking']     = 'restapi/Whatsapp/Rawatjalan/listreminderbooking';
+    $route['listbatalbooking']        = 'restapi/Whatsapp/Rawatjalan/listbatalbooking';
+    $route['listpasienadaobat']       = 'restapi/Whatsapp/Rawatjalan/listpasienadaobat';
+    $route['googlereview']            = 'restapi/Whatsapp/Rawatjalan/googlereview';
+    $route['mcu']                     = 'restapi/Whatsapp/Rawatjalan/mcu';
+    $route['greeting']                = 'restapi/Whatsapp/PeoMagnolia/greeting';
+    $route['biaya']                   = 'restapi/Whatsapp/PeoMagnolia/biaya';
+    $route['pendaftaran']             = 'restapi/Whatsapp/PeoMagnolia/pendaftaran';
+    $route['bpjs']                    = 'restapi/Whatsapp/PeoMagnolia/bpjs';
+    $route['alamat']                  = 'restapi/Whatsapp/PeoMagnolia/alamat';
+    $route['keluhan']                 = 'restapi/Whatsapp/PeoMagnolia/keluhan';
+    $route['jambesuk']                = 'restapi/Whatsapp/PeoMagnolia/jambesuk';
     
 ?>

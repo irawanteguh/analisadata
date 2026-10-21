@@ -22,6 +22,8 @@ class Routingsystem {
 		'generateresumeai',
 		'generateresume',
 		'Whatsapp',
+		'listpasienrencanapulang',
+		'listpasientransit',
 		'listpasienbooking',
 		'listbatalbooking',
 		'listreminderbooking',

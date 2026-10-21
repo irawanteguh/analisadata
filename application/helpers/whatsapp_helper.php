@@ -1,13 +1,13 @@
 <?php
     function headerlogwhatsapp(){
         echo PHP_EOL;
-        echo color('cyan'). str_pad("TIMESTAMP", 21). str_pad("MESSAGE ID", 49). str_pad("STATUS", 12). "MESSAGE". PHP_EOL;
+        echo color('cyan'). str_pad("TIMESTAMP", 21). str_pad("MESSAGE ID", 60). str_pad("STATUS", 12). "MESSAGE". PHP_EOL;
     }
 
     function formatlogwhatsapp($tanggal, $messageid, $status, $message, $colortanggal = 'cyan', $colormessageid = 'cyan', $colorstatus = 'cyan', $colorMessage = 'white') {
 
         $tanggalWidth    = 21;
-        $messageidWidth  = 49;
+        $messageidWidth  = 60;
         $statusWidth     = 12;
 
         $colorStartTanggal   = color($colortanggal);
@@ -215,7 +215,8 @@
         return false;
     }
 
-    function isJamBesuk($message){
+    function isJamBesuk($message)
+    {
         $text = normalizeNLP($message);
 
         if($text == ''){
@@ -355,7 +356,8 @@
         return ($score >= 5);
     }
 
-    function isAlamat($message){
+    function isAlamat($message)
+    {
         $text = normalizeNLP($message);
 
         if($text == ''){
@@ -533,7 +535,8 @@
         return ($score >= 5);
     }
 
-    function isPendaftaran($message){
+    function isPendaftaran($message)
+    {
         $text = normalizeNLP($message);
 
         if($text == ''){
@@ -1024,7 +1027,8 @@
         return ($score >= 5);
     }
 
-    function isBiaya($message){
+    function isBiaya($message)
+    {
         $text = normalizeNLP($message);
 
         if($text == ''){
