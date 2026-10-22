@@ -40,12 +40,13 @@
         }
 
         public function listpasienrencanapulang_POST(){
-            $templateid                    = "e2341fb7-829a-443b-be59-6ce2c30f5cfe";
-            $templatename                  = "Pasien Rencana Pulang";
+            $templateid   = "e2341fb7-829a-443b-be59-6ce2c30f5cfe";
+            $templatename = "Pasien Rencana Pulang";
+
             $resultlistpasienrencanapulang = $this->md->listpasienrencanapulang();
 
-            if(empty($resultlistpasienrencanapulang)){
-                echo color('red')."Data Tidak Ditemukan";
+            if (empty($resultlistpasienrencanapulang)) {
+                echo color('red') . "Data Tidak Ditemukan";
                 return;
             }
 
@@ -56,21 +57,49 @@
                 'N' => []
             ];
 
+            // Kelompokkan pasien berdasarkan TUTD dan ruang perawatan
             foreach ($resultlistpasienrencanapulang as $a) {
-                $tutd  = strtoupper(trim($a->TUTD ?? 'N')) == 'T' ? 'T' : 'N';
+                $tutd  = strtoupper(trim($a->TUTD ?? 'N')) === 'T' ? 'T' : 'N';
                 $ruang = $a->NAMARUANG;
 
-                $listpasien[$tutd][$ruang][] = $a->MRPASIEN . "\t" . $a->NAMAPASIEN . " [" . $a->RUANGRWT_ID . "]";
+                $listpasien[$tutd][$ruang][] =
+                    $a->MRPASIEN . "\t" .
+                    $a->NAMAPASIEN . " [" .
+                    $a->RUANGRWT_ID . "]";
             }
 
+            // Hitung total pasien
+            $totalTUTD    = 0;
+            $totalNonTUTD = 0;
+
+            foreach ($listpasien['T'] as $pasien) {
+                $totalTUTD += count($pasien);
+            }
+
+            foreach ($listpasien['N'] as $pasien) {
+                $totalNonTUTD += count($pasien);
+            }
+
+            // Susun pesan WhatsApp
             $pesanpasien = [];
 
-            foreach (['T' => '🟢 DISCHARGE PLANNING [TUTD]', 'N' => '🟠 DISCHARGE PLANNING [NON TUTD]'] as $tutd => $judul) {
-                $pesanpasien[] = "*" . $judul . "*";
+            $kategori = [
+                'T' => [
+                    'judul' => '🟢 DISCHARGE PLANNING [TUTD]',
+                    'total' => $totalTUTD
+                ],
+                'N' => [
+                    'judul' => '🟠 DISCHARGE PLANNING [NON TUTD]',
+                    'total' => $totalNonTUTD
+                ]
+            ];
+
+            foreach ($kategori as $tutd => $data) {
+                $pesanpasien[] = "*" . $data['judul'] . "*";
+                $pesanpasien[] = "*Total Pasien: " . $data['total'] . " pasien*";
                 $pesanpasien[] = "";
 
-                if ($tutd == 'T' && empty($listpasien['T'])) {
-                    $pesanpasien[] = "Tidak Ada Pasien TUTD";
+                if (empty($listpasien[$tutd])) {
                     $pesanpasien[] = "";
                     continue;
                 }
@@ -86,11 +115,13 @@
                 }
             }
 
+            // Parameter template WhatsApp
             $vars = [
                 'rencanapulang' => $tglrencanapulang,
                 'listpasien'    => implode("\n", $pesanpasien)
             ];
 
+            // Daftar nomor tujuan
             $phone = [
                 '6281288646630',
                 '6285249823047',
@@ -110,11 +141,20 @@
                 '6281223321734'   // Handphone Lantai 11
             ];
 
+            // Kirim pesan dan tampilkan log
             foreach ($phone as $number) {
                 $result = $this->openwa->sendTemplate(OPENWA_SESSION_ID_DUTYMANAGER,$number,$templateid,$templatename,$vars);
-                echo formatlogwhatsapp(!empty($result['response']['timestamp']) ? date('Y-m-d H:i:s',$result['response']['timestamp']) : date('Y-m-d H:i:s'),$result['response']['messageId'] ?? '',isset($result['response']) ? ($result['success'] ? 'SENT' : 'FAILED') : 'FAILED',isset($result['response']) ? ($result['message'] ?? '') : 'Tidak Mendapatkan response',isset($result['response']) && !empty($result['success']) ? 'green' : 'red',isset($result['response']) && !empty($result['success']) ? 'green' : 'red',isset($result['response']) && !empty($result['success']) ? 'green' : 'red',isset($result['response']) && !empty($result['success']) ? 'green' : 'red');
+
+                $response  = $result['response'] ?? [];
+                $success   = !empty($result['success']);
+                $timestamp = !empty($response['timestamp']) ? date('Y-m-d H:i:s', $response['timestamp']) : date('Y-m-d H:i:s');
+                $messageId = $response['messageId'] ?? '';
+                $status    = isset($result['response']) ? ($success ? 'SENT' : 'FAILED') : 'FAILED';
+                $message   = isset($result['response']) ? ($result['message'] ?? ''): 'Tidak Mendapatkan response';
+                $color     = $success ? 'green' : 'red';
+
+                echo formatlogwhatsapp($timestamp,$messageId,$status,$message,$color,$color,$color,$color);
             }
-            
         }
 
         public function listpasientransit_POST(){
