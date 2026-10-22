@@ -50,7 +50,7 @@
                 return;
             }
 
-            $tglrencanapulang = date('d-m-Y');
+            $tglrencanapulang = date('d.m.Y H:i:s');
 
             $listpasien = [
                 'T' => [],
@@ -167,7 +167,7 @@
                 return;
             }
 
-            $tglrencanapulang = date('d-m-Y');
+            $tglrencanapulang = date('d.m.Y H:i:s');
 
             $listpasien = [];
 
