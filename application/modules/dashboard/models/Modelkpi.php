@@ -64,71 +64,71 @@
             return $recordset;
         }
 
-        // function kpipasienrawatinappulangagregate($periode){
-        //     $query =
-        //             "
+        function kpipasienrawatinappulangagregate($periode){
+            $query =
+                    "
                         
-        //                 SELECT
-        //                     TO_CHAR(X.TANGGAL, 'DD.MM.YYYY') AS PERIODE,
+                        SELECT
+                            TO_CHAR(X.TANGGAL, 'DD.MM.YYYY') AS PERIODE,
 
-        //                     SUM(CASE
-        //                         WHEN TO_CHAR(X.TGL_KELUAR, 'HH24') < '12'
-        //                         THEN 1 ELSE 0
-        //                     END) AS SEBELUM_12,
+                            SUM(CASE
+                                WHEN TO_CHAR(X.TGL_KELUAR, 'HH24') < '12'
+                                THEN 1 ELSE 0
+                            END) AS SEBELUM_12,
 
-        //                     SUM(CASE
-        //                         WHEN TO_CHAR(X.TGL_KELUAR, 'HH24') >= '12'
-        //                         THEN 1 ELSE 0
-        //                     END) AS SESUDAH_12,
+                            SUM(CASE
+                                WHEN TO_CHAR(X.TGL_KELUAR, 'HH24') >= '12'
+                                THEN 1 ELSE 0
+                            END) AS SESUDAH_12,
 
-        //                     SUM(X.TUTD) AS TUTD,
+                            SUM(X.TUTD) AS TUTD,
 
-        //                     SUM(CASE
-        //                         WHEN X.TUTD = 1
-        //                         AND TO_CHAR(X.TGL_KELUAR, 'HH24') < '12'
-        //                         THEN 1 ELSE 0
-        //                     END) AS TUTD_SEBELUM_12,
+                            SUM(CASE
+                                WHEN X.TUTD = 1
+                                AND TO_CHAR(X.TGL_KELUAR, 'HH24') < '12'
+                                THEN 1 ELSE 0
+                            END) AS TUTD_SEBELUM_12,
 
-        //                     SUM(CASE
-        //                         WHEN X.TUTD = 1
-        //                         AND TO_CHAR(X.TGL_KELUAR, 'HH24') >= '12'
-        //                         THEN 1 ELSE 0
-        //                     END) AS TUTD_SESUDAH_12
+                            SUM(CASE
+                                WHEN X.TUTD = 1
+                                AND TO_CHAR(X.TGL_KELUAR, 'HH24') >= '12'
+                                THEN 1 ELSE 0
+                            END) AS TUTD_SESUDAH_12
 
-        //                 FROM (
-        //                     SELECT
-        //                         TRUNC(A.TGL_KELUAR) AS TANGGAL,
-        //                         A.TGL_KELUAR,
-        //                         CASE
-        //                             WHEN EXISTS (
-        //                                 SELECT 1
-        //                                 FROM SR01_PASIEN_RANAP B
-        //                                 WHERE B.PERLU_VISIT = 'T'
-        //                                 AND B.PASIEN_ID = A.PASIEN_ID
-        //                                 AND B.EPISODE_ID = A.EPISODE_ID
-        //                             )
-        //                             THEN 1
-        //                             ELSE 0
-        //                         END AS TUTD
-        //                     FROM SR01_KEU_EPISODE A
-        //                     WHERE A.LOKASI_ID = '001'
-        //                     AND A.AKTIF = '1'
-        //                     AND A.JENIS_EPISODE = 'I'
-        //                     AND A.PULANG_ID NOT IN ('P02', 'P04', 'P10', 'P11', 'P0X')
-        //                     AND A.KELAS_ID <> 'V'
-        //                     AND A.TGL_KELUAR IS NOT NULL
-        //                     AND A.TGL_KELUAR >= TO_DATE('01.10.2026', 'DD.MM.YYYY')
-        //                     AND TO_CHAR(A.TGL_KELUAR,'YYYY')='".$periode."'
-        //                 ) X
+                        FROM (
+                            SELECT
+                                TRUNC(A.TGL_KELUAR) AS TANGGAL,
+                                A.TGL_KELUAR,
+                                CASE
+                                    WHEN EXISTS (
+                                        SELECT 1
+                                        FROM SR01_PASIEN_RANAP B
+                                        WHERE B.PERLU_VISIT = 'T'
+                                        AND B.PASIEN_ID = A.PASIEN_ID
+                                        AND B.EPISODE_ID = A.EPISODE_ID
+                                    )
+                                    THEN 1
+                                    ELSE 0
+                                END AS TUTD
+                            FROM SR01_KEU_EPISODE A
+                            WHERE A.LOKASI_ID = '001'
+                            AND A.AKTIF = '1'
+                            AND A.JENIS_EPISODE = 'I'
+                            AND A.PULANG_ID NOT IN ('P02', 'P04', 'P10', 'P11', 'P0X')
+                            AND A.KELAS_ID <> 'V'
+                            AND A.TGL_KELUAR IS NOT NULL
+                            AND A.TGL_KELUAR >= TO_DATE('01.10.2026', 'DD.MM.YYYY')
+                            AND TO_CHAR(A.TGL_KELUAR,'YYYY')='".$periode."'
+                        ) X
 
-        //                 GROUP BY X.TANGGAL
-        //                 ORDER BY X.TANGGAL DESC
-        //             ";
+                        GROUP BY X.TANGGAL
+                        ORDER BY X.TANGGAL DESC
+                    ";
 
-        //     $recordset = $this->db->query($query);
-        //     $recordset = $recordset->result();
-        //     return $recordset;
-        // }
+            $recordset = $this->db->query($query);
+            $recordset = $recordset->result();
+            return $recordset;
+        }
 
         // function kpipasienrawatinappulangdetail(){
         //     $query =

@@ -49,7 +49,7 @@
                 return;
             }
 
-            $tglrencanapulang = $resultlistpasienrencanapulang[0]->TGLHARIINI ?? date('d-m-Y');
+            $tglrencanapulang = date('d-m-Y');
 
             $listpasien = [
                 'T' => [],
@@ -57,8 +57,9 @@
             ];
 
             foreach ($resultlistpasienrencanapulang as $a) {
-                $tutd = strtoupper(trim($a->TUTD ?? 'N')) == 'T' ? 'T' : 'N';
+                $tutd  = strtoupper(trim($a->TUTD ?? 'N')) == 'T' ? 'T' : 'N';
                 $ruang = $a->NAMARUANG;
+
                 $listpasien[$tutd][$ruang][] = $a->MRPASIEN . "\t" . $a->NAMAPASIEN . " [" . $a->RUANGRWT_ID . "]";
             }
 
@@ -126,7 +127,7 @@
                 return;
             }
 
-            $tglrencanapulang = $resultlistpasienrencanapulang[0]->TGLHARIINI ?? date('d-m-Y');
+            $tglrencanapulang = date('d-m-Y');
 
             $listpasien = [];
 
@@ -134,6 +135,7 @@
                 $listpasien[] = ($i + 1) . ". " . $a->MRPASIEN . "\t" . $a->NAMAPASIEN .
                                 "\n   Kelas: " . $a->KELAS_ID .
                                 "\n   Masuk transit: " . $a->TGLMSASUKTRANSIT.
+                                "\n   Waktu Tunggu: " . $a->LAMATRANSIT.
                                 "\n   DPJP: " . str_replace('.', ' ', $a->DPJP).
                                 "\n   Diagnosis: " . $a->DIAGNOSA;               
             }

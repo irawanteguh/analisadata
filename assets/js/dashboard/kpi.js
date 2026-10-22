@@ -6,7 +6,7 @@ $('#selectperiode').on('change', function () {
 
 
 function loaddata(){
-    // kpipasienrawatinappulangagregate();
+    kpipasienrawatinappulangagregate();
     // kpipasienrawatinappulangdetail();
     // pembatalanoperasielektif();
     radiologi();
@@ -120,214 +120,214 @@ function radiologi(){
     });
 };
 
-// function kpipasienrawatinappulangagregate(){
-//     let selectperiode = $("select[name='selectperiode']").val();
-//     $.ajax({
-//         url      : url + "index.php/dashboard/kpi/kpipasienrawatinappulangagregate",
-//         type     : "POST",
-//         dataType : "JSON",
-//         data     : { selectperiode: selectperiode },
+function kpipasienrawatinappulangagregate(){
+    let selectperiode = $("select[name='selectperiode']").val();
+    $.ajax({
+        url      : url + "index.php/dashboard/kpi/kpipasienrawatinappulangagregate",
+        type     : "POST",
+        dataType : "JSON",
+        data     : { selectperiode: selectperiode },
 
-//         beforeSend: function () {
-//             Swal.fire({
-//                 title: 'Processing',
-//                 html : 'Please wait while the system displays the requested data.',
-//                 allowOutsideClick: false,
-//                 allowEscapeKey   : false,
-//                 showConfirmButton: false,
-//                 didOpen: () => Swal.showLoading()
-//             });
-//         },
+        beforeSend: function () {
+            Swal.fire({
+                title: 'Processing',
+                html : 'Please wait while the system displays the requested data.',
+                allowOutsideClick: false,
+                allowEscapeKey   : false,
+                showConfirmButton: false,
+                didOpen: () => Swal.showLoading()
+            });
+        },
 
-//         success: function (response) {
+        success: function (response) {
 
-//             if (response.responCode !== "00") {
-//                 Swal.fire({
-//                     icon             : 'warning',
-//                     title            : 'No Records Found',
-//                     text             : 'No records are available for the selected period.',
-//                     showConfirmButton: false,
-//                     timer            : 2000
-//                 });
-//                 return;
-//             }
+            if (response.responCode !== "00") {
+                Swal.fire({
+                    icon             : 'warning',
+                    title            : 'No Records Found',
+                    text             : 'No records are available for the selected period.',
+                    showConfirmButton: false,
+                    timer            : 2000
+                });
+                return;
+            }
 
-//             const result       = Array.isArray(response.responResult) ? response.responResult : [];
-//             const bulanLengkap = ["01","02","03","04","05","06","07","08","09","10","11","12"];
-//             const namaBulan    = ["Jan","Feb","Mar","Apr","Mei","Jun","Jul","Agu","Sep","Okt","Nov","Des"];
+            const result       = Array.isArray(response.responResult) ? response.responResult : [];
+            const bulanLengkap = ["01","02","03","04","05","06","07","08","09","10","11","12"];
+            const namaBulan    = ["Jan","Feb","Mar","Apr","Mei","Jun","Jul","Agu","Sep","Okt","Nov","Des"];
 
-//             const chartgrafikmonthlykpi = (() => {
-//                 const monthlyData = {};
+            const chartgrafikmonthlykpi = (() => {
+                const monthlyData = {};
 
-//                 const tahunData = [
-//                     ...new Set(
-//                         result
-//                             .filter(item => item.PERIODE)
-//                             .map(item => item.PERIODE.split(".")[2])
-//                             .filter(Boolean)
-//                     )
-//                 ];
+                const tahunData = [
+                    ...new Set(
+                        result
+                            .filter(item => item.PERIODE)
+                            .map(item => item.PERIODE.split(".")[2])
+                            .filter(Boolean)
+                    )
+                ];
 
-//                 tahunData.forEach(tahun => {
-//                     bulanLengkap.forEach(bulan => {
-//                         const key = `${bulan}.${tahun}`;
+                tahunData.forEach(tahun => {
+                    bulanLengkap.forEach(bulan => {
+                        const key = `${bulan}.${tahun}`;
 
-//                         monthlyData[key] = {
-//                             periode: key,
-//                             bulan,
-//                             tahun,
-//                             sebelum12: 0,
-//                             sesudah12: 0,
-//                             tutdSebelum12: 0,
-//                             tutdSesudah12: 0
-//                         };
-//                     });
-//                 });
+                        monthlyData[key] = {
+                            periode: key,
+                            bulan,
+                            tahun,
+                            sebelum12: 0,
+                            sesudah12: 0,
+                            tutdSebelum12: 0,
+                            tutdSesudah12: 0
+                        };
+                    });
+                });
 
-//                 result.forEach(item => {
-//                     if (!item.PERIODE) return;
+                result.forEach(item => {
+                    if (!item.PERIODE) return;
 
-//                     const [tanggal, bulan, tahun] = item.PERIODE.split(".");
-//                     if (!bulan || !tahun) return;
+                    const [tanggal, bulan, tahun] = item.PERIODE.split(".");
+                    if (!bulan || !tahun) return;
 
-//                     const key = `${bulan}.${tahun}`;
+                    const key = `${bulan}.${tahun}`;
 
-//                     if (!monthlyData[key]) {
-//                         monthlyData[key] = {
-//                             periode: key,
-//                             bulan,
-//                             tahun,
-//                             sebelum12: 0,
-//                             sesudah12: 0,
-//                             tutdSebelum12: 0,
-//                             tutdSesudah12: 0
-//                         };
-//                     }
+                    if (!monthlyData[key]) {
+                        monthlyData[key] = {
+                            periode: key,
+                            bulan,
+                            tahun,
+                            sebelum12: 0,
+                            sesudah12: 0,
+                            tutdSebelum12: 0,
+                            tutdSesudah12: 0
+                        };
+                    }
 
-//                     monthlyData[key].sebelum12 += Number(item.SEBELUM_12) || 0;
-//                     monthlyData[key].sesudah12 += Number(item.SESUDAH_12) || 0;
-//                     monthlyData[key].tutdSebelum12 += Number(item.TUTD_SEBELUM_12) || 0;
-//                     monthlyData[key].tutdSesudah12 += Number(item.TUTD_SESUDAH_12) || 0;
-//                 });
+                    monthlyData[key].sebelum12 += Number(item.SEBELUM_12) || 0;
+                    monthlyData[key].sesudah12 += Number(item.SESUDAH_12) || 0;
+                    monthlyData[key].tutdSebelum12 += Number(item.TUTD_SEBELUM_12) || 0;
+                    monthlyData[key].tutdSesudah12 += Number(item.TUTD_SESUDAH_12) || 0;
+                });
 
-//                 return Object.values(monthlyData)
-//                     .sort((a, b) =>
-//                         Number(a.tahun) - Number(b.tahun) ||
-//                         Number(a.bulan) - Number(b.bulan)
-//                     )
-//                     .map(item => {
-//                         const total = item.sebelum12 + item.sesudah12;
-//                         const totalTUTD = item.tutdSebelum12 + item.tutdSesudah12;
+                return Object.values(monthlyData)
+                    .sort((a, b) =>
+                        Number(a.tahun) - Number(b.tahun) ||
+                        Number(a.bulan) - Number(b.bulan)
+                    )
+                    .map(item => {
+                        const total = item.sebelum12 + item.sesudah12;
+                        const totalTUTD = item.tutdSebelum12 + item.tutdSesudah12;
 
-//                         return {
-//                             periode: namaBulan[Number(item.bulan) - 1] || item.bulan,
+                        return {
+                            periode: namaBulan[Number(item.bulan) - 1] || item.bulan,
 
-//                             Value1: item.sebelum12,
-//                             Value2: item.sesudah12,
-//                             Value3: item.tutdSebelum12,
-//                             Value4: item.tutdSesudah12,
+                            Value1: item.sebelum12,
+                            Value2: item.sesudah12,
+                            Value3: item.tutdSebelum12,
+                            Value4: item.tutdSesudah12,
 
-//                             Value5: total > 0
-//                                 ? Number(((item.sebelum12 / total) * 100).toFixed(2))
-//                                 : 0,
+                            Value5: total > 0
+                                ? Number(((item.sebelum12 / total) * 100).toFixed(2))
+                                : 0,
 
-//                             Value6: totalTUTD > 0
-//                                 ? Number(((item.tutdSebelum12 / totalTUTD) * 100).toFixed(2))
-//                                 : 0
-//                         };
-//                     });
-//             })();
+                            Value6: totalTUTD > 0
+                                ? Number(((item.tutdSebelum12 / totalTUTD) * 100).toFixed(2))
+                                : 0
+                        };
+                    });
+            })();
 
-//             const chartgrafikdailykpi = result.slice(0, 60).reverse().map(item => {
-//                 const sebelum12      = parseInt(item.SEBELUM_12, 10) || 0;
-//                 const sesudah12      = parseInt(item.SESUDAH_12, 10) || 0;
-//                 const tutdSebelum12  = parseInt(item.TUTD_SEBELUM_12, 10) || 0;
-//                 const tutdSesudah12  = parseInt(item.TUTD_SESUDAH_12, 10) || 0;
+            const chartgrafikdailykpi = result.slice(0, 60).reverse().map(item => {
+                const sebelum12      = parseInt(item.SEBELUM_12, 10) || 0;
+                const sesudah12      = parseInt(item.SESUDAH_12, 10) || 0;
+                const tutdSebelum12  = parseInt(item.TUTD_SEBELUM_12, 10) || 0;
+                const tutdSesudah12  = parseInt(item.TUTD_SESUDAH_12, 10) || 0;
 
-//                 return {
-//                     periode: item.PERIODE,
-//                     Value1 : sebelum12,
-//                     Value2 : sesudah12,
-//                     Value3 : tutdSebelum12,
-//                     Value4 : tutdSesudah12,
-//                     Value5 : (sebelum12 + sesudah12) > 0 ? parseFloat(((sebelum12 / (sebelum12 + sesudah12)) * 100).toFixed(2)) : 0,
-//                     Value6 : (tutdSebelum12 + tutdSesudah12) > 0 ? parseFloat(((tutdSebelum12 / (tutdSebelum12 + tutdSesudah12)) * 100).toFixed(2)) : 0
-//                 };
-//             });
+                return {
+                    periode: item.PERIODE,
+                    Value1 : sebelum12,
+                    Value2 : sesudah12,
+                    Value3 : tutdSebelum12,
+                    Value4 : tutdSesudah12,
+                    Value5 : (sebelum12 + sesudah12) > 0 ? parseFloat(((sebelum12 / (sebelum12 + sesudah12)) * 100).toFixed(2)) : 0,
+                    Value6 : (tutdSebelum12 + tutdSesudah12) > 0 ? parseFloat(((tutdSebelum12 / (tutdSebelum12 + tutdSesudah12)) * 100).toFixed(2)) : 0
+                };
+            });
 
 
-//             renderchartarea(
-//                 "grafikkpitutdmountly",
-//                 chartgrafikmonthlykpi,
-//                 "Discharge Date",
-//                 "Persentase (%)",
-//                 ["Persentase", "Sebelum Jam 12:00", "Sesudah Jam 12:00"],
-//                 ["Value6", "Value3", "Value4"],
-//                 true,
-//                 "Jumlah Pasien",
-//                 "",
-//                 "",
-//                 null
-//             );
+            renderchartarea(
+                "grafikkpitutdmountly",
+                chartgrafikmonthlykpi,
+                "Discharge Date",
+                "Persentase (%)",
+                ["Persentase", "Sebelum Jam 12:00", "Sesudah Jam 12:00"],
+                ["Value6", "Value3", "Value4"],
+                true,
+                "Jumlah Pasien",
+                "",
+                "",
+                null
+            );
 
-//             renderchartarea(
-//                 "grafikkpinontutdmountly",
-//                 chartgrafikmonthlykpi,
-//                 "Discharge Date",
-//                 "Persentase (%)",
-//                 ["Persentase", "Sebelum Jam 12:00", "Sesudah Jam 12:00"],
-//                 ["Value5", "Value1", "Value2"],
-//                 true,
-//                 "Jumlah Pasien",
-//                 "",
-//                 "",
-//                 null
-//             );
+            renderchartarea(
+                "grafikkpinontutdmountly",
+                chartgrafikmonthlykpi,
+                "Discharge Date",
+                "Persentase (%)",
+                ["Persentase", "Sebelum Jam 12:00", "Sesudah Jam 12:00"],
+                ["Value5", "Value1", "Value2"],
+                true,
+                "Jumlah Pasien",
+                "",
+                "",
+                null
+            );
             
 
-//             renderchartarea(
-//                 "grafikkpitutd",
-//                 chartgrafikdailykpi,
-//                 "Discharge Date",
-//                 "Persentase (%)",
-//                 ["Persentase", "Sebelum Jam 12:00", "Sesudah Jam 12:00"],
-//                 ["Value6", "Value3", "Value4"],
-//                 true,
-//                 "Jumlah Pasien",
-//                 null,
-//                 "Rata-rata",
-//                 null
-//             );
+            renderchartarea(
+                "grafikkpitutd",
+                chartgrafikdailykpi,
+                "Discharge Date",
+                "Persentase (%)",
+                ["Persentase", "Sebelum Jam 12:00", "Sesudah Jam 12:00"],
+                ["Value6", "Value3", "Value4"],
+                true,
+                "Jumlah Pasien",
+                null,
+                "Rata-rata",
+                null
+            );
 
-//             renderchartarea(
-//                 "grafikkpinontutd",
-//                 chartgrafikdailykpi,
-//                 "Discharge Date",
-//                 "Persentase (%)",
-//                 ["Persentase", "Sebelum Jam 12:00", "Sesudah Jam 12:00"],
-//                 ["Value5", "Value1", "Value2"],
-//                 true,
-//                 "Jumlah Pasien",
-//                 null,
-//                 "Rata-rata",
-//                 null
-//             );
-//         },
+            renderchartarea(
+                "grafikkpinontutd",
+                chartgrafikdailykpi,
+                "Discharge Date",
+                "Persentase (%)",
+                ["Persentase", "Sebelum Jam 12:00", "Sesudah Jam 12:00"],
+                ["Value5", "Value1", "Value2"],
+                true,
+                "Jumlah Pasien",
+                null,
+                "Rata-rata",
+                null
+            );
+        },
 
-//         complete: function () {
-//             Swal.close();
-//         },
+        complete: function () {
+            Swal.close();
+        },
 
-//         error: function () {
-//             Swal.fire({
-//                 icon: "error",
-//                 title: "Request Failed",
-//                 text: "We were unable to process your request due to a server error. Please try again later. If the problem persists, contact your system administrator.",
-//                 confirmButtonText: "OK"
-//             });
-//         }
-//     });
-// };
+        error: function () {
+            Swal.fire({
+                icon: "error",
+                title: "Request Failed",
+                text: "We were unable to process your request due to a server error. Please try again later. If the problem persists, contact your system administrator.",
+                confirmButtonText: "OK"
+            });
+        }
+    });
+};
 
 // function kpipasienrawatinappulangdetail(){
 //     const selectperiode = $("select[name='selectperiode']").val();
