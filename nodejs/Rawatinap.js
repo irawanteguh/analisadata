@@ -17,8 +17,8 @@ for (const iface of Object.values(interfaces)) {
     }
 }
 
-const BASE_URL = process.env.BASE_URL || `http://localhost/dataanalyst/analisadata/index.php/`;
-// const BASE_URL = process.env.BASE_URL || `http://192.168.200.41:8080/analisadata/index.php/`;
+// const BASE_URL = process.env.BASE_URL || `http://localhost/dataanalyst/analisadata/index.php/`;
+const BASE_URL = process.env.BASE_URL || `http://192.168.200.41:8080/analisadata/index.php/`;
 
 function getTimeStamp() {
   const now = new Date();
@@ -165,9 +165,9 @@ async function callAPI(endpoint, method = "GET", body = null) {
 }
 
 async function runservices() {
-    // await callAPI("listpasienrencanapulang", "POST");
-    // await callAPI("listpasientransit", "POST");
-    // await callAPI("listpasienbelumclossing", "POST");
+    await callAPI("listpasienrencanapulang", "POST");
+    await callAPI("listpasientransit", "POST");
+    await callAPI("listpasienbelumclossing", "POST");
     await callAPI("statusreseppulang", "POST");
 }
 
