@@ -92,76 +92,296 @@
             $query =
                     "
                         
+                        WITH W_EPISODE AS (
                         SELECT
-                            TO_CHAR(X.TGL_MASUK, 'MM') AS BULAN,
-                            COUNT(*) AS TOTAL_PASIEN,
-
-                            SUM(
+                            W.PASIEN_ID,
+                            W.EPISODE_ID,
+                            W.POLI_ID,
+                            W.DOKTER_ID,
+                            MIN(W.CREATED_DATE) AS MULAIPERIKSA
+                        FROM WEB_CO_MULAI_PERIKSA W
+                        WHERE W.SHOW_ITEM = '1'
+                        AND   TO_CHAR(W.CREATED_DATE,'YYYY')='".$periode."'
+                        GROUP BY
+                            W.PASIEN_ID,
+                            W.EPISODE_ID,
+                            W.POLI_ID,
+                            W.DOKTER_ID
+                    ),
+                    W_PREV AS (
+                        SELECT
+                            W.PASIEN_ID,
+                            W.EPISODE_ID,
+                            W.POLI_ID,
+                            W.DOKTER_ID,
+                            W.MULAIPERIKSA,
+                            LAG(W.EPISODE_ID) OVER (
+                                PARTITION BY
+                                    W.POLI_ID,
+                                    W.DOKTER_ID,
+                                    TRUNC(W.MULAIPERIKSA)
+                                ORDER BY
+                                    W.MULAIPERIKSA,
+                                    W.EPISODE_ID
+                            ) AS EPISODE_SEBELUMNYA
+                        FROM W_EPISODE W
+                    ),
+                    DATA_AWAL AS (
+                        SELECT
+                            A.PASIEN_ID,
+                            A.EPISODE_ID,
+                            A.POLI_ID,
+                            A.DOKTER_ID,
+                            A.TGL_MASUK,
+                            (
+                                SELECT MIN(AN.CREATED_DATE)
+                                FROM SR01_MED_ANAMAWAL AN
+                                WHERE AN.PASIEN_ID = A.PASIEN_ID
+                                AND AN.EPISODE_ID = A.EPISODE_ID
+                            ) AS TGLJAMSEP,
+                            W.MULAIPERIKSA,
+                            W.EPISODE_SEBELUMNYA
+                        FROM SR01_KEU_EPISODE A
+                        LEFT JOIN W_PREV W
+                            ON W.PASIEN_ID = A.PASIEN_ID
+                        AND W.EPISODE_ID = A.EPISODE_ID
+                        AND W.POLI_ID = A.POLI_ID
+                        AND W.DOKTER_ID = A.DOKTER_ID
+                        WHERE A.LOKASI_ID = '001'
+                        AND A.AKTIF = '1'
+                        AND A.JENIS_EPISODE = 'O'
+                        AND A.STATUS_EPISODE <> '99'
+                        AND TO_CHAR(A.TGL_MASUK,'YYYY')='".$periode."'
+                        AND A.POLI_ID NOT IN (
+                            'APS',
+                            'APS L0000000001',
+                            'APS R0000000001',
+                            'UGD01',
+                            'UGD02',
+                            'RUJUKANLUAR',
+                            'MEDIC0000000000',
+                            'POLI0000000000',
+                            'POLI0000000043',
+                            'POLI0000000042',
+                            'POLI0000000041',
+                            'POLI0000000044',
+                            'POLI0000000052',
+                            'POLI0000000031',
+                            'HEMOD0000000000',
+                            'POLI0000000025',
+                            'POLIFISIO',
+                            'POLIFISWICARA',
+                            'POLIFISOKUP',
+                            'CAPD0000000001'
+                        )
+                        AND EXISTS (
+                            SELECT 1
+                            FROM SR01_MED_PRWT_TR T
+                            WHERE T.LOKASI_ID = '001'
+                                AND T.AKTIF = '1'
+                                AND T.DONE_STATUS = '01'
+                                AND T.STATUS = '1'
+                                AND T.PASIEN_ID = A.PASIEN_ID
+                                AND T.EPISODE_ID = A.EPISODE_ID
+                        )
+                        AND NOT EXISTS (
+                            SELECT 1
+                            FROM SR01_KEU_EPISODE B
+                            WHERE B.LOKASI_ID = A.LOKASI_ID
+                                AND B.PASIEN_ID = A.PASIEN_ID
+                                AND B.AKTIF = '1'
+                                AND B.JENIS_EPISODE = 'O'
+                                AND B.STATUS_EPISODE <> '99'
+                                AND TO_CHAR(B.TGL_MASUK,'YYYY')='".$periode."'
+                                AND B.TGL_MASUK = A.TGL_MASUK
+                                AND B.POLI_ID <> A.POLI_ID
+                                AND B.POLI_ID NOT IN (
+                                    'APS',
+                                    'APS L0000000001',
+                                    'APS R0000000001',
+                                    'UGD01',
+                                    'UGD02',
+                                    'RUJUKANLUAR',
+                                    'MEDIC0000000000',
+                                    'POLI0000000000',
+                                    'POLI0000000043',
+                                    'POLI0000000042',
+                                    'POLI0000000041',
+                                    'POLI0000000044',
+                                    'POLI0000000052',
+                                    'POLI0000000031',
+                                    'HEMOD0000000000',
+                                    'POLI0000000025',
+                                    'POLIFISIO',
+                                    'POLIFISWICARA',
+                                    'POLIFISOKUP',
+                                    'CAPD0000000001'
+                                )
+                                AND EXISTS (
+                                    SELECT 1
+                                    FROM SR01_MED_PRWT_TR T
+                                    WHERE T.LOKASI_ID = '001'
+                                    AND T.AKTIF = '1'
+                                    AND T.DONE_STATUS = '01'
+                                    AND T.STATUS = '1'
+                                    AND T.PASIEN_ID = B.PASIEN_ID
+                                    AND T.EPISODE_ID = B.EPISODE_ID
+                                )
+                        )
+                    ),
+                    DATA_VALID AS (
+                        SELECT Q.*
+                        FROM DATA_AWAL Q
+                        WHERE NOT EXISTS (
+                            SELECT 1
+                            FROM WEB_CO_ALKES_DT K
+                            WHERE K.EPISODE_ID = Q.EPISODE_SEBELUMNYA
+                        )
+                    ),
+                    DATA_HITUNG AS (
+                        SELECT
+                            TO_CHAR(TGL_MASUK, 'MM') AS BULAN,
+                            PASIEN_ID,
+                            EPISODE_ID,
+                            TGLJAMSEP,
+                            MULAIPERIKSA,
+                            CASE
+                                WHEN TGLJAMSEP IS NOT NULL
+                                AND MULAIPERIKSA IS NOT NULL
+                                THEN (MULAIPERIKSA - TGLJAMSEP) * 1440
+                            END AS SELISIH_MENIT
+                        FROM DATA_VALID
+                    )
+                    SELECT
+                        BULAN,
+                        COUNT(*) AS TOTAL_PASIEN,
+                        SUM(
+                            CASE
+                                WHEN SELISIH_MENIT <= 60 THEN 1
+                                ELSE 0
+                            END
+                        ) AS JUMLAH_PASIEN_KURANG_SAMA_60_MENIT,
+                        SUM(
+                            CASE
+                                WHEN SELISIH_MENIT > 60 THEN 1
+                                ELSE 0
+                            END
+                        ) AS JUMLAH_PASIEN_LEBIH_60_MENIT,
+                        ROUND(
+                            100 * SUM(
                                 CASE
-                                    WHEN X.MULAIPERIKSA >= X.TGLMULAIANAM
-                                    AND (X.MULAIPERIKSA - X.TGLMULAIANAM) * 1440 <= 60
-                                    THEN 1
+                                    WHEN SELISIH_MENIT <= 60 THEN 1
                                     ELSE 0
                                 END
-                            ) AS JUMLAH_PASIEN_KURANG_SAMA_60_MENIT,
-
-                            SUM(
-                                CASE
-                                    WHEN (X.MULAIPERIKSA - X.TGLMULAIANAM) * 1440 > 60
-                                    THEN 1
-                                    ELSE 0
-                                END
-                            ) AS JUMLAH_PASIEN_LEBIH_60_MENIT,
-
-                            ROUND(
-                                100 * SUM(
+                            ) / NULLIF(
+                                SUM(
                                     CASE
-                                        WHEN X.MULAIPERIKSA >= X.TGLMULAIANAM
-                                        AND (X.MULAIPERIKSA - X.TGLMULAIANAM) * 1440 <= 60
-                                        THEN 1
+                                        WHEN SELISIH_MENIT IS NOT NULL THEN 1
                                         ELSE 0
                                     END
-                                ) / NULLIF(COUNT(*), 0),
-                                2
-                            ) AS PERSENTASE_PASIEN_KURANG_SAMA_60_MENIT
+                                ),
+                                0
+                            ),
+                            2
+                        ) AS PERSENTASE_PASIEN_KURANG_SAMA_60_MENIT
+                    FROM DATA_HITUNG
+                    GROUP BY BULAN
+                    ORDER BY BULAN
+                    ";
 
-                        FROM (
+            $recordset = $this->db->query($query);
+            $recordset = $recordset->result();
+            return $recordset;
+        }
+
+        function rawatjalanlamapelayanan($periode){
+            $query =
+                    "
+                        
+                        WITH W_EPISODE AS (
+                            SELECT
+                                W.PASIEN_ID,
+                                W.EPISODE_ID,
+                                W.POLI_ID,
+                                W.DOKTER_ID,
+                                MIN(W.CREATED_DATE) AS MULAIPERIKSA
+                            FROM WEB_CO_MULAI_PERIKSA W
+                            WHERE W.SHOW_ITEM = '1'
+                            AND   TO_CHAR(W.CREATED_DATE,'YYYY')='".$periode."'
+                            GROUP BY
+                                W.PASIEN_ID,
+                                W.EPISODE_ID,
+                                W.POLI_ID,
+                                W.DOKTER_ID
+                        ),
+                        W_PREV AS (
+                            SELECT
+                                W.PASIEN_ID,
+                                W.EPISODE_ID,
+                                W.POLI_ID,
+                                W.DOKTER_ID,
+                                W.MULAIPERIKSA,
+                                LAG(W.EPISODE_ID) OVER (
+                                    PARTITION BY
+                                        W.POLI_ID,
+                                        W.DOKTER_ID,
+                                        TRUNC(W.MULAIPERIKSA)
+                                    ORDER BY
+                                        W.MULAIPERIKSA,
+                                        W.EPISODE_ID
+                                ) AS EPISODE_SEBELUMNYA
+                            FROM W_EPISODE W
+                        ),
+                        DATA_AWAL AS (
                             SELECT
                                 A.PASIEN_ID,
                                 A.EPISODE_ID,
+                                A.POLI_ID,
+                                A.DOKTER_ID,
                                 A.TGL_MASUK,
+                                CASE
+                                    WHEN NOT EXISTS (
+                                        SELECT 1
+                                        FROM WEB_CO_RESEP_DT R
+                                        WHERE R.PASIEN_ID = A.PASIEN_ID
+                                        AND R.EPISODE_ID = A.EPISODE_ID
+                                    ) THEN 'TIDAK ADA RESEP'
 
+                                    WHEN EXISTS (
+                                        SELECT 1
+                                        FROM WEB_CO_RESEP_DT R
+                                        WHERE R.PASIEN_ID = A.PASIEN_ID
+                                        AND R.EPISODE_ID = A.EPISODE_ID
+                                        AND R.TYPE <> '00'
+                                    ) THEN 'RACIKAN'
+
+                                    ELSE 'NON RACIKAN'
+                                END AS STATUS_RESEP,
                                 (
-                                    SELECT DECODE(
-                                        H.TGL_MULAI_ANAM,
-                                        NULL,
-                                        (
-                                            SELECT MAX(M.CREATED_DATE)
-                                            FROM SR01_MED_ANAMAWAL M
-                                            WHERE M.PASIEN_ID = A.PASIEN_ID
-                                            AND M.EPISODE_ID = A.EPISODE_ID
-                                        ),
-                                        H.TGL_MULAI_ANAM
-                                    )
-                                    FROM WEB_CO_REGISTRASI_ONLINE_HD H
-                                    WHERE H.PASIEN_ID = A.PASIEN_ID
-                                    AND H.EPISODE_ID = A.EPISODE_ID
-                                ) AS TGLMULAIANAM,
-
+                                    SELECT MIN(AN.CREATED_DATE)
+                                    FROM SR01_MED_ANAMAWAL AN
+                                    WHERE AN.PASIEN_ID = A.PASIEN_ID
+                                    AND AN.EPISODE_ID = A.EPISODE_ID
+                                ) AS TGLJAMSEP,
                                 (
-                                    SELECT MIN(P.CREATED_DATE)
-                                    FROM WEB_CO_MULAI_PERIKSA P
-                                    WHERE P.SHOW_ITEM = '1'
-                                    AND P.PASIEN_ID = A.PASIEN_ID
-                                    AND P.EPISODE_ID = A.EPISODE_ID
-                                ) AS MULAIPERIKSA
-
+                                    SELECT MIN(F.TGL_SELESAI)
+                                    FROM SR01_WORKLIST_FRM F
+                                    WHERE F.PASIEN_ID = A.PASIEN_ID
+                                    AND F.EPISODE_ID = A.EPISODE_ID
+                                ) AS TGL_SELESAI,
+                                W.MULAIPERIKSA,
+                                W.EPISODE_SEBELUMNYA
                             FROM SR01_KEU_EPISODE A
+                            LEFT JOIN W_PREV W
+                                ON W.PASIEN_ID = A.PASIEN_ID
+                            AND W.EPISODE_ID = A.EPISODE_ID
+                            AND W.POLI_ID = A.POLI_ID
+                            AND W.DOKTER_ID = A.DOKTER_ID
                             WHERE A.LOKASI_ID = '001'
                             AND A.AKTIF = '1'
                             AND A.JENIS_EPISODE = 'O'
                             AND A.STATUS_EPISODE <> '99'
-                            AND   TO_CHAR(A.TGL_MASUK,'YYYY')='".$periode."'
+                            AND TO_CHAR(A.TGL_MASUK,'YYYY')='".$periode."'
                             AND A.POLI_ID NOT IN (
                                 'APS',
                                 'APS L0000000001',
@@ -184,32 +404,135 @@
                                 'POLIFISOKUP',
                                 'CAPD0000000001'
                             )
-
-                            AND (
-                                A.POLI_ID IN (
-                                    'POLIFISIO',
-                                    'POLIFISOKUP',
-                                    'POLIFISWICARA',
-                                    'HEMOD0000000000',
-                                    'CAPD0000000001'
-                                )
-                                OR EXISTS (
-                                    SELECT 1
-                                    FROM SR01_MED_PRWT_TR T
-                                    WHERE T.LOKASI_ID = '001'
+                            AND EXISTS (
+                                SELECT 1
+                                FROM SR01_MED_PRWT_TR T
+                                WHERE T.LOKASI_ID = '001'
+                                    AND T.AKTIF = '1'
+                                    AND T.DONE_STATUS = '01'
+                                    AND T.STATUS = '1'
+                                    AND T.PASIEN_ID = A.PASIEN_ID
+                                    AND T.EPISODE_ID = A.EPISODE_ID
+                            )
+                            AND NOT EXISTS (
+                                SELECT 1
+                                FROM SR01_KEU_EPISODE B
+                                WHERE B.LOKASI_ID = A.LOKASI_ID
+                                    AND B.PASIEN_ID = A.PASIEN_ID
+                                    AND B.AKTIF = '1'
+                                    AND B.JENIS_EPISODE = 'O'
+                                    AND B.STATUS_EPISODE <> '99'
+                                    AND TO_CHAR(B.TGL_MASUK,'YYYY')='".$periode."'
+                                    AND B.TGL_MASUK = A.TGL_MASUK
+                                    AND B.POLI_ID <> A.POLI_ID
+                                    AND B.POLI_ID NOT IN (
+                                        'APS',
+                                        'APS L0000000001',
+                                        'APS R0000000001',
+                                        'UGD01',
+                                        'UGD02',
+                                        'RUJUKANLUAR',
+                                        'MEDIC0000000000',
+                                        'POLI0000000000',
+                                        'POLI0000000043',
+                                        'POLI0000000042',
+                                        'POLI0000000041',
+                                        'POLI0000000044',
+                                        'POLI0000000052',
+                                        'POLI0000000031',
+                                        'HEMOD0000000000',
+                                        'POLI0000000025',
+                                        'POLIFISIO',
+                                        'POLIFISWICARA',
+                                        'POLIFISOKUP',
+                                        'CAPD0000000001'
+                                    )
+                                    AND EXISTS (
+                                        SELECT 1
+                                        FROM SR01_MED_PRWT_TR T
+                                        WHERE T.LOKASI_ID = '001'
                                         AND T.AKTIF = '1'
                                         AND T.DONE_STATUS = '01'
                                         AND T.STATUS = '1'
-                                        AND T.PASIEN_ID = A.PASIEN_ID
-                                        AND T.EPISODE_ID = A.EPISODE_ID
+                                        AND T.PASIEN_ID = B.PASIEN_ID
+                                        AND T.EPISODE_ID = B.EPISODE_ID
+                                    )
+                            )
+                        ),
+                        DATA_FILTER AS (
+                            SELECT Q.*
+                            FROM DATA_AWAL Q
+                            WHERE Q.STATUS_RESEP <> 'RACIKAN'
+                            AND (
+                                Q.STATUS_RESEP = 'TIDAK ADA RESEP'
+                                OR (
+                                    Q.STATUS_RESEP = 'NON RACIKAN'
+                                    AND Q.TGL_SELESAI IS NOT NULL
                                 )
                             )
-                        ) X
-
-                        WHERE X.TGLMULAIANAM IS NOT NULL
-                        AND X.MULAIPERIKSA IS NOT NULL
-
-                        GROUP BY TO_CHAR(X.TGL_MASUK, 'MM')
+                            AND NOT EXISTS (
+                                SELECT 1
+                                FROM WEB_CO_ALKES_DT K
+                                WHERE K.EPISODE_ID = Q.EPISODE_SEBELUMNYA
+                            )
+                            AND NOT EXISTS (
+                                SELECT 1
+                                FROM WEB_CO_LAB_DT L
+                                WHERE L.EPISODE_ID = Q.EPISODE_ID
+                                AND L.PASIEN_ID = Q.PASIEN_ID
+                                AND L.SHOW_ITEM = '1'
+                            )
+                            AND NOT EXISTS (
+                                SELECT 1
+                                FROM WEB_CO_RAD_DT R
+                                WHERE R.EPISODE_ID = Q.EPISODE_ID
+                                AND R.PASIEN_ID = Q.PASIEN_ID
+                                AND R.SHOW_ITEM = '1'
+                            )   
+                                
+                        ),
+                        DATA_DURASI AS (
+                            SELECT
+                                Q.*,
+                                CASE
+                                    WHEN Q.STATUS_RESEP = 'TIDAK ADA RESEP'
+                                        THEN (Q.MULAIPERIKSA - Q.TGLJAMSEP) * 1440
+                                    WHEN Q.STATUS_RESEP = 'NON RACIKAN'
+                                        THEN (Q.TGL_SELESAI - Q.TGLJAMSEP) * 1440
+                                END AS DURASI_MENIT
+                            FROM DATA_FILTER Q
+                        )
+                        SELECT
+                            TO_CHAR(TGL_MASUK, 'MM') AS BULAN,
+                            COUNT(*) AS TOTAL_PASIEN,
+                            SUM(
+                                CASE
+                                    WHEN DURASI_MENIT >= 0
+                                    AND DURASI_MENIT <= 120
+                                    THEN 1
+                                    ELSE 0
+                                END
+                            ) AS JUMLAH_PASIEN_KURANG_SAMA_120_MENIT,
+                            SUM(
+                                CASE
+                                    WHEN DURASI_MENIT > 120
+                                    THEN 1
+                                    ELSE 0
+                                END
+                            ) AS JUMLAH_PASIEN_LEBIH_120_MENIT,
+                            ROUND(
+                                SUM(
+                                    CASE
+                                        WHEN DURASI_MENIT >= 0
+                                        AND DURASI_MENIT <= 120
+                                        THEN 1
+                                        ELSE 0
+                                    END
+                                ) * 100 / NULLIF(COUNT(*), 0),
+                                2
+                            ) AS PERSENTASE_PASIEN_KURANG_SAMA_120_MENIT
+                        FROM DATA_DURASI
+                        GROUP BY TO_CHAR(TGL_MASUK, 'MM')
                         ORDER BY BULAN
                     ";
 
@@ -350,24 +673,30 @@
             return $recordset;
         }
 
-        // function pembatalanoperasielektif($periode){
-        //     $query = "
-        //                 SELECT TO_CHAR(TRUNC(A.TGL_TINDAKAN), 'DD.MM.YYYY') AS PERIODE,
-        //                         COUNT (*) AS TOTAL,
-        //                         SUM(CASE WHEN A.STATUS_ID <> '99' THEN 1 ELSE 0 END) AS REGISTER,
-        //                         SUM(CASE WHEN A.STATUS_ID = '99' AND TRUNC (A.TGL_TINDAKAN) = TRUNC (A.BATAL_DATE) THEN 1 ELSE 0 END) AS BATAL
-        //                 FROM SR01_MED_OK_LOG A
-        //                 WHERE A.LOKASI_ID = '001'
-        //                 AND   A.AKTIF = '1'
-        //                 AND   A.CITO = '0'
-        //                 AND   TO_CHAR(A.TGL_TINDAKAN,'YYYY') = '".$periode."'
-        //                 GROUP BY TRUNC(A.TGL_TINDAKAN)
-        //                 ORDER BY TRUNC(A.TGL_TINDAKAN) DESC
-        //         ";
+        function pembatalanoperasielektif($periode){
+            $query = "
+                        SELECT X.*,
+                            ROUND(((BATAL/TOTAL)*100),2) PRESENTASI
+                        FROM(
+                            SELECT TO_CHAR(A.TGL_TINDAKAN, 'MM') AS BULAN,
+                                    COUNT (*) AS TOTAL,
+                                    SUM(CASE WHEN A.STATUS_ID <> '99' THEN 1 ELSE 0 END) AS REGISTER,
+                                    SUM(CASE WHEN A.STATUS_ID = '99' AND TRUNC (A.TGL_TINDAKAN) = TRUNC (A.BATAL_DATE) THEN 1 ELSE 0 END) AS BATAL
+                            FROM SR01_MED_OK_LOG A
+                            WHERE A.LOKASI_ID = '001'
+                            AND   A.AKTIF = '1'
+                            AND   A.CITO = '0'
+                            AND   A.EPISODE_ID IS NOT NULL
+                            AND   A.TGL_TINDAKAN <= TRUNC(SYSDATE)
+                            AND   TO_CHAR(A.TGL_TINDAKAN,'YYYY') = '".$periode."'
+                            GROUP BY TO_CHAR(A.TGL_TINDAKAN,'MM')
+                            ORDER BY BULAN ASC
+                        )X
+                ";
 
-        //     $recordset = $this->db->query($query);
-        //     $recordset = $recordset->result();
-        //     return $recordset;
-        // }
+            $recordset = $this->db->query($query);
+            $recordset = $recordset->result();
+            return $recordset;
+        }
     }
 ?>

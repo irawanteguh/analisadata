@@ -6,14 +6,13 @@ $('#selectperiode').on('change', function () {
 
 
 function loaddata(){
-    // kpipasienrawatinappulangagregate();
-    // kpipasienrawatinappulangdetail();
-    // pembatalanoperasielektif();
     rawatjalanwaktutunggu();
+    rawatjalanlamapelayanan();
     radiologi();
     rawatinap();
     rawatinapdaily();
     rawatinapdailydetail();
+    pembatalanoperasielektif();
 };
 
 function radiologi(){
@@ -202,6 +201,117 @@ function rawatjalanwaktutunggu(){
 
             renderchartarea(
                 "kpirawatjalanwaktutunggu",
+                chartgrafikmonthlykpi,
+                "Bulan",
+                "Persentase (%)",
+                [
+                    "Persentase <= 60 Menit",
+                    "Jml <= 60 Menit",
+                    "Jml > 60 Menit"
+                ],
+                ["Value4", "Value2", "Value3"],
+                true,
+                "Jumlah",
+                null,
+                "",
+                null,
+                ["Value2"]
+            );
+        },
+
+        complete: function () {
+            Swal.close();
+        },
+
+        error: function () {
+            Swal.fire({
+                icon: "error",
+                title: "Request Failed",
+                text: "We were unable to process your request due to a server error. Please try again later. If the problem persists, contact your system administrator.",
+                confirmButtonText: "OK"
+            });
+        }
+    });
+};
+
+function rawatjalanlamapelayanan(){
+    let selectperiode = $("select[name='selectperiode']").val();
+    $.ajax({
+        url      : url + "index.php/dashboard/kpi/rawatjalanlamapelayanan",
+        type     : "POST",
+        dataType : "JSON",
+        data     : { selectperiode: selectperiode },
+
+        beforeSend: function () {
+            Swal.fire({
+                title            : 'Processing',
+                html             : 'Please wait while the system displays the requested data.',
+                allowOutsideClick: false,
+                allowEscapeKey   : false,
+                showConfirmButton: false,
+                didOpen          : () => Swal.showLoading()
+            });
+        },
+
+        success: function (response) {
+
+            if (response.responCode !== "00") {
+                Swal.fire({
+                    icon             : 'warning',
+                    title            : 'No Records Found',
+                    text             : 'No records are available for the selected period.',
+                    showConfirmButton: false,
+                    timer            : 2000
+                });
+                return;
+            }
+
+            const result       = Array.isArray(response.responResult) ? response.responResult : [];
+            const bulanLengkap = ["01","02","03","04","05","06","07","08","09","10","11","12"];
+            const namaBulan    = ["Jan","Feb","Mar","Apr","Mei","Jun","Jul","Agu","Sep","Okt","Nov","Des"];
+
+            const chartgrafikmonthlykpi = (() => {
+                const monthlyData = {};
+
+                bulanLengkap.forEach(bulan => {
+                    monthlyData[bulan] = {
+                        bulan,
+                        jmlall: 0,
+                        jmlsebelum60all: 0,
+                        jmlsesudah60all: 0,
+                        presentasiall: 0
+                    };
+                });
+
+                result.forEach(item => {
+                    const bulan = String(item.BULAN || "").padStart(2, "0");
+                    if (!monthlyData[bulan]) return;
+
+                    monthlyData[bulan] = {
+                        bulan,
+                        jmlall         : Number(item.TOTAL_PASIEN) || 0,
+                        jmlsebelum60all: Number(item.JUMLAH_PASIEN_KURANG_SAMA_120_MENIT) || 0,
+                        jmlsesudah60all: Number(item.JUMLAH_PASIEN_LEBIH_120_MENIT) || 0,
+                        presentasiall  : Number(item.PERSENTASE_PASIEN_KURANG_SAMA_120_MENIT) || 0
+                    };
+                });
+
+                return bulanLengkap.map(bulan => {
+                    const item = monthlyData[bulan];
+
+                    return {
+                        periode: namaBulan[Number(bulan) - 1],
+
+                        Value1: item.jmlall,
+                        Value2: item.jmlsebelum60all,
+                        Value3: item.jmlsesudah60all,
+                        Value4: item.presentasiall
+                    };
+                });
+            })();
+
+            renderchartarea(
+                "kpirawatjalanwaktupelayanan",
                 chartgrafikmonthlykpi,
                 "Bulan",
                 "Persentase (%)",
@@ -666,162 +776,113 @@ function rawatinapdailydetail(){
     });
 };
 
-// function pembatalanoperasielektif(){
-//     let selectperiode = $("select[name='selectperiode']").val();
-//     $.ajax({
-//         url      : url + "index.php/dashboard/kpi/pembatalanoperasielektif",
-//         type     : "POST",
-//         dataType : "JSON",
-//         data     : { selectperiode: selectperiode },
+function pembatalanoperasielektif(){
+    let selectperiode = $("select[name='selectperiode']").val();
+    $.ajax({
+        url      : url + "index.php/dashboard/kpi/pembatalanoperasielektif",
+        type     : "POST",
+        dataType : "JSON",
+        data     : { selectperiode: selectperiode },
 
-//         beforeSend: function () {
-//             Swal.fire({
-//                 title: 'Processing',
-//                 html : 'Please wait while the system displays the requested data.',
-//                 allowOutsideClick: false,
-//                 allowEscapeKey   : false,
-//                 showConfirmButton: false,
-//                 didOpen: () => Swal.showLoading()
-//             });
-//         },
+        beforeSend: function () {
+            Swal.fire({
+                title            : 'Processing',
+                html             : 'Please wait while the system displays the requested data.',
+                allowOutsideClick: false,
+                allowEscapeKey   : false,
+                showConfirmButton: false,
+                didOpen          : () => Swal.showLoading()
+            });
+        },
 
-//         success: function (response) {
+        success: function (response) {
 
-//             if (response.responCode !== "00") {
-//                 Swal.fire({
-//                     icon             : 'warning',
-//                     title            : 'No Records Found',
-//                     text             : 'No records are available for the selected period.',
-//                     showConfirmButton: false,
-//                     timer            : 2000
-//                 });
-//                 return;
-//             }
+            if (response.responCode !== "00") {
+                Swal.fire({
+                    icon             : 'warning',
+                    title            : 'No Records Found',
+                    text             : 'No records are available for the selected period.',
+                    showConfirmButton: false,
+                    timer            : 2000
+                });
+                return;
+            }
 
-//             const result       = Array.isArray(response.responResult) ? response.responResult : [];
-//             const bulanLengkap = ["01","02","03","04","05","06","07","08","09","10","11","12"];
-//             const namaBulan    = ["Jan","Feb","Mar","Apr","Mei","Jun","Jul","Agu","Sep","Okt","Nov","Des"];
+            const result       = Array.isArray(response.responResult) ? response.responResult : [];
+            const bulanLengkap = ["01","02","03","04","05","06","07","08","09","10","11","12"];
+            const namaBulan    = ["Jan","Feb","Mar","Apr","Mei","Jun","Jul","Agu","Sep","Okt","Nov","Des"];
 
-//             const chartgrafikmonthlykpi = (() => {
-//                 const monthlyData = {};
+            const chartgrafikmonthlykpi = (() => {
+                const monthlyData = {};
 
-//                 const tahunData = [
-//                     ...new Set(
-//                         result
-//                             .filter(item => item.PERIODE)
-//                             .map(item => item.PERIODE.split(".")[2])
-//                             .filter(Boolean)
-//                     )
-//                 ];
+                bulanLengkap.forEach(bulan => {
+                    monthlyData[bulan] = {
+                        bulan,
+                        jmlall: 0,
+                        jmlsebelum12all: 0,
+                        jmlsesudah12all: 0,
+                        presentasiall: 0
+                    };
+                });
 
-//                 tahunData.forEach(tahun => {
-//                     bulanLengkap.forEach(bulan => {
-//                         const key = `${bulan}.${tahun}`;
+                result.forEach(item => {
+                    const bulan = String(item.BULAN || "").padStart(2, "0");
+                    if (!monthlyData[bulan]) return;
 
-//                         monthlyData[key] = {
-//                             periode: key,
-//                             bulan,
-//                             tahun,
-//                             register: 0,
-//                             batal: 0
-//                         };
-//                     });
-//                 });
+                    monthlyData[bulan] = {
+                        bulan,
+                        jmlall         : Number(item.TOTAL) || 0,
+                        jmlsebelum12all: Number(item.REGISTER) || 0,
+                        jmlsesudah12all: Number(item.BATAL) || 0,
+                        presentasiall  : Number(item.PRESENTASI) || 0
+                    };
+                });
 
-//                 result.forEach(item => {
-//                     if (!item.PERIODE) return;
+                return bulanLengkap.map(bulan => {
+                    const item = monthlyData[bulan];
 
-//                     const [tanggal, bulan, tahun] = item.PERIODE.split(".");
-//                     if (!bulan || !tahun) return;
+                    return {
+                        periode: namaBulan[Number(bulan) - 1],
 
-//                     const key = `${bulan}.${tahun}`;
+                        Value1: item.jmlall,
+                        Value2: item.jmlsebelum12all,
+                        Value3: item.jmlsesudah12all,
+                        Value4: item.presentasiall
+                    };
+                });
+            })();
 
-//                     if (!monthlyData[key]) {
-//                         monthlyData[key] = {
-//                             periode: key,
-//                             bulan,
-//                             tahun,
-//                             register: 0,
-//                             batal: 0
-//                         };
-//                     }
+            renderchartarea(
+                "grafikkpiokmountly",
+                chartgrafikmonthlykpi,
+                "Bulan",
+                "Persentase (%)",
+                [
+                    "Persentase Batal Tindakan",
+                    "Register",
+                    "Batal"
+                ],
+                ["Value4", "Value2", "Value3"],
+                true,
+                "Jumlah",
+                null,
+                "",
+                null,
+                ["Value2"]
+            );
+        },
 
-//                     monthlyData[key].register += Number(item.REGISTER) || 0;
-//                     monthlyData[key].batal += Number(item.BATAL) || 0;
-//                 });
+        complete: function () {
+            Swal.close();
+        },
 
-//                 return Object.values(monthlyData)
-//                     .sort((a, b) =>
-//                         Number(a.tahun) - Number(b.tahun) ||
-//                         Number(a.bulan) - Number(b.bulan)
-//                     )
-//                     .map(item => {
-//                         const total = item.register + item.batal;
-
-//                         return {
-//                             periode: namaBulan[Number(item.bulan) - 1] || item.bulan,
-//                             Value1: item.register,
-//                             Value2: item.batal,
-//                             Value3: total > 0
-//                                 ? Number(((item.batal / total) * 100).toFixed(2))
-//                                 : 0
-//                         };
-//                     });
-//             })();
-
-//             const chartgrafikdailykpi = result.slice(0, 30).reverse().map(item => {
-//                 const register = parseInt(item.REGISTER, 10) || 0;
-//                 const batal    = parseInt(item.BATAL, 10) || 0;
-
-//                 return {
-//                     periode: item.PERIODE,
-//                     Value1 : register,
-//                     Value2 : batal,
-//                     Value3 : (register + batal) > 0 ? parseFloat(((batal / (register + batal)) * 100).toFixed(2)) : 0
-//                 };
-//             });
-
-
-//             renderchartarea(
-//                 "grafikkpiokmountly",
-//                 chartgrafikmonthlykpi,
-//                 "Procedure Date",
-//                 "Persentase (%)",
-//                 ["Persentase", "Jumlah Batal Operasi"],
-//                 ["Value3", "Value2"],
-//                 true,
-//                 "Jumlah Operasi",
-//                 "Value3",
-//                 "Avg Pembatalan Operasi",
-//                 null
-//             );
-
-//             renderchartarea(
-//                 "grafikkpiokdaily",
-//                 chartgrafikdailykpi,
-//                 "Procedure Date",
-//                 "Persentase (%)",
-//                 ["Persentase", "Jumlah Batal Operasi"],
-//                 ["Value3", "Value2"],
-//                 true,
-//                 "Jumlah Operasi",
-//                 "Value3",
-//                 "Avg Pembatalan Operasi",
-//                 null
-//             );
-//         },
-
-//         complete: function () {
-//             Swal.close();
-//         },
-
-//         error: function () {
-//             Swal.fire({
-//                 icon: "error",
-//                 title: "Request Failed",
-//                 text: "We were unable to process your request due to a server error. Please try again later. If the problem persists, contact your system administrator.",
-//                 confirmButtonText: "OK"
-//             });
-//         }
-//     });
-// };
+        error: function () {
+            Swal.fire({
+                icon: "error",
+                title: "Request Failed",
+                text: "We were unable to process your request due to a server error. Please try again later. If the problem persists, contact your system administrator.",
+                confirmButtonText: "OK"
+            });
+        }
+    });
+};
