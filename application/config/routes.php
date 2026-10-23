@@ -19,6 +19,8 @@
 
     $route['listpasienrencanapulang'] = 'restapi/Whatsapp/RawatInap/listpasienrencanapulang';
     $route['listpasientransit']       = 'restapi/Whatsapp/RawatInap/listpasientransit';
+    $route['listpasienbelumclossing'] = 'restapi/Whatsapp/RawatInap/listpasienbelumclossing';
+    $route['statusreseppulang']       = 'restapi/Whatsapp/RawatInap/statusreseppulang';
     $route['listpasienbooking']       = 'restapi/Whatsapp/Rawatjalan/listpasienbooking';
     $route['listreminderbooking']     = 'restapi/Whatsapp/Rawatjalan/listreminderbooking';
     $route['listbatalbooking']        = 'restapi/Whatsapp/Rawatjalan/listbatalbooking';

@@ -169,7 +169,8 @@
 
             $tglrencanapulang = date('d.m.Y H:i:s');
 
-            $listpasien = [];
+            $listpasien         = [];
+            $totalpasientransit = count($resultlistpasienrencanapulang);
 
             foreach ($resultlistpasienrencanapulang as $i => $a) {
                 $listpasien[] = ($i + 1) . ". " . $a->MRPASIEN . "\t" . $a->NAMAPASIEN .
@@ -179,10 +180,11 @@
                                 "\n   DPJP: " . str_replace('.', ' ', $a->DPJP).
                                 "\n   Diagnosis: " . $a->DIAGNOSA;               
             }
+            $pesanpasien = "TOTAL PASIEN TRANSIT: " . $totalpasientransit . "\n\n" . implode("\n\n", $listpasien);
 
             $vars = [
                 'rencanapulang' => $tglrencanapulang,
-                'listpasien'    => $pesanpasien = implode("\n\n", $listpasien)
+                'listpasien'    => $pesanpasien
             ];
 
             $phone = [
@@ -202,6 +204,111 @@
                 '628114306652',   // Cempaka Lantai 10 Tim 1
                 '6281218422033',  // Handphone Lantai 10 Tim 2
                 '6281223321734'   // Handphone Lantai 11
+            ];
+
+            foreach ($phone as $number) {
+                $result = $this->openwa->sendTemplate(OPENWA_SESSION_ID_DUTYMANAGER,$number,$templateid,$templatename,$vars);
+                echo formatlogwhatsapp(!empty($result['response']['timestamp']) ? date('Y-m-d H:i:s',$result['response']['timestamp']) : date('Y-m-d H:i:s'),$result['response']['messageId'] ?? '',isset($result['response']) ? ($result['success'] ? 'SENT' : 'FAILED') : 'FAILED',isset($result['response']) ? ($result['message'] ?? '') : 'Tidak Mendapatkan response',isset($result['response']) && !empty($result['success']) ? 'green' : 'red',isset($result['response']) && !empty($result['success']) ? 'green' : 'red',isset($result['response']) && !empty($result['success']) ? 'green' : 'red',isset($result['response']) && !empty($result['success']) ? 'green' : 'red');
+            }
+            
+        }
+
+        public function listpasienbelumclossing_POST(){
+            $templateid                    = "647d4376-50a6-4ef8-a046-1859e0aedf60";
+            $templatename                  = "Pasien Belum Clossing";
+            $resultlistpasienrencanapulang = $this->md->listpasienbelumclossing();
+
+            if (empty($resultlistpasienrencanapulang)) {
+                echo color('red') . "Data Tidak Ditemukan";
+                return;
+            }
+
+            $tglrencanapulang = date('d.m.Y H:i:s');
+
+            $listpasien         = [];
+            $totalpasientransit = count($resultlistpasienrencanapulang);
+
+            foreach ($resultlistpasienrencanapulang as $i => $a) {
+                $listpasien[] = ($i + 1) . ". " . $a->MRPASIEN . "\t" . $a->NAMAPASIEN.
+                                "\n   Ruangan : " . $a->RUANGRWT_ID.
+                                "\n   Login : " . $a->TGLLOGIN;            
+            }
+            $pesanpasien = "TOTAL PASIEN BELUM CLOSSING: " . $totalpasientransit . "\n\n" . implode("\n\n", $listpasien);
+
+            $vars = [
+                'rencanapulang' => $tglrencanapulang,
+                'listpasien'    => $pesanpasien
+            ];
+
+            $phone = [
+                '6281288646630',
+                '6285249823047',
+                '6281326456523'
+            ];
+
+            foreach ($phone as $number) {
+                $result = $this->openwa->sendTemplate(OPENWA_SESSION_ID_DUTYMANAGER,$number,$templateid,$templatename,$vars);
+                echo formatlogwhatsapp(!empty($result['response']['timestamp']) ? date('Y-m-d H:i:s',$result['response']['timestamp']) : date('Y-m-d H:i:s'),$result['response']['messageId'] ?? '',isset($result['response']) ? ($result['success'] ? 'SENT' : 'FAILED') : 'FAILED',isset($result['response']) ? ($result['message'] ?? '') : 'Tidak Mendapatkan response',isset($result['response']) && !empty($result['success']) ? 'green' : 'red',isset($result['response']) && !empty($result['success']) ? 'green' : 'red',isset($result['response']) && !empty($result['success']) ? 'green' : 'red',isset($result['response']) && !empty($result['success']) ? 'green' : 'red');
+            }
+            
+        }
+
+        public function statusreseppulang_POST(){
+            $templateid                    = "81afd4a5-dfcd-4885-a1fb-39950d2d4175";
+            $templatename                  = "Status Resep Pulang";
+            $resultlistpasienrencanapulang = $this->md->statusreseppulang();
+
+            if (empty($resultlistpasienrencanapulang)) {
+                echo color('red') . "Data Tidak Ditemukan";
+                return;
+            }
+
+            $tglrencanapulang = date('d.m.Y H:i:s');
+
+            $listpasien        = [];
+            $listresepselesai  = [];
+            $listresepbelum    = [];
+
+            $totalresepselesai = 0;
+            $totalresepbelum   = 0;
+
+            $nomorbelum = 0;
+            $nomorselesai = 0;
+
+            foreach ($resultlistpasienrencanapulang as $a) {
+                if ($a->TGL_SELESAI !== null && trim((string) $a->TGL_SELESAI) !== '') {
+                    $nomorselesai++;
+
+                    $listresepselesai[] = $nomorselesai . ". " . $a->MRPASIEN . "\t" . $a->NAMAPASIEN . " [" . $a->RUANGRWT_ID . "] / " . $a->TRANS_CO;
+
+                    $totalresepselesai++;
+                } else {
+                    $nomorbelum++;
+
+                    $listresepbelum[] = $nomorbelum . ". " . $a->MRPASIEN . "\t" . $a->NAMAPASIEN . " [" . $a->RUANGRWT_ID . "] / " . $a->TRANS_CO;
+
+                    $totalresepbelum++;
+                }
+            }
+
+            $pesanpasien =
+                "*TOTAL RESEP BELUM SELESAI: " . $totalresepbelum . "*\n" .
+                "*DAFTAR RESEP BELUM SELESAI:*\n" .
+                (!empty($listresepbelum) ? implode("\n", $listresepbelum) : "- Tidak ada") .
+                "\n\n--------------------------------------\n\n" .
+                "*TOTAL RESEP SUDAH SELESAI: " . $totalresepselesai . "*\n" .
+                "*DAFTAR RESEP SUDAH SELESAI BELUM LOGIN PULANG:*\n" .
+                (!empty($listresepselesai) ? implode("\n", $listresepselesai) : "- Tidak ada");
+
+            $vars = [
+                'rencanapulang' => $tglrencanapulang,
+                'listpasien'    => $pesanpasien
+            ];
+
+            $phone = [
+                '6281288646630',
+                '6285249823047',
+                '6281326456523'
             ];
 
             foreach ($phone as $number) {

@@ -14,11 +14,11 @@
                     <!-- <li class="nav-item">
                         <a class="nav-link" data-bs-toggle="tab" href="#tab1">Waktu Pelayanan Rawat Jalan</a>
                     </li> -->
-                    <!-- <li class="nav-item">
-                        <a class="nav-link" data-bs-toggle="tab" href="#tab2">Waktu tunggu Rawat Jalan</a>
-                    </li> -->
                     <li class="nav-item">
-                        <a class="nav-link active" data-bs-toggle="tab" href="#tab3">Pembatalan Operasi Elektif</a>
+                        <a class="nav-link active" data-bs-toggle="tab" href="#tab2">Rawat Jalan</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" data-bs-toggle="tab" href="#tab3">Pembatalan Operasi Elektif</a>
                     </li>
                     <!-- <li class="nav-item">
                         <a class="nav-link" data-bs-toggle="tab" href="#tab4">Lama Layanan IGD</a>
@@ -27,7 +27,7 @@
                         <a class="nav-link" data-bs-toggle="tab" href="#tab5">Waktu Masuk Pasien Ranap</a>
                     </li> -->
                     <li class="nav-item">
-                        <a class="nav-link" data-bs-toggle="tab" href="#tab6">Realisasi Pasien Pulang H-1</a>
+                        <a class="nav-link " data-bs-toggle="tab" href="#tab6">Realisasi Pasien Pulang H-1</a>
                     </li>
 					<li class="nav-item">
                         <a class="nav-link" data-bs-toggle="tab" href="#tab7">Pemeriksaan Konvensional Non Kontras</a>
@@ -91,7 +91,7 @@
 		</div>
     </div>
 
-    <div class="tab-pane fade" id="tab2" role="tabpanel">
+    <div class="tab-pane fade show active" id="tab2" role="tabpanel">
         <!-- Waktu Tunggu Rawat Jalan -->
         <div class="alert alert-dismissible bg-light-info border border-info border-3 border-dashed d-flex flex-column flex-sm-row w-100 p-5 mb-10 fa-fade">
 			<span class="svg-icon svg-icon-2hx svg-icon-info me-4 mb-5 mb-sm-0">
@@ -103,15 +103,11 @@
 			<div class="d-flex flex-column pe-0 pe-sm-10">
 				<h5 class="mb-1">Waktu Tunggu Rawat Jalan</h5>
 				<span>
-					waktu yang dibutuhkan mulai pasien kontak dengan petugas pendaftaran hingga mendapat pelayanan dari dokter/dokter spesialis
+					Waktu yang dibutuhkan mulai pasien kontak dengan petugas pendaftaran hingga mendapat pelayanan dari dokter/dokter spesialis.
 					<ul>
-						<li>Esklusi</li>
+						<li>Eksklusi:</li>
 						<ul>
-							<li>Poli Medical Check Up</li>
-							<li>Poli Gigi</li>
-							<li>Haemodialisa</li>
-							<li>Rehab Medik</li>
-							<li>Fisioterapi</li>
+							<li>Poli Rehabilitasi Medik, Fisioterapi, Medical Check Up, Poli Gigi Umum, Poli Gigi Spesialis, Poli Gigi Spesialis Orthodonti, Poli Gigi Spesialis Endodonsi, Poli Gigi Spesialis Bedah Mulut, Poli Gigi Spesialis Pedodontis, Poli Gigi Spesialis Prostodonsia, Haemodialisa, CAPD, Terapi Wicara, Okupasi Terapi.</li>
 						</ul>
 					</ul>
 				</span>
@@ -126,143 +122,16 @@
 							<span class="card-label fw-bolder fs-3 mb-1">Waktu Tunggu Rawat Jalan</span>
 							<span class="text-muted mt-1 fw-bold fs-7">≥80% di bawah 60 menit</span>
 						</h3>
-						<div class="card-toolbar m-0">
-							<button type="button" class="btn btn-clean btn-sm btn-icon btn-icon-primary btn-active-light-primary me-n3" data-kt-menu-trigger="click" data-kt-menu-placement="bottom-end">
-								<span class="svg-icon svg-icon-3 svg-icon-primary">
-									<svg xmlns="http://www.w3.org/2000/svg" width="24px" height="24px" viewBox="0 0 24 24">
-										<g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
-											<rect x="5" y="5" width="5" height="5" rx="1" fill="#000000" />
-											<rect x="14" y="5" width="5" height="5" rx="1" fill="#000000" opacity="0.3" />
-											<rect x="5" y="14" width="5" height="5" rx="1" fill="#000000" opacity="0.3" />
-											<rect x="14" y="14" width="5" height="5" rx="1" fill="#000000" opacity="0.3" />
-										</g>
-									</svg>
-								</span>
-							</button>
-							<div class="menu menu-sub menu-sub-dropdown menu-column menu-rounded menu-gray-800 menu-state-bg-light-primary fw-bold w-200px py-3" data-kt-menu="true">
-								<div class="menu-item px-3">
-									<div class="menu-content text-muted pb-2 px-3 fs-7 text-uppercase">More Actions</div>
-								</div>
-								<div class="menu-item px-3">
-									<a href="#" class="menu-link px-3" id="btnDownloadgrafikkpiwaktutunggurj">Download Excel</a>
-								</div>
-							</div>
-						</div>
 					</div>
 					<div class="card-body py-3">
-						<div class="card-rounded-bottom" id="grafikkpiwaktutunggurj"></div>
-					</div>
-				</div>
-			</div>
-			<div class="col-md-12">
-				<div class="card card-flush">
-					<div class="card-header pt-5">
-						<h3 class="card-title align-items-start flex-column">
-							<span class="card-label fw-bolder fs-3 mb-1">Waktu Tunggu Check In - Mulai Anamnesa</span>
-							<span class="text-muted mt-1 fw-bold fs-7">≥ 80% Waktu Tunggu Check In - Mulai Anamnesa ≤ 20 menit</span>
-						</h3>
-						<div class="card-toolbar m-0">
-							<button type="button" class="btn btn-clean btn-sm btn-icon btn-icon-primary btn-active-light-primary me-n3" data-kt-menu-trigger="click" data-kt-menu-placement="bottom-end">
-								<span class="svg-icon svg-icon-3 svg-icon-primary">
-									<svg xmlns="http://www.w3.org/2000/svg" width="24px" height="24px" viewBox="0 0 24 24">
-										<g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
-											<rect x="5" y="5" width="5" height="5" rx="1" fill="#000000" />
-											<rect x="14" y="5" width="5" height="5" rx="1" fill="#000000" opacity="0.3" />
-											<rect x="5" y="14" width="5" height="5" rx="1" fill="#000000" opacity="0.3" />
-											<rect x="14" y="14" width="5" height="5" rx="1" fill="#000000" opacity="0.3" />
-										</g>
-									</svg>
-								</span>
-							</button>
-							<div class="menu menu-sub menu-sub-dropdown menu-column menu-rounded menu-gray-800 menu-state-bg-light-primary fw-bold w-200px py-3" data-kt-menu="true">
-								<div class="menu-item px-3">
-									<div class="menu-content text-muted pb-2 px-3 fs-7 text-uppercase">More Actions</div>
-								</div>
-								<div class="menu-item px-3">
-									<a href="#" class="menu-link px-3" id="btnDownloadgrafikkpiwaktutunggurjcheckinanam">Download Excel</a>
-								</div>
-							</div>
-						</div>
-					</div>
-					<div class="card-body py-3">
-						<div class="card-rounded-bottom" id="grafikkpiwaktutunggurjcheckinanam"></div>
-					</div>
-				</div>
-			</div>
-			<div class="col-md-12">
-				<div class="card card-flush">
-					<div class="card-header pt-5">
-						<h3 class="card-title align-items-start flex-column">
-							<span class="card-label fw-bolder fs-3 mb-1">Waktu Tunggu Mulai Anamnesa - Selesai Anamnesa</span>
-							<span class="text-muted mt-1 fw-bold fs-7">≥ 80% Waktu Tunggu Mulai - Selesai Anamnesa ≤ 10 menit</span>
-						</h3>
-						<div class="card-toolbar m-0">
-							<button type="button" class="btn btn-clean btn-sm btn-icon btn-icon-primary btn-active-light-primary me-n3" data-kt-menu-trigger="click" data-kt-menu-placement="bottom-end">
-								<span class="svg-icon svg-icon-3 svg-icon-primary">
-									<svg xmlns="http://www.w3.org/2000/svg" width="24px" height="24px" viewBox="0 0 24 24">
-										<g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
-											<rect x="5" y="5" width="5" height="5" rx="1" fill="#000000" />
-											<rect x="14" y="5" width="5" height="5" rx="1" fill="#000000" opacity="0.3" />
-											<rect x="5" y="14" width="5" height="5" rx="1" fill="#000000" opacity="0.3" />
-											<rect x="14" y="14" width="5" height="5" rx="1" fill="#000000" opacity="0.3" />
-										</g>
-									</svg>
-								</span>
-							</button>
-							<div class="menu menu-sub menu-sub-dropdown menu-column menu-rounded menu-gray-800 menu-state-bg-light-primary fw-bold w-200px py-3" data-kt-menu="true">
-								<div class="menu-item px-3">
-									<div class="menu-content text-muted pb-2 px-3 fs-7 text-uppercase">More Actions</div>
-								</div>
-								<div class="menu-item px-3">
-									<a href="#" class="menu-link px-3" id="btnDownloadgrafikkpiwaktutunggurjselesaianam">Download Excel</a>
-								</div>
-							</div>
-						</div>
-					</div>
-					<div class="card-body py-3">
-						<div class="card-rounded-bottom" id="grafikkpiwaktutunggurjselesaianam"></div>
-					</div>
-				</div>
-			</div>
-			<div class="col-md-12">
-				<div class="card card-flush">
-					<div class="card-header pt-5">
-						<h3 class="card-title align-items-start flex-column">
-							<span class="card-label fw-bolder fs-3 mb-1">Waktu Tunggu Selesai Anamnesa - Mulai Dokter</span>
-							<span class="text-muted mt-1 fw-bold fs-7">≥ 80% Waktu Tunggu Selesai Anamnesa - Mulai Dokter ≤ 30 menit</span>
-						</h3>
-						<div class="card-toolbar m-0">
-							<button type="button" class="btn btn-clean btn-sm btn-icon btn-icon-primary btn-active-light-primary me-n3" data-kt-menu-trigger="click" data-kt-menu-placement="bottom-end">
-								<span class="svg-icon svg-icon-3 svg-icon-primary">
-									<svg xmlns="http://www.w3.org/2000/svg" width="24px" height="24px" viewBox="0 0 24 24">
-										<g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
-											<rect x="5" y="5" width="5" height="5" rx="1" fill="#000000" />
-											<rect x="14" y="5" width="5" height="5" rx="1" fill="#000000" opacity="0.3" />
-											<rect x="5" y="14" width="5" height="5" rx="1" fill="#000000" opacity="0.3" />
-											<rect x="14" y="14" width="5" height="5" rx="1" fill="#000000" opacity="0.3" />
-										</g>
-									</svg>
-								</span>
-							</button>
-							<div class="menu menu-sub menu-sub-dropdown menu-column menu-rounded menu-gray-800 menu-state-bg-light-primary fw-bold w-200px py-3" data-kt-menu="true">
-								<div class="menu-item px-3">
-									<div class="menu-content text-muted pb-2 px-3 fs-7 text-uppercase">More Actions</div>
-								</div>
-								<div class="menu-item px-3">
-									<a href="#" class="menu-link px-3" id="btnDownloadgrafikkpiwaktutunggurjmulaidokter">Download Excel</a>
-								</div>
-							</div>
-						</div>
-					</div>
-					<div class="card-body py-3">
-						<div class="card-rounded-bottom" id="grafikkpiwaktutunggurjmulaidokter"></div>
+						<div class="card-rounded-bottom" id="kpirawatjalanwaktutunggu"></div>
 					</div>
 				</div>
 			</div>
 		</div>
     </div>
 
-    <div class="tab-pane fade show active" id="tab3" role="tabpanel">
+    <div class="tab-pane fade" id="tab3" role="tabpanel">
         <!-- Pembatalan Operasi -->
         <div class="alert alert-dismissible bg-light-info border border-info border-3 border-dashed d-flex flex-column flex-sm-row w-100 p-5 mb-10 fa-fade">
 			<span class="svg-icon svg-icon-2hx svg-icon-info me-4 mb-5 mb-sm-0">
@@ -449,65 +318,41 @@
 				<div class="card card-flush">
 					<div class="card-header pt-5">
 						<h3 class="card-title align-items-start flex-column">
-							<span class="card-label fw-bolder fs-3 mb-1">KPI Jam Pasien Pulang &lt; 12:00 WIB [MONTHLY]</span>
-							<span class="text-muted mt-1 fw-bold fs-7">Perbandingan Pasien NON TUTD dan TUTD, Pulang Sebelum dan Sesudah Pukul 12:00 WIB</span>
+							<span class="card-label fw-bolder fs-3 mb-1">KPI Jam Pasien Pulang &lt; 12:00 WIB</span>
+							<span class="text-muted mt-1 fw-bold fs-7">Pasien yang direncanakan pulang pada H-1 ( pulang sebelum pukul ≤ 12,00 waktu setempat di hari berikutnya) Target: ≥90%</span>
 						</h3>
 						<div class="card-toolbar m-0">
 							<ul class="nav nav-tabs nav-line-tabs nav-stretch fs-6 border-0 fw-bolder" role="tablist">
 								<li class="nav-item" role="presentation">
-									<a class="nav-link justify-content-center text-active-gray-800 active" data-bs-toggle="tab" role="tab" href="#tabkpitutdmountly">TUTD</a>
+									<a class="nav-link justify-content-center text-active-gray-800 active" data-bs-toggle="tab" role="tab" href="#tabkpirawatinapall">ALL</a>
 								</li>
 								<li class="nav-item" role="presentation">
-									<a class="nav-link justify-content-center text-active-gray-800" data-bs-toggle="tab" role="tab" href="#tabkpinontutdmountly">NON TUTD</a>
+									<a class="nav-link justify-content-center text-active-gray-800" data-bs-toggle="tab" role="tab" href="#tabkpirawatinaptutd">TUTD</a>
+								</li>
+								<li class="nav-item" role="presentation">
+									<a class="nav-link justify-content-center text-active-gray-800" data-bs-toggle="tab" role="tab" href="#tabkpirawatinapnontutd">NON TUTD</a>
 								</li>
 							</ul>
 						</div>
 					</div>
 					<div class="card-body py-3">
 						<div class="tab-content">
-							<div id="tabkpitutdmountly" class="card-body p-0 tab-pane fade show active" role="tabpanel">
-								<div class="card-rounded-bottom" id="grafikkpitutdmountly"></div>
+							<div id="tabkpirawatinapall" class="card-body p-0 tab-pane fade show active" role="tabpanel">
+								<div class="card-rounded-bottom" id="kpirawatinapall"></div>
+								<div class="card-rounded-bottom" id="kpirawatinapalldaily"></div>
 							</div>
-							<div id="tabkpinontutdmountly" class="card-body p-0 tab-pane fade" role="tabpanel">
-								<div class="card-rounded-bottom" id="grafikkpinontutdmountly"></div>
+							<div id="tabkpirawatinaptutd" class="card-body p-0 tab-pane fade" role="tabpanel">
+								<div class="card-rounded-bottom" id="kpirawatinaptutd"></div>
+								<div class="card-rounded-bottom" id="kpirawatinaptutddaily"></div>
 							</div>
-						</div>
-					</div>
-				</div>
-			</div>
-
-			<div class="col-xl-12 mb-5">
-				<div class="card card-flush">
-					<div class="card-header pt-5">
-						<h3 class="card-title align-items-start flex-column">
-							<span class="card-label fw-bolder fs-3 mb-1">KPI Jam Pasien Pulang &lt; 12:00 WIB [DAILY]</span>
-							<span class="text-muted mt-1 fw-bold fs-7">Perbandingan Pasien NON TUTD dan TUTD, Pulang Sebelum dan Sesudah Pukul 12:00 WIB</span>
-						</h3>
-						<div class="card-toolbar m-0">
-							<ul class="nav nav-tabs nav-line-tabs nav-stretch fs-6 border-0 fw-bolder" role="tablist">
-								<li class="nav-item" role="presentation">
-									<a class="nav-link justify-content-center text-active-gray-800 active" data-bs-toggle="tab" role="tab" href="#tabkpitutd">TUTD</a>
-								</li>
-								<li class="nav-item" role="presentation">
-									<a class="nav-link justify-content-center text-active-gray-800" data-bs-toggle="tab" role="tab" href="#tabkpinontutd">NON TUTD</a>
-								</li>
-							</ul>
-						</div>
-					</div>
-					<div class="card-body py-3">
-						<div class="tab-content">
-							<div id="tabkpitutd" class="card-body p-0 tab-pane fade show active" role="tabpanel">
-								<div class="card-rounded-bottom" id="grafikkpitutd"></div>
-							</div>
-							<div id="tabkpinontutd" class="card-body p-0 tab-pane fade" role="tabpanel">
-								<div class="card-rounded-bottom" id="grafikkpinontutd"></div>
+							<div id="tabkpirawatinapnontutd" class="card-body p-0 tab-pane fade" role="tabpanel">
+								<div class="card-rounded-bottom" id="kpirawatinapnontutd"></div>
+								<div class="card-rounded-bottom" id="kpirawatinapnontutddaily"></div>
 							</div>
 						</div>
 					</div>
 				</div>
 			</div>
-
-			
 		</div>
 
 		<div class="col-xl-12">
@@ -663,6 +508,7 @@
 			</div>
 		</div>
     </div>
+
 	<div class="tab-pane fade" id="tab7" role="tabpanel">
 		<div class="col-xl-12 mb-5">
 			<div class="card card-flush">

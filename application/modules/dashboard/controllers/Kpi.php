@@ -42,9 +42,9 @@
             echo json_encode($json);
         }
 
-        public function kpipasienrawatinappulangagregate(){
+        public function rawatjalanwaktutunggu(){
 			$periode = $this->input->post("selectperiode");
-            $result  = $this->md->kpipasienrawatinappulangagregate($periode);
+            $result  = $this->md->rawatjalanwaktutunggu($periode);
             
 			if(!empty($result)){
 				$json["responCode"]   = "00";
@@ -60,22 +60,58 @@
             echo json_encode($json);
         }
 
-        // public function kpipasienrawatinappulangdetail(){
-        //     $result  = $this->md->kpipasienrawatinappulangdetail();
+        public function rawatinap(){
+			$periode = $this->input->post("selectperiode");
+            $result  = $this->md->rawatinap($periode);
             
-		// 	if(!empty($result)){
-		// 		$json["responCode"]   = "00";
-		// 		$json["responHead"]   = "success";
-		// 		$json["responDesc"]   = "Data Di Temukan";
-		// 		$json['responResult'] = $result;
-        //     }else{
-        //         $json["responCode"] = "01";
-        //         $json["responHead"] = "info";
-        //         $json["responDesc"] = "Data Tidak Di Temukan";
-        //     }
+			if(!empty($result)){
+				$json["responCode"]   = "00";
+				$json["responHead"]   = "success";
+				$json["responDesc"]   = "Data Di Temukan";
+				$json['responResult'] = $result;
+            }else{
+                $json["responCode"] = "01";
+                $json["responHead"] = "info";
+                $json["responDesc"] = "Data Tidak Di Temukan";
+            }
 
-        //     echo json_encode($json);
-        // }
+            echo json_encode($json);
+        }
+
+        public function rawatinapdaily(){
+			$periode = $this->input->post("selectperiode");
+            $result  = $this->md->rawatinapdaily($periode);
+            
+			if(!empty($result)){
+				$json["responCode"]   = "00";
+				$json["responHead"]   = "success";
+				$json["responDesc"]   = "Data Di Temukan";
+				$json['responResult'] = $result;
+            }else{
+                $json["responCode"] = "01";
+                $json["responHead"] = "info";
+                $json["responDesc"] = "Data Tidak Di Temukan";
+            }
+
+            echo json_encode($json);
+        }
+
+        public function rawatinapdailydetail(){
+            $result  = $this->md->rawatinapdailydetail();
+            
+			if(!empty($result)){
+				$json["responCode"]   = "00";
+				$json["responHead"]   = "success";
+				$json["responDesc"]   = "Data Di Temukan";
+				$json['responResult'] = $result;
+            }else{
+                $json["responCode"] = "01";
+                $json["responHead"] = "info";
+                $json["responDesc"] = "Data Tidak Di Temukan";
+            }
+
+            echo json_encode($json);
+        }
 
         // public function pembatalanoperasielektif(){
 		// 	$periode = $this->input->post("selectperiode");

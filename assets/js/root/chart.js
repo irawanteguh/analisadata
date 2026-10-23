@@ -35,109 +35,416 @@ const resourceConfig = {
     }
 };
 
-function renderchartarea(name, data, titleX, titleY, seriesName, fieldName, rightAxisIndex = null, rightAxisLabel = "", avgField = null, avgLabel = "Rata-rata", annotationValue = null) {
+// function renderchartarea(name, data, titleX, titleY, seriesName, fieldName, rightAxisIndex = null, rightAxisLabel = "", avgField = null, avgLabel = "Rata-rata", annotationValue = null) {
 
+//     if (chartInstances[name]) {
+//         chartInstances[name].destroy();
+//         chartInstances[name] = null;
+//     }
+
+//     let series = [];
+
+//     if (Array.isArray(seriesName) && Array.isArray(fieldName)) {
+//         series = seriesName.map((nm, index) => ({
+//             name: nm,
+//             data: data.map(item => parseFloat(item[fieldName[index]] || 0)),
+//             yAxisIndex: (rightAxisIndex !== null && index === rightAxisIndex) ? 1 : 0
+//         }));
+//     } else {
+//         series = [{
+//             name: seriesName,
+//             data: data.map(item => parseFloat(item[fieldName] || 0))
+//         }];
+//     }
+
+//     let avgValue = null;
+
+//     if (avgField) {
+//         let total = 0;
+//         let count = 0;
+
+//         data.forEach(item => {
+//             let val = parseFloat(item[avgField]);
+//             if (!isNaN(val) && val > 0) {
+//                 total += val;
+//                 count++;
+//             }
+//         });
+
+//         avgValue = count > 0 ? total / count : 0;
+//     }
+
+//     let finalAnnotation = null;
+//     let finalLabel = "";
+
+//     if (annotationValue !== null) {
+//         finalAnnotation = annotationValue;
+//         finalLabel      = avgLabel;
+//     } else if (avgValue !== null) {
+//         finalAnnotation = avgValue;
+//         finalLabel      = `${avgLabel} (${Math.round(avgValue).toLocaleString()})`;
+//     }
+
+//     const options = {
+//         chart : { type: "area", height: 350, toolbar: { show: true }, zoom: { enabled: false } },
+//         series: series,
+//         xaxis : {
+//             categories   : data.map(item => item.periode),
+//             title        : { text: titleX },
+//             tickPlacement: 'on',
+//             axisBorder   : { show: true },
+//             axisTicks    : { show: true }
+//         },
+//         yaxis: rightAxisIndex !== null ? [
+//             {
+//                 title         : { text: titleY },
+//                 min           : 0,
+//                 forceNiceScale: true,
+//                 labels        : { formatter: val => val.toLocaleString() }
+//             },
+//             {
+//                 opposite: true,
+//                 title   : { text: rightAxisLabel },
+//                 labels  : { formatter: val => val.toLocaleString() }
+//             }
+//         ] : {
+//             title         : { text: titleY },
+//             min           : 0,
+//             forceNiceScale: true,
+//             labels        : { formatter: val => val.toLocaleString() }
+//         },
+//         stroke : { curve: 'smooth', width: 3 },
+//         markers: { size: 4 },
+//         fill   : {
+//             type    : 'gradient',
+//             gradient: { shadeIntensity: 1, opacityFrom: 0.75, opacityTo: 0.25, stops: [0, 100] }
+//         },
+//         dataLabels: { enabled: true, formatter: val => val.toLocaleString() },
+//         tooltip   : { y: { formatter: val => val.toLocaleString() } },
+//         grid      : { strokeDashArray: 4 },
+//         legend    : { position: 'top' },
+//         annotations: finalAnnotation !== null ? {
+//             yaxis: [{
+//                 y: finalAnnotation,
+//                 borderColor: '#FF0000',
+//                 strokeDashArray: 3,
+//                 label: {
+//                     text: finalLabel,
+//                     style: { background: '#FF0000', color: '#fff' }
+//                 }
+//             }]
+//         } : {}
+//     };
+
+//     const chartEl = document.querySelector(`#${name}`);
+//     chartEl.innerHTML = "";
+//     chartInstances[name] = new ApexCharts(chartEl, options);
+//     chartInstances[name].render();
+// }
+
+
+function renderchartarea(
+    name,
+    data,
+    titleX,
+    titleY,
+    seriesName,
+    fieldName,
+    rightAxisIndex = null,
+    rightAxisLabel = "",
+    avgField = null,
+    avgLabel = "Rata-rata",
+    annotationValue = null,
+    trendField = []
+) {
     if (chartInstances[name]) {
         chartInstances[name].destroy();
         chartInstances[name] = null;
     }
 
-    let series = [];
-
-    if (Array.isArray(seriesName) && Array.isArray(fieldName)) {
-        series = seriesName.map((nm, index) => ({
-            name: nm,
-            data: data.map(item => parseFloat(item[fieldName[index]] || 0)),
-            yAxisIndex: (rightAxisIndex !== null && index === rightAxisIndex) ? 1 : 0
-        }));
-    } else {
-        series = [{
-            name: seriesName,
-            data: data.map(item => parseFloat(item[fieldName] || 0))
-        }];
+    const chartEl = document.getElementById(name);
+    if (!chartEl) {
+        console.error("Chart element tidak ditemukan:", name);
+        return;
     }
 
+    data = Array.isArray(data) ? data : [];
+
+    const trendFields = Array.isArray(trendField)
+        ? trendField
+        : (trendField ? [trendField] : []);
+
+    const isMultiSeries =
+        Array.isArray(seriesName) && Array.isArray(fieldName);
+
+    const names = isMultiSeries ? seriesName : [seriesName];
+    const fields = isMultiSeries ? fieldName : [fieldName];
+
+    // Data series utama
+    const series = names.map((nm, index) => ({
+        name: nm,
+        type: "area",
+        data: data.map(item => {
+            const value = parseFloat(item[fields[index]]);
+            return Number.isFinite(value) ? value : null;
+        })
+    }));
+
+    // Menentukan seri yang menggunakan sumbu kanan
+    const hasRightAxis =
+        rightAxisIndex !== null &&
+        rightAxisIndex !== undefined &&
+        rightAxisIndex !== false;
+
+    // Menghitung regresi linear untuk seri yang dipilih
+    const trendSeries = [];
+
+    fields.forEach((field, index) => {
+        if (!trendFields.includes(field)) return;
+
+        const points = series[index].data
+            .map((value, i) => ({
+                x: i,
+                y: value
+            }))
+            .filter(point => point.y !== null);
+
+        if (points.length < 2) {
+            console.warn("Data tren tidak cukup:", field);
+            return;
+        }
+
+        const n = points.length;
+        const sumX = points.reduce((sum, p) => sum + p.x, 0);
+        const sumY = points.reduce((sum, p) => sum + p.y, 0);
+        const sumXY = points.reduce((sum, p) => sum + p.x * p.y, 0);
+        const sumX2 = points.reduce((sum, p) => sum + p.x * p.x, 0);
+
+        const denominator = n * sumX2 - sumX * sumX;
+        if (denominator === 0) return;
+
+        const slope =
+            (n * sumXY - sumX * sumY) / denominator;
+
+        const intercept = (sumY - slope * sumX) / n;
+
+        // Pertahankan posisi data sesuai kategori X
+        const trendData = series[index].data.map((_, i) => {
+            const value = intercept + slope * i;
+            return Number(value.toFixed(2));
+        });
+
+        trendSeries.push({
+            name: "Tren " + names[index],
+            type: "line",
+            data: trendData
+        });
+    });
+
+    // Data rata-rata
     let avgValue = null;
 
     if (avgField) {
-        let total = 0;
-        let count = 0;
+        const values = data
+            .map(item => parseFloat(item[avgField]))
+            .filter(value => Number.isFinite(value) && value > 0);
 
-        data.forEach(item => {
-            let val = parseFloat(item[avgField]);
-            if (!isNaN(val) && val > 0) {
-                total += val;
-                count++;
-            }
-        });
-
-        avgValue = count > 0 ? total / count : 0;
+        if (values.length > 0) {
+            avgValue =
+                values.reduce((sum, value) => sum + value, 0) /
+                values.length;
+        }
     }
 
-    let finalAnnotation = null;
-    let finalLabel = "";
+    const finalAnnotation =
+        annotationValue !== null && annotationValue !== undefined
+            ? annotationValue
+            : avgValue;
 
-    if (annotationValue !== null) {
-        finalAnnotation = annotationValue;
-        finalLabel      = avgLabel;
-    } else if (avgValue !== null) {
-        finalAnnotation = avgValue;
-        finalLabel      = `${avgLabel} (${Math.round(avgValue).toLocaleString()})`;
-    }
+    const finalLabel =
+        annotationValue !== null && annotationValue !== undefined
+            ? avgLabel
+            : avgValue !== null
+                ? `${avgLabel} (${Math.round(avgValue).toLocaleString("id-ID")})`
+                : "";
+
+    // Gabungkan series utama dan garis tren
+    const allSeries = [
+        ...series,
+        ...trendSeries
+    ];
+
+    const mainSeriesCount = series.length;
 
     const options = {
-        chart : { type: "area", height: 350, toolbar: { show: true }, zoom: { enabled: false } },
-        series: series,
-        xaxis : {
-            categories   : data.map(item => item.periode),
-            title        : { text: titleX },
-            tickPlacement: 'on',
-            axisBorder   : { show: true },
-            axisTicks    : { show: true }
-        },
-        yaxis: rightAxisIndex !== null ? [
-            {
-                title         : { text: titleY },
-                min           : 0,
-                forceNiceScale: true,
-                labels        : { formatter: val => val.toLocaleString() }
+        chart: {
+            type: "line",
+            height: 350,
+            toolbar: {
+                show: true
             },
-            {
-                opposite: true,
-                title   : { text: rightAxisLabel },
-                labels  : { formatter: val => val.toLocaleString() }
+            zoom: {
+                enabled: false
+            },
+            animations: {
+                enabled: true
             }
-        ] : {
-            title         : { text: titleY },
-            min           : 0,
-            forceNiceScale: true,
-            labels        : { formatter: val => val.toLocaleString() }
         },
-        stroke : { curve: 'smooth', width: 3 },
-        markers: { size: 4 },
-        fill   : {
-            type    : 'gradient',
-            gradient: { shadeIntensity: 1, opacityFrom: 0.75, opacityTo: 0.25, stops: [0, 100] }
+
+        series: allSeries,
+
+        xaxis: {
+            categories: data.map(item => item.periode),
+            title: {
+                text: titleX
+            },
+            tickPlacement: "on",
+            axisBorder: {
+                show: true
+            },
+            axisTicks: {
+                show: true
+            }
         },
-        dataLabels: { enabled: true, formatter: val => val.toLocaleString() },
-        tooltip   : { y: { formatter: val => val.toLocaleString() } },
-        grid      : { strokeDashArray: 4 },
-        legend    : { position: 'top' },
-        annotations: finalAnnotation !== null ? {
-            yaxis: [{
-                y: finalAnnotation,
-                borderColor: '#FF0000',
-                strokeDashArray: 3,
-                label: {
-                    text: finalLabel,
-                    style: { background: '#FF0000', color: '#fff' }
+
+        yaxis: hasRightAxis
+            ? [
+                {
+                    seriesName: names.filter(
+                        (_, index) => index !== rightAxisIndex
+                    ),
+                    title: {
+                        text: titleY
+                    },
+                    min: 0,
+                    forceNiceScale: true,
+                    labels: {
+                        formatter: value =>
+                            Number(value).toLocaleString("id-ID")
+                    }
+                },
+                {
+                    seriesName: [
+                        names[rightAxisIndex],
+                        ...trendSeries
+                            .filter(s =>
+                                s.name === "Tren " + names[rightAxisIndex]
+                            )
+                            .map(s => s.name)
+                    ],
+                    opposite: true,
+                    title: {
+                        text: rightAxisLabel
+                    },
+                    forceNiceScale: true,
+                    labels: {
+                        formatter: value =>
+                            Number(value).toLocaleString("id-ID")
+                    }
                 }
-            }]
-        } : {}
+            ]
+            : {
+                title: {
+                    text: titleY
+                },
+                min: 0,
+                forceNiceScale: true,
+                labels: {
+                    formatter: value =>
+                        Number(value).toLocaleString("id-ID")
+                }
+            },
+
+        stroke: {
+            curve: "smooth",
+            width: allSeries.map((s, index) =>
+                index >= mainSeriesCount ? 3 : 2
+            ),
+            dashArray: allSeries.map((s, index) =>
+                index >= mainSeriesCount ? 6 : 0
+            )
+        },
+
+        markers: {
+            size: allSeries.map((s, index) =>
+                index >= mainSeriesCount ? 5 : 3
+            ),
+            strokeWidth: 2,
+            hover: {
+                sizeOffset: 2
+            }
+        },
+
+        fill: {
+            type: allSeries.map((s, index) =>
+                index >= mainSeriesCount ? "solid" : "gradient"
+            ),
+            opacity: allSeries.map((s, index) =>
+                index >= mainSeriesCount ? 1 : 0.25
+            ),
+            gradient: {
+                shadeIntensity: 0,
+                opacityFrom: 0.45,
+                opacityTo: 0.05,
+                stops: [0, 100]
+            }
+        },
+
+        dataLabels: {
+            enabled: true,
+            enabledOnSeries: series.map((_, index) => index),
+            formatter: value =>
+                value === null || value === undefined
+                    ? ""
+                    : Number(value).toLocaleString("id-ID")
+        },
+
+        tooltip: {
+            shared: true,
+            intersect: false,
+            y: {
+                formatter: value =>
+                    value === null || value === undefined
+                        ? "-"
+                        : Number(value).toLocaleString("id-ID")
+            }
+        },
+
+        grid: {
+            strokeDashArray: 4
+        },
+
+        legend: {
+            position: "top"
+        },
+
+        annotations:
+            finalAnnotation !== null &&
+            finalAnnotation !== undefined &&
+            Number.isFinite(Number(finalAnnotation))
+                ? {
+                    yaxis: [{
+                        y: Number(finalAnnotation),
+                        borderColor: "#FF0000",
+                        strokeDashArray: 3,
+                        label: {
+                            text: finalLabel,
+                            style: {
+                                background: "#FF0000",
+                                color: "#FFFFFF"
+                            }
+                        }
+                    }]
+                }
+                : {},
+
+        noData: {
+            text: "Tidak ada data"
+        }
     };
 
-    const chartEl = document.querySelector(`#${name}`);
     chartEl.innerHTML = "";
+
     chartInstances[name] = new ApexCharts(chartEl, options);
     chartInstances[name].render();
 }
