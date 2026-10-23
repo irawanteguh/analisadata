@@ -6,13 +6,14 @@ $('#selectperiode').on('change', function () {
 
 
 function loaddata(){
-    rawatjalanwaktutunggu();
-    rawatjalanlamapelayanan();
     radiologi();
     rawatinap();
     rawatinapdaily();
     rawatinapdailydetail();
     pembatalanoperasielektif();
+    lamalayananigd();
+    rawatjalanwaktutunggu();
+    rawatjalanlamapelayanan();
 };
 
 function radiologi(){
@@ -869,6 +870,141 @@ function pembatalanoperasielektif(){
                 "",
                 null,
                 ["Value2"]
+            );
+        },
+
+        complete: function () {
+            Swal.close();
+        },
+
+        error: function () {
+            Swal.fire({
+                icon: "error",
+                title: "Request Failed",
+                text: "We were unable to process your request due to a server error. Please try again later. If the problem persists, contact your system administrator.",
+                confirmButtonText: "OK"
+            });
+        }
+    });
+};
+
+function lamalayananigd(){
+    let selectperiode = $("select[name='selectperiode']").val();
+    $.ajax({
+        url      : url + "index.php/dashboard/kpi/lamalayananigd",
+        type     : "POST",
+        dataType : "JSON",
+        data     : { selectperiode: selectperiode },
+
+        beforeSend: function () {
+            Swal.fire({
+                title            : 'Processing',
+                html             : 'Please wait while the system displays the requested data.',
+                allowOutsideClick: false,
+                allowEscapeKey   : false,
+                showConfirmButton: false,
+                didOpen          : () => Swal.showLoading()
+            });
+        },
+
+        success: function (response) {
+
+            if (response.responCode !== "00") {
+                Swal.fire({
+                    icon             : 'warning',
+                    title            : 'No Records Found',
+                    text             : 'No records are available for the selected period.',
+                    showConfirmButton: false,
+                    timer            : 2000
+                });
+                return;
+            }
+
+            const result       = Array.isArray(response.responResult) ? response.responResult : [];
+            const bulanLengkap = ["01","02","03","04","05","06","07","08","09","10","11","12"];
+            const namaBulan    = ["Jan","Feb","Mar","Apr","Mei","Jun","Jul","Agu","Sep","Okt","Nov","Des"];
+
+            const chartgrafikmonthlykpi = (() => {
+                const monthlyData = {};
+
+                bulanLengkap.forEach(bulan => {
+                    monthlyData[bulan] = {
+                        bulan,
+                        jmlall         : 0,
+                        jmlsebelum12all: 0,
+                        jmlsesudah12all: 0,
+                        presentasiall  : 0,
+                        avgmenit       : 0,
+                        presentasiavg  : 0
+                    };
+                });
+
+                result.forEach(item => {
+                    const bulan = String(item.BULAN || "").padStart(2, "0");
+                    if (!monthlyData[bulan]) return;
+
+                    monthlyData[bulan] = {
+                        bulan,
+                        jmlall         : Number(item.TOTAL) || 0,
+                        jmlsebelum12all: Number(item.JUMLAH_PASIEN_KURANG_SAMA_240_MENIT) || 0,
+                        jmlsesudah12all: Number(item.JUMLAH_PASIEN_LEBIH_240_MENIT) || 0,
+                        presentasiall  : Number(item.PERSENTASE_PASIEN_KURANG_SAMA_240_MENIT) || 0,
+                        avgmenit       : Number(item.AVG_DURASI_MENIT) || 0,
+                        presentasiavg  : Number(item.PERSENTASE_PENCAPAIAN_TARGET_4_JAM) || 0
+                    };
+                });
+
+                return bulanLengkap.map(bulan => {
+                    const item = monthlyData[bulan];
+
+                    return {
+                        periode: namaBulan[Number(bulan) - 1],
+
+                        Value1: item.jmlall,
+                        Value2: item.jmlsebelum12all,
+                        Value3: item.jmlsesudah12all,
+                        Value4: item.presentasiall,
+                        Value5: item.avgmenit,
+                        Value6: item.presentasiavg
+                    };
+                });
+            })();
+
+            renderchartarea(
+                "kpiigdlayalayan",
+                chartgrafikmonthlykpi,
+                "Bulan",
+                "Persentase (%)",
+                [
+                    "Persentase ≤ 4 jam",
+                    "Tercapai",
+                    "Tidak Tercapai"
+                ],
+                ["Value4", "Value2", "Value3"],
+                true,
+                "Jumlah",
+                null,
+                "",
+                null,
+                ["Value2"]
+            );
+
+            renderchartarea(
+                "kpiigdlayalayanavg",
+                chartgrafikmonthlykpi,
+                "Bulan",
+                "Persentase (%)",
+                [
+                    "Persentase ≤ 4 jam",
+                    "Avg Menit"
+                ],
+                ["Value6", "Value5"],
+                true,
+                "Menit",
+                null,
+                "",
+                null,
+                ["Value5"]
             );
         },
 

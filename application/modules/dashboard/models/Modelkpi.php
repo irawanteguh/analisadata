@@ -294,6 +294,130 @@
             return $recordset;
         }
 
+        function lamalayananigd($periode){
+            $query =
+                    "
+                        
+                        WITH SPRI AS (
+                            SELECT *
+                            FROM (
+                                SELECT
+                                    T.*,
+                                    ROW_NUMBER() OVER (
+                                        PARTITION BY T.PASIEN_ID, T.EPISODE_ID
+                                        ORDER BY T.CREATED_DATE ASC
+                                    ) AS RN
+                                FROM WEB_CO_MINTA_RANAP T
+                                WHERE T.AKTIF = '1'
+                            )
+                            WHERE RN = 1
+                        ),
+                        BASEDATA AS (
+                            SELECT
+                                A.PASIEN_ID,
+                                A.EPISODE_ID,
+                                A.TGL_MASUK,
+                                A.JENIS_EPISODE,
+                                A.STATUS_EPISODE,
+                                A.CREATED_DATE AS REGISTRASI_IGD,
+                                (
+                                    SELECT MIN(R.CREATED_DATE)
+                                    FROM WEB_CO_RESUME R
+                                    WHERE R.PASIEN_ID = A.PASIEN_ID
+                                    AND R.EPISODE_ID = A.EPISODE_ID
+                                ) AS SELESAI_DOKTER,
+                                SPRI.CREATED_DATE AS SPRI_DATE
+                            FROM SR01_KEU_EPISODE A
+                            LEFT JOIN SPRI
+                                ON SPRI.PASIEN_ID = A.PASIEN_ID
+                            AND SPRI.EPISODE_ID = A.EPISODE_ID
+                            WHERE A.LOKASI_ID = '001'
+                            AND A.AKTIF = '1'
+                            AND A.STATUS_EPISODE <> '99'
+                            AND TO_CHAR(A.TGL_MASUK, 'YYYY') = '".$periode."'
+                            AND (
+                                    (
+                                        A.JENIS_EPISODE = 'I'
+                                        AND EXISTS (
+                                            SELECT 1
+                                            FROM SR01_PASIEN_IGD X
+                                            WHERE X.PASIEN_ID = A.PASIEN_ID
+                                            AND X.EPISODE_ID = A.EPISODE_ID
+                                        )
+                                    )
+                                    OR (
+                                        A.JENIS_EPISODE = 'O'
+                                        AND A.POLI_ID = 'UGD01'
+                                    )
+                            )
+                        ),
+                        DATA_FILTER AS (
+                            SELECT A.*
+                            FROM BASEDATA A
+                            WHERE A.JENIS_EPISODE IS NULL
+                            OR A.STATUS_EPISODE IS NULL
+                            OR A.JENIS_EPISODE <> 'O'
+                            OR A.STATUS_EPISODE <> '00'
+                            OR A.SPRI_DATE IS NULL
+                        ),
+                        DATA_DURASI AS (
+                            SELECT
+                                A.*,
+                                CASE
+                                    WHEN A.JENIS_EPISODE = 'O'
+                                    AND A.STATUS_EPISODE = '55'
+                                        THEN (A.SELESAI_DOKTER - A.REGISTRASI_IGD) * 1440
+                                    ELSE (A.SPRI_DATE - A.REGISTRASI_IGD) * 1440
+                                END AS DURASI_MENIT
+                            FROM DATA_FILTER A
+                        )
+                        SELECT
+                            TO_CHAR(TGL_MASUK, 'MM') AS BULAN,
+                            COUNT(*) AS TOTAL,
+                            SUM(
+                                CASE
+                                    WHEN DURASI_MENIT >= 0
+                                    AND DURASI_MENIT <= 240
+                                    THEN 1
+                                    ELSE 0
+                                END
+                            ) AS JUMLAH_PASIEN_KURANG_SAMA_240_MENIT,
+                            SUM(
+                                CASE
+                                    WHEN DURASI_MENIT > 240
+                                    THEN 1
+                                    ELSE 0
+                                END
+                            ) AS JUMLAH_PASIEN_LEBIH_240_MENIT,
+                            ROUND(
+                                SUM(
+                                    CASE
+                                        WHEN DURASI_MENIT >= 0
+                                        AND DURASI_MENIT <= 240
+                                        THEN 1
+                                        ELSE 0
+                                    END
+                                ) * 100 / NULLIF(COUNT(*), 0),
+                                2
+                            ) AS PERSENTASE_PASIEN_KURANG_SAMA_240_MENIT,
+                            ROUND(AVG(DURASI_MENIT), 2) AS AVG_DURASI_MENIT,
+                            LEAST(
+                                100,
+                                ROUND(
+                                    240 / NULLIF(AVG(DURASI_MENIT), 0) * 100,
+                                    2
+                                )
+                            ) AS PERSENTASE_PENCAPAIAN_TARGET_4_JAM
+                        FROM DATA_DURASI
+                        GROUP BY TO_CHAR(TGL_MASUK, 'MM')
+                        ORDER BY BULAN
+                    ";
+
+            $recordset = $this->db->query($query);
+            $recordset = $recordset->result();
+            return $recordset;
+        }
+
         function rawatjalanlamapelayanan($periode){
             $query =
                     "
