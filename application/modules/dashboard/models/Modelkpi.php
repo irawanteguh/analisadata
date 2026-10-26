@@ -45,6 +45,252 @@
             return $recordset;
         }
 
+        function lamalayananigd($periode){
+            $query =
+                    "
+                        
+                        WITH SPRI AS (
+                            SELECT *
+                            FROM (
+                                SELECT
+                                    T.*,
+                                    ROW_NUMBER() OVER (
+                                        PARTITION BY T.PASIEN_ID, T.EPISODE_ID
+                                        ORDER BY T.CREATED_DATE ASC
+                                    ) AS RN
+                                FROM WEB_CO_MINTA_RANAP T
+                                WHERE T.AKTIF = '1'
+                            )
+                            WHERE RN = 1
+                        ),
+                        BASEDATA AS (
+                            SELECT
+                                A.PASIEN_ID,
+                                A.EPISODE_ID,
+                                A.TGL_MASUK,
+                                A.JENIS_EPISODE,
+                                A.STATUS_EPISODE,
+                                A.CREATED_DATE AS REGISTRASI_IGD,
+                                (
+                                    SELECT MIN(R.CREATED_DATE)
+                                    FROM WEB_CO_RESUME R
+                                    WHERE R.PASIEN_ID = A.PASIEN_ID
+                                    AND R.EPISODE_ID = A.EPISODE_ID
+                                ) AS SELESAI_DOKTER,
+                                SPRI.CREATED_DATE AS SPRI_DATE
+                            FROM SR01_KEU_EPISODE A
+                            LEFT JOIN SPRI
+                                ON SPRI.PASIEN_ID = A.PASIEN_ID
+                            AND SPRI.EPISODE_ID = A.EPISODE_ID
+                            WHERE A.LOKASI_ID = '001'
+                            AND A.AKTIF = '1'
+                            AND A.STATUS_EPISODE <> '99'
+                            AND TO_CHAR(A.TGL_MASUK, 'YYYY') = '".$periode."'
+                            AND (
+                                    (
+                                        A.JENIS_EPISODE = 'I'
+                                        AND EXISTS (
+                                            SELECT 1
+                                            FROM SR01_PASIEN_IGD X
+                                            WHERE X.PASIEN_ID = A.PASIEN_ID
+                                            AND X.EPISODE_ID = A.EPISODE_ID
+                                        )
+                                    )
+                                    OR (
+                                        A.JENIS_EPISODE = 'O'
+                                        AND A.POLI_ID = 'UGD01'
+                                    )
+                            )
+                        ),
+                        DATA_FILTER AS (
+                            SELECT A.*
+                            FROM BASEDATA A
+                            WHERE A.JENIS_EPISODE IS NULL
+                            OR A.STATUS_EPISODE IS NULL
+                            OR A.JENIS_EPISODE <> 'O'
+                            OR A.STATUS_EPISODE <> '00'
+                            OR A.SPRI_DATE IS NULL
+                        ),
+                        DATA_DURASI AS (
+                            SELECT
+                                A.*,
+                                CASE
+                                    WHEN A.JENIS_EPISODE = 'O'
+                                    AND A.STATUS_EPISODE = '55'
+                                        THEN (A.SELESAI_DOKTER - A.REGISTRASI_IGD) * 1440
+                                    ELSE (A.SPRI_DATE - A.REGISTRASI_IGD) * 1440
+                                END AS DURASI_MENIT
+                            FROM DATA_FILTER A
+                        )
+                        SELECT
+                            TO_CHAR(TGL_MASUK, 'MM') AS BULAN,
+                            COUNT(*) AS TOTAL,
+                            SUM(
+                                CASE
+                                    WHEN DURASI_MENIT >= 0
+                                    AND DURASI_MENIT <= 240
+                                    THEN 1
+                                    ELSE 0
+                                END
+                            ) AS JUMLAH_PASIEN_KURANG_SAMA_240_MENIT,
+                            SUM(
+                                CASE
+                                    WHEN DURASI_MENIT > 240
+                                    THEN 1
+                                    ELSE 0
+                                END
+                            ) AS JUMLAH_PASIEN_LEBIH_240_MENIT,
+                            ROUND(
+                                SUM(
+                                    CASE
+                                        WHEN DURASI_MENIT >= 0
+                                        AND DURASI_MENIT <= 240
+                                        THEN 1
+                                        ELSE 0
+                                    END
+                                ) * 100 / NULLIF(COUNT(*), 0),
+                                2
+                            ) AS PERSENTASE_PASIEN_KURANG_SAMA_240_MENIT,
+                            ROUND(AVG(DURASI_MENIT), 2) AS AVG_DURASI_MENIT
+                        FROM DATA_DURASI
+                        GROUP BY TO_CHAR(TGL_MASUK, 'MM')
+                        ORDER BY BULAN
+                    ";
+
+            $recordset = $this->db->query($query);
+            $recordset = $recordset->result();
+            return $recordset;
+        }
+
+        function waktutunggumasukranap($periode){
+            $query =
+                    "
+                        
+                        WITH RANAP AS (
+                            SELECT
+                                PASIEN_ID,
+                                EPISODE_ID,
+                                MIN(CREATED_DATE) AS MASUK_RANAP
+                            FROM SR01_KEU_TRANSKMR_IT
+                            WHERE AKTIF = '1'
+                            AND RUANG_ID NOT LIKE 'TRANSIT%'
+                            GROUP BY PASIEN_ID, EPISODE_ID
+                        ),
+                        BASEDATA AS (
+                            SELECT
+                                A.PASIEN_ID,
+                                A.EPISODE_ID,
+                                A.TGL_MASUK,
+                                RN.MASUK_RANAP,
+                                (
+                                    SELECT MIN(T.CREATED_DATE)
+                                    FROM SR01_MED_TRNSF_RUANG T
+                                    WHERE T.PASIEN_ID = A.PASIEN_ID
+                                    AND T.EPISODE_ID = A.EPISODE_ID
+                                    AND T.AKTIF = '1'
+                                    AND T.CREATED_DATE >= RN.MASUK_RANAP
+                                ) AS BUAT_TRANSFER,
+                                (
+                                    SELECT (
+                                        MIN(T.CREATED_DATE) - RN.MASUK_RANAP
+                                    ) * 1440
+                                    FROM SR01_MED_TRNSF_RUANG T
+                                    WHERE T.PASIEN_ID = A.PASIEN_ID
+                                    AND T.EPISODE_ID = A.EPISODE_ID
+                                    AND T.AKTIF = '1'
+                                    AND T.CREATED_DATE >= RN.MASUK_RANAP
+                                ) AS DURASI_MENIT
+                            FROM SR01_KEU_EPISODE A
+                            LEFT JOIN RANAP RN
+                                ON RN.PASIEN_ID = A.PASIEN_ID
+                            AND RN.EPISODE_ID = A.EPISODE_ID
+                            WHERE A.LOKASI_ID = '001'
+                            AND A.AKTIF = '1'
+                            AND A.JENIS_EPISODE = 'I'
+                            AND A.STATUS_EPISODE <> '99'
+                            AND A.RUANGRWT_ID NOT LIKE 'TRANSIT%'
+                            AND TO_CHAR(A.TGL_MASUK, 'YYYY') = '".$periode."'
+                            AND EXISTS (
+                                SELECT 1
+                                FROM SR01_PASIEN_IGD X
+                                WHERE X.PASIEN_ID = A.PASIEN_ID
+                                    AND X.EPISODE_ID = A.EPISODE_ID
+                            )
+                        )
+                        SELECT
+                            TO_CHAR(TGL_MASUK, 'MM') AS BULAN,
+                            COUNT(*) AS TOTAL,
+
+                            SUM(
+                                CASE
+                                    WHEN DURASI_MENIT >= 0 AND DURASI_MENIT <= 60
+                                    THEN 1 ELSE 0
+                                END
+                            ) AS JUMLAH_PASIEN_KURANG_SAMA_60_MENIT,
+
+                            SUM(
+                                CASE
+                                    WHEN DURASI_MENIT > 60
+                                    THEN 1 ELSE 0
+                                END
+                            ) AS JUMLAH_PASIEN_LEBIH_60_MENIT,
+
+                            ROUND(
+                                AVG(
+                                    CASE
+                                        WHEN DURASI_MENIT >= 0
+                                        THEN DURASI_MENIT
+                                    END
+                                ),
+                                2
+                            ) AS AVG_DURASI_MENIT,
+
+                            ROUND(
+                                100 * SUM(
+                                    CASE
+                                        WHEN DURASI_MENIT >= 0 AND DURASI_MENIT <= 60
+                                        THEN 1 ELSE 0
+                                    END
+                                ) / NULLIF(
+                                    SUM(
+                                        CASE
+                                            WHEN DURASI_MENIT >= 0
+                                            THEN 1 ELSE 0
+                                        END
+                                    ),
+                                    0
+                                ),
+                                2
+                            ) AS PERSENTASE_PASIEN_KURANG_SAMA_60_MENIT,
+
+                            ROUND(
+                                100 * SUM(
+                                    CASE
+                                        WHEN DURASI_MENIT > 60
+                                        THEN 1 ELSE 0
+                                    END
+                                ) / NULLIF(
+                                    SUM(
+                                        CASE
+                                            WHEN DURASI_MENIT >= 0
+                                            THEN 1 ELSE 0
+                                        END
+                                    ),
+                                    0
+                                ),
+                                2
+                            ) AS PERSENTASE_PASIEN_LEBIH_60_MENIT
+
+                        FROM BASEDATA
+                        GROUP BY TO_CHAR(TGL_MASUK, 'MM')
+                        ORDER BY BULAN
+                    ";
+
+            $recordset = $this->db->query($query);
+            $recordset = $recordset->result();
+            return $recordset;
+        }
+
         function rawatinap($periode){
             $query =
                     "
@@ -287,130 +533,6 @@
                     FROM DATA_HITUNG
                     GROUP BY BULAN
                     ORDER BY BULAN
-                    ";
-
-            $recordset = $this->db->query($query);
-            $recordset = $recordset->result();
-            return $recordset;
-        }
-
-        function lamalayananigd($periode){
-            $query =
-                    "
-                        
-                        WITH SPRI AS (
-                            SELECT *
-                            FROM (
-                                SELECT
-                                    T.*,
-                                    ROW_NUMBER() OVER (
-                                        PARTITION BY T.PASIEN_ID, T.EPISODE_ID
-                                        ORDER BY T.CREATED_DATE ASC
-                                    ) AS RN
-                                FROM WEB_CO_MINTA_RANAP T
-                                WHERE T.AKTIF = '1'
-                            )
-                            WHERE RN = 1
-                        ),
-                        BASEDATA AS (
-                            SELECT
-                                A.PASIEN_ID,
-                                A.EPISODE_ID,
-                                A.TGL_MASUK,
-                                A.JENIS_EPISODE,
-                                A.STATUS_EPISODE,
-                                A.CREATED_DATE AS REGISTRASI_IGD,
-                                (
-                                    SELECT MIN(R.CREATED_DATE)
-                                    FROM WEB_CO_RESUME R
-                                    WHERE R.PASIEN_ID = A.PASIEN_ID
-                                    AND R.EPISODE_ID = A.EPISODE_ID
-                                ) AS SELESAI_DOKTER,
-                                SPRI.CREATED_DATE AS SPRI_DATE
-                            FROM SR01_KEU_EPISODE A
-                            LEFT JOIN SPRI
-                                ON SPRI.PASIEN_ID = A.PASIEN_ID
-                            AND SPRI.EPISODE_ID = A.EPISODE_ID
-                            WHERE A.LOKASI_ID = '001'
-                            AND A.AKTIF = '1'
-                            AND A.STATUS_EPISODE <> '99'
-                            AND TO_CHAR(A.TGL_MASUK, 'YYYY') = '".$periode."'
-                            AND (
-                                    (
-                                        A.JENIS_EPISODE = 'I'
-                                        AND EXISTS (
-                                            SELECT 1
-                                            FROM SR01_PASIEN_IGD X
-                                            WHERE X.PASIEN_ID = A.PASIEN_ID
-                                            AND X.EPISODE_ID = A.EPISODE_ID
-                                        )
-                                    )
-                                    OR (
-                                        A.JENIS_EPISODE = 'O'
-                                        AND A.POLI_ID = 'UGD01'
-                                    )
-                            )
-                        ),
-                        DATA_FILTER AS (
-                            SELECT A.*
-                            FROM BASEDATA A
-                            WHERE A.JENIS_EPISODE IS NULL
-                            OR A.STATUS_EPISODE IS NULL
-                            OR A.JENIS_EPISODE <> 'O'
-                            OR A.STATUS_EPISODE <> '00'
-                            OR A.SPRI_DATE IS NULL
-                        ),
-                        DATA_DURASI AS (
-                            SELECT
-                                A.*,
-                                CASE
-                                    WHEN A.JENIS_EPISODE = 'O'
-                                    AND A.STATUS_EPISODE = '55'
-                                        THEN (A.SELESAI_DOKTER - A.REGISTRASI_IGD) * 1440
-                                    ELSE (A.SPRI_DATE - A.REGISTRASI_IGD) * 1440
-                                END AS DURASI_MENIT
-                            FROM DATA_FILTER A
-                        )
-                        SELECT
-                            TO_CHAR(TGL_MASUK, 'MM') AS BULAN,
-                            COUNT(*) AS TOTAL,
-                            SUM(
-                                CASE
-                                    WHEN DURASI_MENIT >= 0
-                                    AND DURASI_MENIT <= 240
-                                    THEN 1
-                                    ELSE 0
-                                END
-                            ) AS JUMLAH_PASIEN_KURANG_SAMA_240_MENIT,
-                            SUM(
-                                CASE
-                                    WHEN DURASI_MENIT > 240
-                                    THEN 1
-                                    ELSE 0
-                                END
-                            ) AS JUMLAH_PASIEN_LEBIH_240_MENIT,
-                            ROUND(
-                                SUM(
-                                    CASE
-                                        WHEN DURASI_MENIT >= 0
-                                        AND DURASI_MENIT <= 240
-                                        THEN 1
-                                        ELSE 0
-                                    END
-                                ) * 100 / NULLIF(COUNT(*), 0),
-                                2
-                            ) AS PERSENTASE_PASIEN_KURANG_SAMA_240_MENIT,
-                            ROUND(AVG(DURASI_MENIT), 2) AS AVG_DURASI_MENIT,
-                            LEAST(
-                                100,
-                                ROUND(
-                                    240 / NULLIF(AVG(DURASI_MENIT), 0) * 100,
-                                    2
-                                )
-                            ) AS PERSENTASE_PENCAPAIAN_TARGET_4_JAM
-                        FROM DATA_DURASI
-                        GROUP BY TO_CHAR(TGL_MASUK, 'MM')
-                        ORDER BY BULAN
                     ";
 
             $recordset = $this->db->query($query);
@@ -691,12 +813,15 @@
                             AND   A.JENIS_EPISODE = 'I'
                             AND   A.PULANG_ID NOT IN ('P02', 'P04', 'P10', 'P11', 'P0X')
                             AND   A.KELAS_ID <> 'V'
+                            AND   A.RUANGRWT_ID NOT LIKE 'TRANSIT%'
+                            AND   A.RUANGRWT_ID NOT LIKE 'PICU%'
+                            AND   A.RUANGRWT_ID NOT LIKE 'NICU%'
                             AND   A.RUANGRWT_ID NOT LIKE 'CVC%'
                             AND   A.RUANGRWT_ID NOT LIKE 'IC%'
                             AND   A.RUANGRWT_ID NOT LIKE 'KBY%'
                             AND   A.RUANGRWT_ID NOT LIKE 'PER%'
                             AND   A.TGL_KELUAR IS NOT NULL
-                            AND   TO_CHAR(A.TGL_KELUAR,'YYYY')='2026'
+                            AND   TO_CHAR(A.TGL_KELUAR,'YYYY')='".$periode."'
                             GROUP BY TO_CHAR(A.TGL_KELUAR, 'DD.MM.YYYY')
                             ORDER BY TO_DATE(PERIODE,'DD.MM.YYYY') DESC
                             FETCH FIRST 30 ROW ONLY
@@ -725,6 +850,9 @@
                             AND A.JENIS_EPISODE = 'I'
                             AND A.STATUS_EPISODE = '00'
                             AND A.KELAS_ID <> 'V'
+                            AND   A.RUANGRWT_ID NOT LIKE 'TRANSIT%'
+                            AND   A.RUANGRWT_ID NOT LIKE 'PICU%'
+                            AND   A.RUANGRWT_ID NOT LIKE 'NICU%'
                             AND   A.RUANGRWT_ID NOT LIKE 'CVC%'
                             AND   A.RUANGRWT_ID NOT LIKE 'IC%'
                             AND   A.RUANGRWT_ID NOT LIKE 'KBY%'
@@ -790,6 +918,99 @@
                         LEFT JOIN SR01_MED_DOKTER_MS D
                         ON D.DOKTER_ID = X.DOKTER_ID
                         ORDER BY TO_DATE(TGLKELUAR,'DD.MM.YYYY HH24:MI:SS')DESC
+                    ";
+
+            $recordset = $this->db->query($query);
+            $recordset = $recordset->result();
+            return $recordset;
+        }
+
+        function rawatinapheatmap(){
+            $query =
+                    "
+                        SELECT
+                            TO_CHAR(TANGGAL, 'DD.MM.YYYY') AS PERIODE,
+                            NVL(JAM_00, 0) AS JAM_00,
+                            NVL(JAM_01, 0) AS JAM_01,
+                            NVL(JAM_02, 0) AS JAM_02,
+                            NVL(JAM_03, 0) AS JAM_03,
+                            NVL(JAM_04, 0) AS JAM_04,
+                            NVL(JAM_05, 0) AS JAM_05,
+                            NVL(JAM_06, 0) AS JAM_06,
+                            NVL(JAM_07, 0) AS JAM_07,
+                            NVL(JAM_08, 0) AS JAM_08,
+                            NVL(JAM_09, 0) AS JAM_09,
+                            NVL(JAM_10, 0) AS JAM_10,
+                            NVL(JAM_11, 0) AS JAM_11,
+                            NVL(JAM_12, 0) AS JAM_12,
+                            NVL(JAM_13, 0) AS JAM_13,
+                            NVL(JAM_14, 0) AS JAM_14,
+                            NVL(JAM_15, 0) AS JAM_15,
+                            NVL(JAM_16, 0) AS JAM_16,
+                            NVL(JAM_17, 0) AS JAM_17,
+                            NVL(JAM_18, 0) AS JAM_18,
+                            NVL(JAM_19, 0) AS JAM_19,
+                            NVL(JAM_20, 0) AS JAM_20,
+                            NVL(JAM_21, 0) AS JAM_21,
+                            NVL(JAM_22, 0) AS JAM_22,
+                            NVL(JAM_23, 0) AS JAM_23
+                        FROM (
+                            SELECT *
+                            FROM (
+                                SELECT
+                                    TRUNC(A.TGL_KELUAR) AS TANGGAL,
+                                    TO_CHAR(A.TGL_KELUAR, 'HH24') AS JAM,
+                                    COUNT(*) AS JUMLAH_PASIEN
+                                FROM SR01_KEU_EPISODE A
+                                WHERE A.LOKASI_ID = '001'
+                                AND A.AKTIF = '1'
+                                AND A.JENIS_EPISODE = 'I'
+                                AND A.PULANG_ID NOT IN ('P02', 'P04', 'P10', 'P11', 'P0X')
+                                AND A.KELAS_ID <> 'V'
+                                AND A.RUANGRWT_ID NOT LIKE 'TRANSIT%'
+                                AND A.RUANGRWT_ID NOT LIKE 'PICU%'
+                                AND A.RUANGRWT_ID NOT LIKE 'NICU%'
+                                AND A.RUANGRWT_ID NOT LIKE 'CVC%'
+                                AND A.RUANGRWT_ID NOT LIKE 'IC%'
+                                AND A.RUANGRWT_ID NOT LIKE 'KBY%'
+                                AND A.RUANGRWT_ID NOT LIKE 'PER%'
+                                AND A.TGL_KELUAR >= TRUNC(SYSDATE) - 29
+                                AND A.TGL_KELUAR < TRUNC(SYSDATE) + 1
+                                GROUP BY
+                                    TRUNC(A.TGL_KELUAR),
+                                    TO_CHAR(A.TGL_KELUAR, 'HH24')
+                            )
+                            PIVOT (
+                                SUM(JUMLAH_PASIEN)
+                                FOR JAM IN (
+                                    '00' AS JAM_00,
+                                    '01' AS JAM_01,
+                                    '02' AS JAM_02,
+                                    '03' AS JAM_03,
+                                    '04' AS JAM_04,
+                                    '05' AS JAM_05,
+                                    '06' AS JAM_06,
+                                    '07' AS JAM_07,
+                                    '08' AS JAM_08,
+                                    '09' AS JAM_09,
+                                    '10' AS JAM_10,
+                                    '11' AS JAM_11,
+                                    '12' AS JAM_12,
+                                    '13' AS JAM_13,
+                                    '14' AS JAM_14,
+                                    '15' AS JAM_15,
+                                    '16' AS JAM_16,
+                                    '17' AS JAM_17,
+                                    '18' AS JAM_18,
+                                    '19' AS JAM_19,
+                                    '20' AS JAM_20,
+                                    '21' AS JAM_21,
+                                    '22' AS JAM_22,
+                                    '23' AS JAM_23
+                                )
+                            )
+                        )
+                        ORDER BY TANGGAL DESC
                     ";
 
             $recordset = $this->db->query($query);

@@ -9,9 +9,11 @@ function loaddata(){
     radiologi();
     rawatinap();
     rawatinapdaily();
+    rawatinapheatmap();
     rawatinapdailydetail();
     pembatalanoperasielektif();
     lamalayananigd();
+    waktutunggumasukranap();
     rawatjalanwaktutunggu();
     rawatjalanlamapelayanan();
 };
@@ -680,6 +682,66 @@ function rawatinapdaily(){
     });
 };
 
+function rawatinapheatmap(){
+    let selectperiode = $("select[name='selectperiode']").val();
+    $.ajax({
+        url      : url + "index.php/dashboard/kpi/rawatinapheatmap",
+        type     : "POST",
+        dataType : "JSON",
+        data     : { selectperiode: selectperiode },
+
+        beforeSend: function () {
+            Swal.fire({
+                title            : 'Processing',
+                html             : 'Please wait while the system displays the requested data.',
+                allowOutsideClick: false,
+                allowEscapeKey   : false,
+                showConfirmButton: false,
+                didOpen          : () => Swal.showLoading()
+            });
+        },
+
+        success: function (response) {
+
+            if (response.responCode !== "00") {
+                Swal.fire({
+                    icon             : 'warning',
+                    title            : 'No Records Found',
+                    text             : 'No records are available for the selected period.',
+                    showConfirmButton: false,
+                    timer            : 2000
+                });
+                return;
+            }
+
+            const result       = Array.isArray(response.responResult) ? response.responResult : [];
+
+            renderchartheatmap(
+                "kpirawatinapallheatmap",
+                result,
+                "Inpatient Discharges by Hour",
+                "Hour of Discharge",
+                "Discharge Date",
+                "PERIODE",
+                "JAM_"
+            );
+        },
+
+        complete: function () {
+            Swal.close();
+        },
+
+        error: function () {
+            Swal.fire({
+                icon: "error",
+                title: "Request Failed",
+                text: "We were unable to process your request due to a server error. Please try again later. If the problem persists, contact your system administrator.",
+                confirmButtonText: "OK"
+            });
+        }
+    });
+};
+
 function rawatinapdailydetail(){
     const selectperiode = $("select[name='selectperiode']").val();
     $.ajax({
@@ -949,8 +1011,7 @@ function lamalayananigd(){
                         jmlsebelum12all: Number(item.JUMLAH_PASIEN_KURANG_SAMA_240_MENIT) || 0,
                         jmlsesudah12all: Number(item.JUMLAH_PASIEN_LEBIH_240_MENIT) || 0,
                         presentasiall  : Number(item.PERSENTASE_PASIEN_KURANG_SAMA_240_MENIT) || 0,
-                        avgmenit       : Number(item.AVG_DURASI_MENIT) || 0,
-                        presentasiavg  : Number(item.PERSENTASE_PENCAPAIAN_TARGET_4_JAM) || 0
+                        avgmenit       : Number(item.AVG_DURASI_MENIT) || 0
                     };
                 });
 
@@ -964,8 +1025,7 @@ function lamalayananigd(){
                         Value2: item.jmlsebelum12all,
                         Value3: item.jmlsesudah12all,
                         Value4: item.presentasiall,
-                        Value5: item.avgmenit,
-                        Value6: item.presentasiavg
+                        Value5: item.avgmenit
                     };
                 });
             })();
@@ -978,9 +1038,10 @@ function lamalayananigd(){
                 [
                     "Persentase ≤ 4 jam",
                     "Tercapai",
-                    "Tidak Tercapai"
+                    "Tidak Tercapai",
+                    "Avg Menit"
                 ],
-                ["Value4", "Value2", "Value3"],
+                ["Value4", "Value2", "Value3", "Value5"],
                 true,
                 "Jumlah",
                 null,
@@ -988,23 +1049,121 @@ function lamalayananigd(){
                 null,
                 ["Value2"]
             );
+        },
+
+        complete: function () {
+            Swal.close();
+        },
+
+        error: function () {
+            Swal.fire({
+                icon: "error",
+                title: "Request Failed",
+                text: "We were unable to process your request due to a server error. Please try again later. If the problem persists, contact your system administrator.",
+                confirmButtonText: "OK"
+            });
+        }
+    });
+};
+
+function waktutunggumasukranap(){
+    let selectperiode = $("select[name='selectperiode']").val();
+    $.ajax({
+        url      : url + "index.php/dashboard/kpi/waktutunggumasukranap",
+        type     : "POST",
+        dataType : "JSON",
+        data     : { selectperiode: selectperiode },
+
+        beforeSend: function () {
+            Swal.fire({
+                title            : 'Processing',
+                html             : 'Please wait while the system displays the requested data.',
+                allowOutsideClick: false,
+                allowEscapeKey   : false,
+                showConfirmButton: false,
+                didOpen          : () => Swal.showLoading()
+            });
+        },
+
+        success: function (response) {
+
+            if (response.responCode !== "00") {
+                Swal.fire({
+                    icon             : 'warning',
+                    title            : 'No Records Found',
+                    text             : 'No records are available for the selected period.',
+                    showConfirmButton: false,
+                    timer            : 2000
+                });
+                return;
+            }
+
+            const result       = Array.isArray(response.responResult) ? response.responResult : [];
+            const bulanLengkap = ["01","02","03","04","05","06","07","08","09","10","11","12"];
+            const namaBulan    = ["Jan","Feb","Mar","Apr","Mei","Jun","Jul","Agu","Sep","Okt","Nov","Des"];
+
+            const chartgrafikmonthlykpi = (() => {
+                const monthlyData = {};
+
+                bulanLengkap.forEach(bulan => {
+                    monthlyData[bulan] = {
+                        bulan,
+                        jmlall         : 0,
+                        jmlsebelum12all: 0,
+                        jmlsesudah12all: 0,
+                        presentasiall  : 0,
+                        avgmenit       : 0,
+                        presentasiavg  : 0
+                    };
+                });
+
+                result.forEach(item => {
+                    const bulan = String(item.BULAN || "").padStart(2, "0");
+                    if (!monthlyData[bulan]) return;
+
+                    monthlyData[bulan] = {
+                        bulan,
+                        jmlall         : Number(item.TOTAL) || 0,
+                        jmlsebelum12all: Number(item.JUMLAH_PASIEN_KURANG_SAMA_60_MENIT) || 0,
+                        jmlsesudah12all: Number(item.JUMLAH_PASIEN_LEBIH_60_MENIT) || 0,
+                        presentasiall  : Number(item.PERSENTASE_PASIEN_KURANG_SAMA_60_MENIT) || 0,
+                        avgmenit       : Number(item.AVG_DURASI_MENIT) || 0
+                    };
+                });
+
+                return bulanLengkap.map(bulan => {
+                    const item = monthlyData[bulan];
+
+                    return {
+                        periode: namaBulan[Number(bulan) - 1],
+
+                        Value1: item.jmlall,
+                        Value2: item.jmlsebelum12all,
+                        Value3: item.jmlsesudah12all,
+                        Value4: item.presentasiall,
+                        Value5: item.avgmenit
+                    };
+                });
+            })();
 
             renderchartarea(
-                "kpiigdlayalayanavg",
+                "grafikkpiwaktumasukranap",
                 chartgrafikmonthlykpi,
                 "Bulan",
                 "Persentase (%)",
                 [
-                    "Persentase ≤ 4 jam",
+                    "Persentase ≤ 1 jam",
+                    "Tercapai",
+                    "Tidak Tercapai",
                     "Avg Menit"
                 ],
-                ["Value6", "Value5"],
+                ["Value4", "Value2", "Value3", "Value5"],
                 true,
-                "Menit",
+                "Jumlah",
                 null,
                 "",
                 null,
-                ["Value5"]
+                ["Value2"]
             );
         },
 

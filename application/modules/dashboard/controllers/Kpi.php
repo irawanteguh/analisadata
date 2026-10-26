@@ -131,6 +131,23 @@
             echo json_encode($json);
         }
 
+        public function rawatinapheatmap(){
+            $result  = $this->md->rawatinapheatmap();
+            
+			if(!empty($result)){
+				$json["responCode"]   = "00";
+				$json["responHead"]   = "success";
+				$json["responDesc"]   = "Data Di Temukan";
+				$json['responResult'] = $result;
+            }else{
+                $json["responCode"] = "01";
+                $json["responHead"] = "info";
+                $json["responDesc"] = "Data Tidak Di Temukan";
+            }
+
+            echo json_encode($json);
+        }
+
         public function pembatalanoperasielektif(){
 			$periode = $this->input->post("selectperiode");
             $result  = $this->md->pembatalanoperasielektif($periode);
@@ -152,6 +169,24 @@
         public function lamalayananigd(){
 			$periode = $this->input->post("selectperiode");
             $result  = $this->md->lamalayananigd($periode);
+            
+			if(!empty($result)){
+				$json["responCode"]   = "00";
+				$json["responHead"]   = "success";
+				$json["responDesc"]   = "Data Di Temukan";
+				$json['responResult'] = $result;
+            }else{
+                $json["responCode"] = "01";
+                $json["responHead"] = "info";
+                $json["responDesc"] = "Data Tidak Di Temukan";
+            }
+
+            echo json_encode($json);
+        }
+
+        public function waktutunggumasukranap(){
+			$periode = $this->input->post("selectperiode");
+            $result  = $this->md->waktutunggumasukranap($periode);
             
 			if(!empty($result)){
 				$json["responCode"]   = "00";

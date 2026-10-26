@@ -35,128 +35,263 @@ const resourceConfig = {
     }
 };
 
-// function renderchartarea(name, data, titleX, titleY, seriesName, fieldName, rightAxisIndex = null, rightAxisLabel = "", avgField = null, avgLabel = "Rata-rata", annotationValue = null) {
-
-//     if (chartInstances[name]) {
-//         chartInstances[name].destroy();
-//         chartInstances[name] = null;
-//     }
-
-//     let series = [];
-
-//     if (Array.isArray(seriesName) && Array.isArray(fieldName)) {
-//         series = seriesName.map((nm, index) => ({
-//             name: nm,
-//             data: data.map(item => parseFloat(item[fieldName[index]] || 0)),
-//             yAxisIndex: (rightAxisIndex !== null && index === rightAxisIndex) ? 1 : 0
-//         }));
-//     } else {
-//         series = [{
-//             name: seriesName,
-//             data: data.map(item => parseFloat(item[fieldName] || 0))
-//         }];
-//     }
-
-//     let avgValue = null;
-
-//     if (avgField) {
-//         let total = 0;
-//         let count = 0;
-
-//         data.forEach(item => {
-//             let val = parseFloat(item[avgField]);
-//             if (!isNaN(val) && val > 0) {
-//                 total += val;
-//                 count++;
-//             }
-//         });
-
-//         avgValue = count > 0 ? total / count : 0;
-//     }
-
-//     let finalAnnotation = null;
-//     let finalLabel = "";
-
-//     if (annotationValue !== null) {
-//         finalAnnotation = annotationValue;
-//         finalLabel      = avgLabel;
-//     } else if (avgValue !== null) {
-//         finalAnnotation = avgValue;
-//         finalLabel      = `${avgLabel} (${Math.round(avgValue).toLocaleString()})`;
-//     }
-
-//     const options = {
-//         chart : { type: "area", height: 350, toolbar: { show: true }, zoom: { enabled: false } },
-//         series: series,
-//         xaxis : {
-//             categories   : data.map(item => item.periode),
-//             title        : { text: titleX },
-//             tickPlacement: 'on',
-//             axisBorder   : { show: true },
-//             axisTicks    : { show: true }
-//         },
-//         yaxis: rightAxisIndex !== null ? [
-//             {
-//                 title         : { text: titleY },
-//                 min           : 0,
-//                 forceNiceScale: true,
-//                 labels        : { formatter: val => val.toLocaleString() }
-//             },
-//             {
-//                 opposite: true,
-//                 title   : { text: rightAxisLabel },
-//                 labels  : { formatter: val => val.toLocaleString() }
-//             }
-//         ] : {
-//             title         : { text: titleY },
-//             min           : 0,
-//             forceNiceScale: true,
-//             labels        : { formatter: val => val.toLocaleString() }
-//         },
-//         stroke : { curve: 'smooth', width: 3 },
-//         markers: { size: 4 },
-//         fill   : {
-//             type    : 'gradient',
-//             gradient: { shadeIntensity: 1, opacityFrom: 0.75, opacityTo: 0.25, stops: [0, 100] }
-//         },
-//         dataLabels: { enabled: true, formatter: val => val.toLocaleString() },
-//         tooltip   : { y: { formatter: val => val.toLocaleString() } },
-//         grid      : { strokeDashArray: 4 },
-//         legend    : { position: 'top' },
-//         annotations: finalAnnotation !== null ? {
-//             yaxis: [{
-//                 y: finalAnnotation,
-//                 borderColor: '#FF0000',
-//                 strokeDashArray: 3,
-//                 label: {
-//                     text: finalLabel,
-//                     style: { background: '#FF0000', color: '#fff' }
-//                 }
-//             }]
-//         } : {}
-//     };
-
-//     const chartEl = document.querySelector(`#${name}`);
-//     chartEl.innerHTML = "";
-//     chartInstances[name] = new ApexCharts(chartEl, options);
-//     chartInstances[name].render();
-// }
-
-
-function renderchartarea(
+function renderchartheatmap(
     name,
     data,
-    titleX,
-    titleY,
-    seriesName,
-    fieldName,
-    rightAxisIndex = null,
-    rightAxisLabel = "",
-    avgField = null,
-    avgLabel = "Rata-rata",
-    annotationValue = null,
-    trendField = []
+    title = "Inpatient Discharges by Hour",
+    titleX = "Hour of Discharge",
+    titleY = "Discharge Date",
+    dateField = "PERIODE",
+    hourPrefix = "JAM_"
 ) {
+
+    if (chartInstances[name]) {
+        chartInstances[name].destroy();
+        chartInstances[name] = null;
+    }
+
+    const chartEl = document.getElementById(name);
+
+    if (!chartEl) {
+        console.error("Chart element tidak ditemukan:", name);
+        return;
+    }
+
+    if (!Array.isArray(data) || data.length === 0) {
+        chartEl.innerHTML = "";
+        return;
+    }
+
+    // Parse tanggal DD.MM.YYYY
+    const parseDate = value => {
+        const [day, month, year] = String(value).split(".");
+
+        return new Date(
+            Number(year),
+            Number(month) - 1,
+            Number(day)
+        ).getTime();
+    };
+
+    // Urutkan tanggal dari terlama ke terbaru
+    const sortedData = [...data].sort(
+        (a, b) => parseDate(a[dateField]) - parseDate(b[dateField])
+    );
+
+    // Label jam 00 sampai 23
+    const jamLabels = Array.from(
+        { length: 24 },
+        (_, i) => String(i).padStart(2, "0")
+    );
+
+    // Bentuk data heatmap
+    const series = sortedData.map(row => ({
+        name: row[dateField],
+        data: jamLabels.map(jam => ({
+            x: jam,
+            y: Math.max(
+                0,
+                Number(row[hourPrefix + jam]) || 0
+            )
+        }))
+    }));
+
+    // Ambil nilai maksimum seluruh data
+    const values = series.flatMap(item =>
+        item.data.map(point => point.y)
+    );
+
+    const maxValue = Math.max(1, ...values);
+
+    // Batas rentang warna
+    const q1 = Math.ceil(maxValue * 0.25);
+    const q2 = Math.ceil(maxValue * 0.50);
+    const q3 = Math.ceil(maxValue * 0.75);
+
+    // Skala warna hijau sampai merah
+    const ranges = [
+        {
+            from: 0,
+            to: 0,
+            color: "#F1F5F9",
+            name: "0 - Tidak ada pasien"
+        },
+        {
+            from: 1,
+            to: q1,
+            color: "#22C55E",
+            name: "Rendah"
+        },
+        {
+            from: q1 + 1,
+            to: q2,
+            color: "#FACC15",
+            name: "Sedang"
+        },
+        {
+            from: q2 + 1,
+            to: q3,
+            color: "#F97316",
+            name: "Tinggi"
+        },
+        {
+            from: q3 + 1,
+            to: maxValue,
+            color: "#DC2626",
+            name: "Sangat tinggi"
+        }
+    ].filter(range => range.from <= range.to);
+
+    const options = {
+        series: series,
+
+        chart: {
+            type: "heatmap",
+            height: Math.max(400, sortedData.length * 24),
+            toolbar: {
+                show: true
+            },
+            animations: {
+                enabled: false
+            },
+            fontFamily: "inherit"
+        },
+
+        // title: {
+        //     text: title,
+        //     align: "left",
+        //     style: {
+        //         fontSize: "16px",
+        //         fontWeight: 600
+        //     }
+        // },
+
+        plotOptions: {
+            heatmap: {
+                shadeIntensity: 0.2,
+                radius: 2,
+                useFillColorAsStroke: false,
+                colorScale: {
+                    ranges: ranges
+                }
+            }
+        },
+
+        dataLabels: {
+            enabled: true,
+            style: {
+                fontSize: "10px",
+                colors: ["#0F172A"]
+            },
+            formatter: function (value) {
+                return value === 0 ? "" : value;
+            }
+        },
+
+        stroke: {
+            width: 1,
+            colors: ["#FFFFFF"]
+        },
+
+        xaxis: {
+            type: "category",
+            position: "top",
+            title: {
+                text: titleX
+            },
+            labels: {
+                rotate: 0,
+                style: {
+                    fontSize: "10px"
+                }
+            },
+            axisBorder: {
+                show: true
+            },
+            axisTicks: {
+                show: true
+            }
+        },
+
+        yaxis: {
+            title: {
+                text: titleY
+            },
+            labels: {
+                style: {
+                    fontSize: "11px"
+                }
+            }
+        },
+
+        tooltip: {
+            y: {
+                formatter: function (value) {
+                    return value + " patient(s)";
+                },
+                title: {
+                    formatter: function () {
+                        return "Discharges: ";
+                    }
+                }
+            },
+            x: {
+                formatter: function (value) {
+                    return "Hour: " + value + ":00–" + value + ":59";
+                }
+            }
+        },
+
+        legend: {
+            show: true,
+            position: "bottom",
+            horizontalAlign: "center"
+        },
+
+        grid: {
+            padding: {
+                top: 5,
+                right: 10,
+                bottom: 5,
+                left: 10
+            }
+        },
+
+        noData: {
+            text: "No data available",
+            align: "center",
+            verticalAlign: "middle"
+        },
+
+        responsive: [
+            {
+                breakpoint: 768,
+                options: {
+                    chart: {
+                        height: Math.max(400, sortedData.length * 22)
+                    },
+                    dataLabels: {
+                        enabled: false
+                    },
+                    xaxis: {
+                        labels: {
+                            style: {
+                                fontSize: "9px"
+                            }
+                        }
+                    }
+                }
+            }
+        ]
+    };
+
+    chartInstances[name] = new ApexCharts(chartEl, options);
+
+    chartInstances[name].render();
+}
+
+function renderchartarea(name, data, titleX, titleY, seriesName, fieldName, rightAxisIndex = null, rightAxisLabel = "", avgField = null, avgLabel = "Rata-rata", annotationValue = null,trendField = []) {
+
     if (chartInstances[name]) {
         chartInstances[name].destroy();
         chartInstances[name] = null;
