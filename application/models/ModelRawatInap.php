@@ -125,6 +125,7 @@
                                                 AND   B.EPISODE_ID=(SELECT EPISODE_ID FROM SR01_MED_RUANG_PRWT WHERE PASIEN_ID=B.PASIEN_ID AND EPISODE_ID=B.EPISODE_ID)
                                                 )
                         AND   A.TRANS_CO IN (SELECT TRANS_CO FROM WEB_CO_RESEP_DT WHERE LOKASI_ID='001' AND SHOW_ITEM='1' AND JENIS_RESEP='2' AND PASIEN_ID=A.PASIEN_ID AND EPISODE_ID=A.EPISODE_ID AND TRANS_CO=A.TRANS_CO)
+                        ORDER BY NAMAPASIEN ASC
                     ";
 
             $recordset = $this->db->query($query);
