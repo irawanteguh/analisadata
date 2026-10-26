@@ -54,61 +54,125 @@ function radiologi(){
             const bulanLengkap = ["01","02","03","04","05","06","07","08","09","10","11","12"];
             const namaBulan    = ["Jan","Feb","Mar","Apr","Mei","Jun","Jul","Agu","Sep","Okt","Nov","Des"];
 
+            const MonthlyData = {};
+
             const chartgrafikmonthlykpi = (() => {
                 const monthlyData = {};
 
                 bulanLengkap.forEach(bulan => {
                     monthlyData[bulan] = {
                         bulan,
-                        pemeriksaan        : 0,
-                        tercapai           : 0,
-                        tidakTercapai      : 0,
-                        persenTercapai     : 0,
-                        persenTidakTercapai: 0
+                        Value1: 0,
+                        Value2: 0,
+                        Value3: 0,
+                        Value4: 0,
+                        Value5: 0
                     };
                 });
 
                 result.forEach(item => {
-                    const bulan = String(item.BULAN || "").padStart(2, "0");
+                    const bulan = String(item.BULAN || '').padStart(2, '0');
+
                     if (!monthlyData[bulan]) return;
+
+                    const Value1 = Number(item.PERSEN_TERCAPAI) || 0;
+                    const Value2 = Number(item.PERSEN_TIDAK_TERCAPAI) || 0;
+                    const Value3 = Number(item.JML_PEMERIKSAAN) || 0;
+                    const Value4 = Number(item.JML_TERCAPAI) || 0;
+                    const Value5 = Number(item.JML_TIDAK_TERCAPAI) || 0;
 
                     monthlyData[bulan] = {
                         bulan,
-                        pemeriksaan        : Number(item.JML_PEMERIKSAAN) || 0,
-                        tercapai           : Number(item.JML_TERCAPAI) || 0,
-                        tidakTercapai      : Number(item.JML_TIDAK_TERCAPAI) || 0,
-                        persenTercapai     : Number(item.PERSEN_TERCAPAI) || 0,
-                        persenTidakTercapai: Number(item.PERSEN_TIDAK_TERCAPAI) || 0
+                        Value1,
+                        Value2,
+                        Value3,
+                        Value4,
+                        Value5
                     };
                 });
 
-                return bulanLengkap.map(bulan => {
-                    const item = monthlyData[bulan];
+                Object.assign(MonthlyData, monthlyData);
 
-                    return {
-                        periode: namaBulan[Number(bulan) - 1],
-                        Value1: item.persenTercapai,
-                        Value2: item.persenTidakTercapai,
-                        Value3: item.pemeriksaan,
-                        Value4: item.tercapai,
-                        Value5: item.tidakTercapai
-                    };
-                });
+                return bulanLengkap.map(bulan => ({
+                    periode: namaBulan[Number(bulan) - 1],
+                    ...Object.fromEntries(
+                        Object.entries(monthlyData[bulan])
+                            .filter(([key]) => key.startsWith('Value'))
+                    )
+                }));
             })();
 
-            renderchartarea(
-                "grafikradiologi",
-                chartgrafikmonthlykpi,
-                "Bulan",
-                "Persentase (%)",
-                ["Persentase Tercapai", "Jml Tercapai", "Jml Tidak Tercapai"],
-                ["Value1", "Value4","Value5"],
-                true,
-                "Jumlah Pemeriksaan",
-                "Value3",
-                "KPI Waktu Pelayanan ≤ 60 Menit",
-                null
-            );
+            renderChartArea({
+                chart: {
+                    elementId: 'grafikradiologi',
+                    height: 350
+                },
+
+                data: {
+                    categories: chartgrafikmonthlykpi.map(item => item.periode),
+                    series: [
+                        {
+                            name: 'Presentasi',
+                            type: 'area',
+                            yAxisIndex: 0,
+                            data: chartgrafikmonthlykpi.map(item => item.Value1)
+                        },
+                        {
+                            name: '≤ 60 Menit',
+                            type: 'area',
+                            yAxisIndex: 1,
+                            data: chartgrafikmonthlykpi.map(item => item.Value4)
+                        },
+                        {
+                            name: '> 60 Menit',
+                            type: 'area',
+                            yAxisIndex: 1,
+                            data: chartgrafikmonthlykpi.map(item => item.Value5)
+                        }              
+                    ]
+                },
+
+                xAxis: {
+                    title: 'Order Date'
+                },
+
+                yAxes: [
+                    {
+                        title: 'Presentasi (%)',
+                        min: 0,
+                        suffix: ' %',
+                        decimals: 0,
+                        opposite: false,
+                        headroom: 0.10
+                    },
+                    {
+                        title: 'Jml Pasien',
+                        min: 0,
+                        suffix: ' Px',
+                        decimals: 0,
+                        opposite: true,
+                        headroom: 0.10
+                    }
+                ],
+
+                tooltip: {
+                    suffix: [' %']
+                },
+
+                trendLine: {
+                    show: true
+                },
+
+                targetLine: {
+                    show      : true,
+                    value     : 100,
+                    name      : 'Target Pencapaian',
+                    suffix    : '%',
+                    color     : '#E53935',
+                    dashArray : 5,
+                    yAxisIndex: 0
+                }
+            });
         },
 
         complete: function () {
@@ -162,64 +226,122 @@ function rawatjalanwaktutunggu(){
             const bulanLengkap = ["01","02","03","04","05","06","07","08","09","10","11","12"];
             const namaBulan    = ["Jan","Feb","Mar","Apr","Mei","Jun","Jul","Agu","Sep","Okt","Nov","Des"];
 
+            const MonthlyData = {};
+
             const chartgrafikmonthlykpi = (() => {
                 const monthlyData = {};
 
                 bulanLengkap.forEach(bulan => {
                     monthlyData[bulan] = {
                         bulan,
-                        jmlall: 0,
-                        jmlsebelum60all: 0,
-                        jmlsesudah60all: 0,
-                        presentasiall: 0
+                        Value1: 0,
+                        Value2: 0,
+                        Value3: 0,
+                        Value4: 0
                     };
                 });
 
                 result.forEach(item => {
-                    const bulan = String(item.BULAN || "").padStart(2, "0");
+                    const bulan = String(item.BULAN || '').padStart(2, '0');
+
                     if (!monthlyData[bulan]) return;
+
+                    const Value1 = Number(item.TOTAL_PASIEN) || 0;
+                    const Value2 = Number(item.JUMLAH_PASIEN_KURANG_SAMA_60_MENIT) || 0;
+                    const Value3 = Number(item.JUMLAH_PASIEN_LEBIH_60_MENIT) || 0;
+                    const Value4 = Number(item.PERSENTASE_PASIEN_KURANG_SAMA_60_MENIT) || 0;
 
                     monthlyData[bulan] = {
                         bulan,
-                        jmlall         : Number(item.TOTAL_PASIEN) || 0,
-                        jmlsebelum60all: Number(item.JUMLAH_PASIEN_KURANG_SAMA_60_MENIT) || 0,
-                        jmlsesudah60all: Number(item.JUMLAH_PASIEN_LEBIH_60_MENIT) || 0,
-                        presentasiall  : Number(item.PERSENTASE_PASIEN_KURANG_SAMA_60_MENIT) || 0
+                        Value1,
+                        Value2,
+                        Value3,
+                        Value4
                     };
                 });
 
-                return bulanLengkap.map(bulan => {
-                    const item = monthlyData[bulan];
+                Object.assign(MonthlyData, monthlyData);
 
-                    return {
-                        periode: namaBulan[Number(bulan) - 1],
-
-                        Value1: item.jmlall,
-                        Value2: item.jmlsebelum60all,
-                        Value3: item.jmlsesudah60all,
-                        Value4: item.presentasiall
-                    };
-                });
+                return bulanLengkap.map(bulan => ({
+                    periode: namaBulan[Number(bulan) - 1],
+                    ...Object.fromEntries(
+                        Object.entries(monthlyData[bulan])
+                            .filter(([key]) => key.startsWith('Value'))
+                    )
+                }));
             })();
 
-            renderchartarea(
-                "kpirawatjalanwaktutunggu",
-                chartgrafikmonthlykpi,
-                "Bulan",
-                "Persentase (%)",
-                [
-                    "Persentase <= 60 Menit",
-                    "Jml <= 60 Menit",
-                    "Jml > 60 Menit"
+            renderChartArea({
+                chart: {
+                    elementId: 'kpirawatjalanwaktutunggu',
+                    height: 350
+                },
+
+                data: {
+                    categories: chartgrafikmonthlykpi.map(item => item.periode),
+                    series: [
+                        {
+                            name: 'Presentasi',
+                            type: 'area',
+                            yAxisIndex: 0,
+                            data: chartgrafikmonthlykpi.map(item => item.Value4)
+                        },
+                        {
+                            name: '≤ 60 Menit',
+                            type: 'area',
+                            yAxisIndex: 1,
+                            data: chartgrafikmonthlykpi.map(item => item.Value2)
+                        },
+                        {
+                            name: '> 60 Menit',
+                            type: 'area',
+                            yAxisIndex: 1,
+                            data: chartgrafikmonthlykpi.map(item => item.Value3)
+                        }              
+                    ]
+                },
+
+                xAxis: {
+                    title: 'Admission Date'
+                },
+
+                yAxes: [
+                    {
+                        title: 'Presentasi (%)',
+                        min: 0,
+                        suffix: ' %',
+                        decimals: 0,
+                        opposite: false,
+                        headroom: 0.10
+                    },
+                    {
+                        title: 'Jml Pasien',
+                        min: 0,
+                        suffix: ' Px',
+                        decimals: 0,
+                        opposite: true,
+                        headroom: 0.10
+                    }
                 ],
-                ["Value4", "Value2", "Value3"],
-                true,
-                "Jumlah",
-                null,
-                "",
-                null,
-                ["Value2"]
-            );
+
+                tooltip: {
+                    suffix: [' %']
+                },
+
+                trendLine: {
+                    show: true
+                },
+
+                targetLine: {
+                    show      : true,
+                    value     : 80,
+                    name      : 'Target Pencapaian ≥',
+                    suffix    : '%',
+                    color     : '#E53935',
+                    dashArray : 5,
+                    yAxisIndex: 0
+                }
+            });
         },
 
         complete: function () {
@@ -313,24 +435,77 @@ function rawatjalanlamapelayanan(){
                 });
             })();
 
-            renderchartarea(
-                "kpirawatjalanwaktupelayanan",
-                chartgrafikmonthlykpi,
-                "Bulan",
-                "Persentase (%)",
-                [
-                    "Persentase <= 60 Menit",
-                    "Jml <= 60 Menit",
-                    "Jml > 60 Menit"
+            renderChartArea({
+                chart: {
+                    elementId: 'kpirawatjalanwaktupelayanan',
+                    height: 350
+                },
+
+                data: {
+                    categories: chartgrafikmonthlykpi.map(item => item.periode),
+                    series: [
+                        {
+                            name: 'Presentasi',
+                            type: 'area',
+                            yAxisIndex: 0,
+                            data: chartgrafikmonthlykpi.map(item => item.Value4)
+                        },
+                        {
+                            name: '≤ 60 Menit',
+                            type: 'area',
+                            yAxisIndex: 1,
+                            data: chartgrafikmonthlykpi.map(item => item.Value2)
+                        },
+                        {
+                            name: '> 60 Menit',
+                            type: 'area',
+                            yAxisIndex: 1,
+                            data: chartgrafikmonthlykpi.map(item => item.Value3)
+                        }              
+                    ]
+                },
+
+                xAxis: {
+                    title: 'Admission Date'
+                },
+
+                yAxes: [
+                    {
+                        title: 'Presentasi (%)',
+                        min: 0,
+                        suffix: ' %',
+                        decimals: 0,
+                        opposite: false,
+                        headroom: 0.10
+                    },
+                    {
+                        title: 'Jml Pasien',
+                        min: 0,
+                        suffix: ' Px',
+                        decimals: 0,
+                        opposite: true,
+                        headroom: 0.10
+                    }
                 ],
-                ["Value4", "Value2", "Value3"],
-                true,
-                "Jumlah",
-                null,
-                "",
-                null,
-                ["Value2"]
-            );
+
+                tooltip: {
+                    suffix: [' %']
+                },
+
+                trendLine: {
+                    show: true
+                },
+
+                targetLine: {
+                    show      : true,
+                    value     : 80,
+                    name      : 'Target Pencapaian ≥',
+                    suffix    : 'Menit',
+                    color     : '#E53935',
+                    dashArray : 5,
+                    yAxisIndex: 0
+                }
+            });
         },
 
         complete: function () {
@@ -384,122 +559,290 @@ function rawatinap(){
             const bulanLengkap = ["01","02","03","04","05","06","07","08","09","10","11","12"];
             const namaBulan    = ["Jan","Feb","Mar","Apr","Mei","Jun","Jul","Agu","Sep","Okt","Nov","Des"];
 
+            const MonthlyData = {};
+
             const chartgrafikmonthlykpi = (() => {
                 const monthlyData = {};
 
                 bulanLengkap.forEach(bulan => {
                     monthlyData[bulan] = {
                         bulan,
-                        jmlall: 0,
-                        jmlsebelum12all: 0,
-                        jmlsesudah12all: 0,
-                        presentasiall: 0,
-                        jmltutd: 0,
-                        jmlsebelum12tutd: 0,
-                        jmlsesudah12tutd: 0,
-                        presentasitutd: 0,
-                        jmlnontutd: 0,
-                        jmlsebelum12nontutd: 0,
-                        jmlsesudah12nontutd: 0,
-                        presentasinontutd: 0
+                        Value1: 0,
+                        Value2: 0,
+                        Value3: 0,
+                        Value4: 0,
+                        Value5: 0,
+                        Value6: 0,
+                        Value7: 0,
+                        Value8: 0,
+                        Value9: 0,
+                        Value10: 0,
+                        Value11: 0,
+                        Value12: 0
                     };
                 });
 
                 result.forEach(item => {
-                    const bulan = String(item.BULAN || "").padStart(2, "0");
+                    const bulan = String(item.BULAN || '').padStart(2, '0');
+
                     if (!monthlyData[bulan]) return;
+
+                    const Value1  = Number(item.JUMLAHALL) || 0;
+                    const Value2  = Number(item.SEBELUM12ALL) || 0;
+                    const Value3  = Number(item.SESUDAH12ALL) || 0;
+                    const Value4  = Number(item.PRESENTASIALL) || 0;
+                    const Value5  = Number(item.JMLTUTD) || 0;
+                    const Value6  = Number(item.SEBELUM12TUTD) || 0;
+                    const Value7  = Number(item.SESUDAH12TUTD) || 0;
+                    const Value8  = Number(item.PRESENTASITUTD) || 0;
+                    const Value9  = Number(item.JMLNONTUTD) || 0;
+                    const Value10 = Number(item.SEBELUM12NONTUTD) || 0;
+                    const Value11 = Number(item.SESUDAH12NONTUTD) || 0;
+                    const Value12 = Number(item.PRESENTASINONTUTD) || 0;
 
                     monthlyData[bulan] = {
                         bulan,
-                        jmlall: Number(item.JUMLAHALL) || 0,
-                        jmlsebelum12all: Number(item.SEBELUM12ALL) || 0,
-                        jmlsesudah12all: Number(item.SESUDAH12ALL) || 0,
-                        presentasiall: Number(item.PRESENTASIALL) || 0,
-
-                        jmltutd: Number(item.JMLTUTD) || 0,
-                        jmlsebelum12tutd: Number(item.SEBELUM12TUTD) || 0,
-                        jmlsesudah12tutd: Number(item.SESUDAH12TUTD) || 0,
-                        presentasitutd: Number(item.PRESENTASITUTD) || 0,
-
-                        jmlnontutd: Number(item.JMLNONTUTD) || 0,
-                        jmlsebelum12nontutd: Number(item.SEBELUM12NONTUTD) || 0,
-                        jmlsesudah12nontutd: Number(item.SESUDAH12NONTUTD) || 0,
-                        presentasinontutd: Number(item.PRESENTASINONTUTD) || 0
+                        Value1,
+                        Value2,
+                        Value3,
+                        Value4,
+                        Value5,
+                        Value6,
+                        Value7,
+                        Value8,
+                        Value9,
+                        Value10,
+                        Value11,
+                        Value12
                     };
                 });
 
-                return bulanLengkap.map(bulan => {
-                    const item = monthlyData[bulan];
+                Object.assign(MonthlyData, monthlyData);
 
-                    return {
-                        periode: namaBulan[Number(bulan) - 1],
-
-                        Value1: item.jmlall,
-                        Value2: item.jmlsebelum12all,
-                        Value3: item.jmlsesudah12all,
-                        Value4: item.presentasiall,
-
-                        Value5: item.jmltutd,
-                        Value6: item.jmlsebelum12tutd,
-                        Value7: item.jmlsesudah12tutd,
-                        Value8: item.presentasitutd,
-
-                        Value9 : item.jmlnontutd,
-                        Value10: item.jmlsebelum12nontutd,
-                        Value11: item.jmlsesudah12nontutd,
-                        Value12: item.presentasinontutd
-                    };
-                });
+                return bulanLengkap.map(bulan => ({
+                    periode: namaBulan[Number(bulan) - 1],
+                    ...Object.fromEntries(
+                        Object.entries(monthlyData[bulan])
+                            .filter(([key]) => key.startsWith('Value'))
+                    )
+                }));
             })();
 
-            renderchartarea(
-                "kpirawatinapall",
-                chartgrafikmonthlykpi,
-                "Bulan",
-                "Persentase (%)",
-                [
-                    "Persentase Pulang Sebelum Jam 12:00",
-                    "Jml Sebelum Jam 12:00",
-                    "Jml Sesudah Jam 12:00"
+            renderChartArea({
+                chart: {
+                    elementId: 'kpirawatinapall',
+                    height: 350
+                },
+
+                data: {
+                    categories: chartgrafikmonthlykpi.map(item => item.periode),
+                    series: [
+                        {
+                            name: 'Presentasi',
+                            type: 'area',
+                            yAxisIndex: 0,
+                            data: chartgrafikmonthlykpi.map(item => item.Value4)
+                        },
+                        {
+                            name: '< Jam 12:00',
+                            type: 'area',
+                            yAxisIndex: 1,
+                            data: chartgrafikmonthlykpi.map(item => item.Value2)
+                        },
+                        {
+                            name: '≥ Jam 12:00',
+                            type: 'area',
+                            yAxisIndex: 1,
+                            data: chartgrafikmonthlykpi.map(item => item.Value3)
+                        }              
+                    ]
+                },
+
+                xAxis: {
+                    title: 'Discharge Date'
+                },
+
+                yAxes: [
+                    {
+                        title: 'Presentasi (%)',
+                        min: 0,
+                        suffix: ' %',
+                        decimals: 0,
+                        opposite: false,
+                        headroom: 0.10
+                    },
+                    {
+                        title: 'Jml Pasien',
+                        min: 0,
+                        suffix: ' Px',
+                        decimals: 0,
+                        opposite: true,
+                        headroom: 0.10
+                    }
                 ],
-                ["Value4", "Value2", "Value3"],
-                true,
-                "Jumlah",
-                null,
-                "",
-                null,
-                ["Value2"]
-            );
 
-            renderchartarea(
-                "kpirawatinaptutd",
-                chartgrafikmonthlykpi,
-                "Bulan",
-                "Persentase (%)",
-                ["Persentase Pulang Sebelum Jam 12:00", "Jml Sebelum Jam 12:00", "Jml Sesudah Jam 12:00"],
-                ["Value8", "Value6", "Value7"],
-                true,
-                "Jumlah",
-                null,
-                "",
-                null,
-                ["Value6"]
-            );
+                tooltip: {
+                    suffix: [' %']
+                },
 
-            renderchartarea(
-                "kpirawatinapnontutd",
-                chartgrafikmonthlykpi,
-                "Bulan",
-                "Persentase (%)",
-                ["Persentase Pulang Sebelum Jam 12:00", "Jml Sebelum Jam 12:00", "Jml Sesudah Jam 12:00"],
-                ["Value12", "Value10", "Value11"],
-                true,
-                "Jumlah",
-                null,
-                "",
-                null,
-                ["Value10"]
-            );
+                trendLine: {
+                    show: true
+                },
+
+                targetLine: {
+                    show      : true,
+                    value     : 90,
+                    name      : 'Target Pencapaian ≥',
+                    suffix    : '%',
+                    color     : '#E53935',
+                    dashArray : 5,
+                    yAxisIndex: 0
+                }
+            });
+
+            renderChartArea({
+                chart: {
+                    elementId: 'kpirawatinaptutd',
+                    height: 350
+                },
+
+                data: {
+                    categories: chartgrafikmonthlykpi.map(item => item.periode),
+                    series: [
+                        {
+                            name: 'Presentasi',
+                            type: 'area',
+                            yAxisIndex: 0,
+                            data: chartgrafikmonthlykpi.map(item => item.Value8)
+                        },
+                        {
+                            name: '< Jam 12:00',
+                            type: 'area',
+                            yAxisIndex: 1,
+                            data: chartgrafikmonthlykpi.map(item => item.Value6)
+                        },
+                        {
+                            name: '≥ Jam 12:00',
+                            type: 'area',
+                            yAxisIndex: 1,
+                            data: chartgrafikmonthlykpi.map(item => item.Value7)
+                        }              
+                    ]
+                },
+
+                xAxis: {
+                    title: 'Discharge Date'
+                },
+
+                yAxes: [
+                    {
+                        title: 'Presentasi (%)',
+                        min: 0,
+                        suffix: ' %',
+                        decimals: 0,
+                        opposite: false,
+                        headroom: 0.10
+                    },
+                    {
+                        title: 'Jml Pasien',
+                        min: 0,
+                        suffix: ' Px',
+                        decimals: 0,
+                        opposite: true,
+                        headroom: 0.10
+                    }
+                ],
+
+                tooltip: {
+                    suffix: [' %']
+                },
+
+                trendLine: {
+                    show: true
+                },
+
+                targetLine: {
+                    show      : true,
+                    value     : 90,
+                    name      : 'Target Pencapaian ≥',
+                    suffix    : '%',
+                    color     : '#E53935',
+                    dashArray : 5,
+                    yAxisIndex: 0
+                }
+            });
+
+            renderChartArea({
+                chart: {
+                    elementId: 'kpirawatinapnontutd',
+                    height: 350
+                },
+
+                data: {
+                    categories: chartgrafikmonthlykpi.map(item => item.periode),
+                    series: [
+                        {
+                            name: 'Presentasi',
+                            type: 'area',
+                            yAxisIndex: 0,
+                            data: chartgrafikmonthlykpi.map(item => item.Value12)
+                        },
+                        {
+                            name: '< Jam 12:00',
+                            type: 'area',
+                            yAxisIndex: 1,
+                            data: chartgrafikmonthlykpi.map(item => item.Value10)
+                        },
+                        {
+                            name: '≥ Jam 12:00',
+                            type: 'area',
+                            yAxisIndex: 1,
+                            data: chartgrafikmonthlykpi.map(item => item.Value11)
+                        }              
+                    ]
+                },
+
+                xAxis: {
+                    title: 'Discharge Date'
+                },
+
+                yAxes: [
+                    {
+                        title: 'Presentasi (%)',
+                        min: 0,
+                        suffix: ' %',
+                        decimals: 0,
+                        opposite: false,
+                        headroom: 0.10
+                    },
+                    {
+                        title: 'Jml Pasien',
+                        min: 0,
+                        suffix: ' Px',
+                        decimals: 0,
+                        opposite: true,
+                        headroom: 0.10
+                    }
+                ],
+
+                tooltip: {
+                    suffix: [' %']
+                },
+
+                trendLine: {
+                    show: true
+                },
+
+                targetLine: {
+                    show      : true,
+                    value     : 90,
+                    name      : 'Target Pencapaian ≥',
+                    suffix    : '%',
+                    color     : '#E53935',
+                    dashArray : 5,
+                    yAxisIndex: 0
+                }
+            });
         },
 
         complete: function () {
@@ -550,121 +893,277 @@ function rawatinapdaily(){
             }
 
             const result       = Array.isArray(response.responResult) ? response.responResult : [];
-
+            
             const DailyData = {};
 
-            result.forEach(item => {
-                if (!item.PERIODE) return;
+            const chartgrafikdailykpi = (() => {
+                const dailyData = {};
 
-                const [tanggal, bulan, tahun] = item.PERIODE.split(".");
-                if (!tanggal || !bulan || !tahun) return;
+                result.forEach(item => {
+                    if (!item.PERIODE) return;
 
-                const key = `${tanggal}.${bulan}.${tahun}`;
+                    const [tanggal, bulan, tahun] = item.PERIODE.split('.');
+                    if (!tanggal || !bulan || !tahun) return;
 
-                DailyData[key] = {
-                    periode          : key,
+                    const periode = item.PERIODE;
 
-                    jumlahAll        : Number(item.JUMLAHALL) || 0,
-                    sebelum12        : Number(item.SEBELUM12ALL) || 0,
-                    sesudah12        : Number(item.SESUDAH12ALL) || 0,
-                    presentasiAll    : Number(item.PRESENTASIALL) || 0,
+                    const Value1  = Number(item.JUMLAHALL) || 0;
+                    const Value2  = Number(item.SEBELUM12ALL) || 0;
+                    const Value3  = Number(item.SESUDAH12ALL) || 0;
+                    const Value4  = Number(item.PRESENTASIALL) || 0;
+                    const Value5  = Number(item.JMLTUTD) || 0;
+                    const Value6  = Number(item.SEBELUM12TUTD) || 0;
+                    const Value7  = Number(item.SESUDAH12TUTD) || 0;
+                    const Value8  = Number(item.PRESENTASITUTD) || 0;
+                    const Value9  = Number(item.JMLNONTUTD) || 0;
+                    const Value10 = Number(item.SEBELUM12NONTUTD) || 0;
+                    const Value11 = Number(item.SESUDAH12NONTUTD) || 0;
+                    const Value12 = Number(item.PRESENTASINONTUTD) || 0;
 
-                    jmlTUTD          : Number(item.JMLTUTD) || 0,
-                    tutdSebelum12    : Number(item.SEBELUM12TUTD) || 0,
-                    tutdSesudah12    : Number(item.SESUDAH12TUTD) || 0,
-                    presentasiTUTD   : Number(item.PRESENTASITUTD) || 0,
+                    dailyData[periode] = {
+                        periode,
+                        Value1,
+                        Value2,
+                        Value3,
+                        Value4,
+                        Value5,
+                        Value6,
+                        Value7,
+                        Value8,
+                        Value9,
+                        Value10,
+                        Value11,
+                        Value12,
+                        _sortDate: new Date(
+                            Number(tahun),
+                            Number(bulan) - 1,
+                            Number(tanggal)
+                        ).getTime()
+                    };
+                });
 
-                    jmlNonTUTD       : Number(item.JMLNONTUTD) || 0,
-                    nonTUTDSebelum12 : Number(item.SEBELUM12NONTUTD) || 0,
-                    nonTUTDSesudah12 : Number(item.SESUDAH12NONTUTD) || 0,
-                    presentasiNonTUTD: Number(item.PRESENTASINONTUTD) || 0
-                };
+                Object.assign(DailyData, dailyData);
+
+                return Object.values(dailyData)
+                    .sort((a, b) => a._sortDate - b._sortDate)
+                    .map(({ _sortDate, ...item }) => item);
+            })();
+
+            renderChartArea({
+                chart: {
+                    elementId: 'kpirawatinapalldaily',
+                    height: 350
+                },
+
+                data: {
+                    categories: chartgrafikdailykpi.map(item => item.periode),
+                    series: [
+                        {
+                            name: 'Presentasi',
+                            type: 'area',
+                            yAxisIndex: 0,
+                            data: chartgrafikdailykpi.map(item => item.Value4)
+                        },
+                        {
+                            name: '< Jam 12:00',
+                            type: 'area',
+                            yAxisIndex: 1,
+                            data: chartgrafikdailykpi.map(item => item.Value2)
+                        },
+                        {
+                            name: '≥ Jam 12:00',
+                            type: 'area',
+                            yAxisIndex: 1,
+                            data: chartgrafikdailykpi.map(item => item.Value3)
+                        }              
+                    ]
+                },
+
+                xAxis: {
+                    title: 'Discharge Date'
+                },
+
+                yAxes: [
+                    {
+                        title: 'Presentasi (%)',
+                        min: 0,
+                        suffix: ' %',
+                        decimals: 0,
+                        opposite: false,
+                        headroom: 0.10
+                    },
+                    {
+                        title: 'Jml Pasien',
+                        min: 0,
+                        suffix: ' Px',
+                        decimals: 0,
+                        opposite: true,
+                        headroom: 0.10
+                    }
+                ],
+
+                tooltip: {
+                    suffix: [' %']
+                },
+
+                trendLine: {
+                    show: true
+                },
+
+                targetLine: {
+                    show      : true,
+                    value     : 90,
+                    name      : 'Target Pencapaian ≥',
+                    suffix    : '%',
+                    color     : '#E53935',
+                    dashArray : 5,
+                    yAxisIndex: 0
+                }
             });
 
-            const chartgrafikdailykpi = result.map(item => {
-                const jumlahAll          = Number(item.JUMLAHALL) || 0;
-                const sebelum12          = Number(item.SEBELUM12ALL) || 0;
-                const sesudah12           = Number(item.SESUDAH12ALL) || 0;
-                const presentasiAll      = Number(item.PRESENTASIALL) || 0;
+            renderChartArea({
+                chart: {
+                    elementId: 'kpirawatinaptutddaily',
+                    height: 350
+                },
 
-                const jmlTUTD            = Number(item.JMLTUTD) || 0;
-                const tutdSebelum12      = Number(item.SEBELUM12TUTD) || 0;
-                const tutdSesudah12      = Number(item.SESUDAH12TUTD) || 0;
-                const presentasiTUTD     = Number(item.PRESENTASITUTD) || 0;
+                data: {
+                    categories: chartgrafikdailykpi.map(item => item.periode),
+                    series: [
+                        {
+                            name: 'Presentasi',
+                            type: 'area',
+                            yAxisIndex: 0,
+                            data: chartgrafikdailykpi.map(item => item.Value8)
+                        },
+                        {
+                            name: '< Jam 12:00',
+                            type: 'area',
+                            yAxisIndex: 1,
+                            data: chartgrafikdailykpi.map(item => item.Value6)
+                        },
+                        {
+                            name: '≥ Jam 12:00',
+                            type: 'area',
+                            yAxisIndex: 1,
+                            data: chartgrafikdailykpi.map(item => item.Value7)
+                        }              
+                    ]
+                },
 
-                const jmlNonTUTD         = Number(item.JMLNONTUTD) || 0;
-                const nonTUTDSebelum12   = Number(item.SEBELUM12NONTUTD) || 0;
-                const nonTUTDSesudah12   = Number(item.SESUDAH12NONTUTD) || 0;
-                const presentasiNonTUTD  = Number(item.PRESENTASINONTUTD) || 0;
+                xAxis: {
+                    title: 'Discharge Date'
+                },
 
-                return {
-                    periode: item.PERIODE,
-                    Value1: jumlahAll,
-                    Value2: sebelum12,
-                    Value3: sesudah12,
-                    Value4: presentasiAll,
-                    Value5: jmlTUTD,
-                    Value6: tutdSebelum12,
-                    Value7: tutdSesudah12,
-                    Value8: presentasiTUTD,
-                    Value9: jmlNonTUTD,
-                    Value10: nonTUTDSebelum12,
-                    Value11: nonTUTDSesudah12,
-                    Value12: presentasiNonTUTD
-                };
-            })
-            .sort((a, b) => {
-                const [dayA, monthA, yearA] = a.periode.split('.').map(Number);
-                const [dayB, monthB, yearB] = b.periode.split('.').map(Number);
+                yAxes: [
+                    {
+                        title: 'Presentasi (%)',
+                        min: 0,
+                        suffix: ' %',
+                        decimals: 0,
+                        opposite: false,
+                        headroom: 0.10
+                    },
+                    {
+                        title: 'Jml Pasien',
+                        min: 0,
+                        suffix: ' Px',
+                        decimals: 0,
+                        opposite: true,
+                        headroom: 0.10
+                    }
+                ],
 
-                return new Date(yearA, monthA - 1, dayA) -
-                    new Date(yearB, monthB - 1, dayB);
+                tooltip: {
+                    suffix: [' %']
+                },
+
+                trendLine: {
+                    show: true
+                },
+
+                targetLine: {
+                    show      : true,
+                    value     : 90,
+                    name      : 'Target Pencapaian ≥',
+                    suffix    : '%',
+                    color     : '#E53935',
+                    dashArray : 5,
+                    yAxisIndex: 0
+                }
             });
 
-            renderchartarea(
-                "kpirawatinapalldaily",
-                chartgrafikdailykpi,
-                "Tanggal",
-                "Persentase (%)",
-                ["Persentase Pulang Sebelum Jam 12:00", "Jml Sebelum Jam 12:00", "Jml Sesudah Jam 12:00"],
-                ["Value4", "Value2", "Value3"],
-                true,
-                "Jumlah",
-                null,
-                "",
-                null,
-                ["Value2"]
-            );
+            renderChartArea({
+                chart: {
+                    elementId: 'kpirawatinapnontutddaily',
+                    height: 350
+                },
 
-            renderchartarea(
-                "kpirawatinaptutddaily",
-                chartgrafikdailykpi,
-                "Tanggal",
-                "Persentase (%)",
-                ["Persentase Pulang Sebelum Jam 12:00", "Jml Sebelum Jam 12:00", "Jml Sesudah Jam 12:00"],
-                ["Value8", "Value6", "Value7"],
-                true,
-                "Jumlah",
-                null,
-                "",
-                null,
-                ["Value6"]
-            );
+                data: {
+                    categories: chartgrafikdailykpi.map(item => item.periode),
+                    series: [
+                        {
+                            name: 'Presentasi',
+                            type: 'area',
+                            yAxisIndex: 0,
+                            data: chartgrafikdailykpi.map(item => item.Value12)
+                        },
+                        {
+                            name: '< Jam 12:00',
+                            type: 'area',
+                            yAxisIndex: 1,
+                            data: chartgrafikdailykpi.map(item => item.Value10)
+                        },
+                        {
+                            name: '≥ Jam 12:00',
+                            type: 'area',
+                            yAxisIndex: 1,
+                            data: chartgrafikdailykpi.map(item => item.Value11)
+                        }              
+                    ]
+                },
 
-            renderchartarea(
-                "kpirawatinapnontutddaily",
-                chartgrafikdailykpi,
-                "Tanggal",
-                "Persentase (%)",
-                ["Persentase Pulang Sebelum Jam 12:00", "Jml Sebelum Jam 12:00", "Jml Sesudah Jam 12:00"],
-                ["Value12", "Value10", "Value11"],
-                true,
-                "Jumlah",
-                null,
-                "",
-                null,
-                ["Value10"]
-            );
+                xAxis: {
+                    title: 'Discharge Date'
+                },
+
+                yAxes: [
+                    {
+                        title: 'Presentasi (%)',
+                        min: 0,
+                        suffix: ' %',
+                        decimals: 0,
+                        opposite: false,
+                        headroom: 0.10
+                    },
+                    {
+                        title: 'Jml Pasien',
+                        min: 0,
+                        suffix: ' Px',
+                        decimals: 0,
+                        opposite: true,
+                        headroom: 0.10
+                    }
+                ],
+
+                tooltip: {
+                    suffix: [' %']
+                },
+
+                trendLine: {
+                    show: true
+                },
+
+                targetLine: {
+                    show      : true,
+                    value     : 90,
+                    name      : 'Target Pencapaian ≥',
+                    suffix    : '%',
+                    color     : '#E53935',
+                    dashArray : 5,
+                    yAxisIndex: 0
+                }
+            });
         },
 
         complete: function () {
@@ -875,64 +1374,122 @@ function pembatalanoperasielektif(){
             const bulanLengkap = ["01","02","03","04","05","06","07","08","09","10","11","12"];
             const namaBulan    = ["Jan","Feb","Mar","Apr","Mei","Jun","Jul","Agu","Sep","Okt","Nov","Des"];
 
+            const MonthlyData = {};
+
             const chartgrafikmonthlykpi = (() => {
                 const monthlyData = {};
 
                 bulanLengkap.forEach(bulan => {
                     monthlyData[bulan] = {
                         bulan,
-                        jmlall: 0,
-                        jmlsebelum12all: 0,
-                        jmlsesudah12all: 0,
-                        presentasiall: 0
+                        Value1: 0,
+                        Value2: 0,
+                        Value3: 0,
+                        Value4: 0
                     };
                 });
 
                 result.forEach(item => {
-                    const bulan = String(item.BULAN || "").padStart(2, "0");
+                    const bulan = String(item.BULAN || '').padStart(2, '0');
+
                     if (!monthlyData[bulan]) return;
+
+                    const Value1 = Number(item.TOTAL) || 0;
+                    const Value2 = Number(item.REGISTER) || 0;
+                    const Value3 = Number(item.BATAL) || 0;
+                    const Value4 = Number(item.PRESENTASI) || 0;
 
                     monthlyData[bulan] = {
                         bulan,
-                        jmlall         : Number(item.TOTAL) || 0,
-                        jmlsebelum12all: Number(item.REGISTER) || 0,
-                        jmlsesudah12all: Number(item.BATAL) || 0,
-                        presentasiall  : Number(item.PRESENTASI) || 0
+                        Value1,
+                        Value2,
+                        Value3,
+                        Value4
                     };
                 });
 
-                return bulanLengkap.map(bulan => {
-                    const item = monthlyData[bulan];
+                Object.assign(MonthlyData, monthlyData);
 
-                    return {
-                        periode: namaBulan[Number(bulan) - 1],
-
-                        Value1: item.jmlall,
-                        Value2: item.jmlsebelum12all,
-                        Value3: item.jmlsesudah12all,
-                        Value4: item.presentasiall
-                    };
-                });
+                return bulanLengkap.map(bulan => ({
+                    periode: namaBulan[Number(bulan) - 1],
+                    ...Object.fromEntries(
+                        Object.entries(monthlyData[bulan])
+                            .filter(([key]) => key.startsWith('Value'))
+                    )
+                }));
             })();
 
-            renderchartarea(
-                "grafikkpiokmountly",
-                chartgrafikmonthlykpi,
-                "Bulan",
-                "Persentase (%)",
-                [
-                    "Persentase Batal Tindakan",
-                    "Register",
-                    "Batal"
+            renderChartArea({
+                chart: {
+                    elementId: 'grafikkpiokmountly',
+                    height: 350
+                },
+
+                data: {
+                    categories: chartgrafikmonthlykpi.map(item => item.periode),
+                    series: [
+                        {
+                            name: 'Presentasi',
+                            type: 'area',
+                            yAxisIndex: 0,
+                            data: chartgrafikmonthlykpi.map(item => item.Value4)
+                        },
+                        {
+                            name: 'Finish',
+                            type: 'area',
+                            yAxisIndex: 1,
+                            data: chartgrafikmonthlykpi.map(item => item.Value2)
+                        },
+                        {
+                            name: 'Canceled',
+                            type: 'area',
+                            yAxisIndex: 1,
+                            data: chartgrafikmonthlykpi.map(item => item.Value3)
+                        }              
+                    ]
+                },
+
+                xAxis: {
+                    title: 'Procedure Date'
+                },
+
+                yAxes: [
+                    {
+                        title: 'Presentasi (%)',
+                        min: 0,
+                        suffix: ' %',
+                        decimals: 0,
+                        opposite: false,
+                        headroom: 0.10
+                    },
+                    {
+                        title: 'Jml Pasien',
+                        min: 0,
+                        suffix: ' Px',
+                        decimals: 0,
+                        opposite: true,
+                        headroom: 0.10
+                    }
                 ],
-                ["Value4", "Value2", "Value3"],
-                true,
-                "Jumlah",
-                null,
-                "",
-                null,
-                ["Value2"]
-            );
+
+                tooltip: {
+                    suffix: [' %']
+                },
+
+                trendLine: {
+                    show: true
+                },
+
+                targetLine: {
+                    show      : true,
+                    value     : 3,
+                    name      : 'Target Pencapaian ≤',
+                    suffix    : '%',
+                    color     : '#E53935',
+                    dashArray : 5,
+                    yAxisIndex: 0
+                }
+            });
         },
 
         complete: function () {
@@ -986,69 +1543,106 @@ function lamalayananigd(){
             const bulanLengkap = ["01","02","03","04","05","06","07","08","09","10","11","12"];
             const namaBulan    = ["Jan","Feb","Mar","Apr","Mei","Jun","Jul","Agu","Sep","Okt","Nov","Des"];
 
+            const MonthlyData = {};
+
             const chartgrafikmonthlykpi = (() => {
                 const monthlyData = {};
 
                 bulanLengkap.forEach(bulan => {
                     monthlyData[bulan] = {
                         bulan,
-                        jmlall         : 0,
-                        jmlsebelum12all: 0,
-                        jmlsesudah12all: 0,
-                        presentasiall  : 0,
-                        avgmenit       : 0,
-                        presentasiavg  : 0
+                        Value1: 0,
+                        Value2: 0,
+                        Value3: 0,
+                        Value4: 0,
+                        Value5: 0
                     };
                 });
 
                 result.forEach(item => {
-                    const bulan = String(item.BULAN || "").padStart(2, "0");
+                    const bulan = String(item.BULAN || '').padStart(2, '0');
+
                     if (!monthlyData[bulan]) return;
+
+                    const Value1 = Number(item.TOTAL) || 0;
+                    const Value2 = Number(item.JUMLAH_PASIEN_KURANG_SAMA_240_MENIT) || 0;
+                    const Value3 = Number(item.JUMLAH_PASIEN_LEBIH_240_MENIT) || 0;
+                    const Value4 = Number(item.PERSENTASE_PASIEN_KURANG_SAMA_240_MENIT) || 0;
+                    const Value5 = Number(item.AVG_DURASI_MENIT) || 0;
 
                     monthlyData[bulan] = {
                         bulan,
-                        jmlall         : Number(item.TOTAL) || 0,
-                        jmlsebelum12all: Number(item.JUMLAH_PASIEN_KURANG_SAMA_240_MENIT) || 0,
-                        jmlsesudah12all: Number(item.JUMLAH_PASIEN_LEBIH_240_MENIT) || 0,
-                        presentasiall  : Number(item.PERSENTASE_PASIEN_KURANG_SAMA_240_MENIT) || 0,
-                        avgmenit       : Number(item.AVG_DURASI_MENIT) || 0
+                        Value1,
+                        Value2,
+                        Value3,
+                        Value4,
+                        Value5
                     };
                 });
 
-                return bulanLengkap.map(bulan => {
-                    const item = monthlyData[bulan];
+                Object.assign(MonthlyData, monthlyData);
 
-                    return {
-                        periode: namaBulan[Number(bulan) - 1],
-
-                        Value1: item.jmlall,
-                        Value2: item.jmlsebelum12all,
-                        Value3: item.jmlsesudah12all,
-                        Value4: item.presentasiall,
-                        Value5: item.avgmenit
-                    };
-                });
+                return bulanLengkap.map(bulan => ({
+                    periode: namaBulan[Number(bulan) - 1],
+                    ...Object.fromEntries(
+                        Object.entries(monthlyData[bulan])
+                            .filter(([key]) => key.startsWith('Value'))
+                    )
+                }));
             })();
+            
+            
+            renderChartArea({
+                chart: {
+                    elementId: 'kpiigdlayalayan',
+                    height: 350
+                },
 
-            renderchartarea(
-                "kpiigdlayalayan",
-                chartgrafikmonthlykpi,
-                "Bulan",
-                "Persentase (%)",
-                [
-                    "Persentase ≤ 4 jam",
-                    "Tercapai",
-                    "Tidak Tercapai",
-                    "Avg Menit"
+                data: {
+                    categories: chartgrafikmonthlykpi.map(item => item.periode),
+                    series: [
+                        {
+                            name: 'Avg Lama Layanan',
+                            type: 'area',
+                            yAxisIndex: 0,
+                            data: chartgrafikmonthlykpi.map(item => item.Value5)
+                        }                 
+                    ]
+                },
+
+                xAxis: {
+                    title: 'Admission Date'
+                },
+
+                yAxes: [
+                    {
+                        title: 'Avg Lama Layanan',
+                        min: 0,
+                        suffix: ' Minute',
+                        decimals: 0,
+                        opposite: false,
+                        headroom: 0.10
+                    }
                 ],
-                ["Value4", "Value2", "Value3", "Value5"],
-                true,
-                "Jumlah",
-                null,
-                "",
-                null,
-                ["Value2"]
-            );
+
+                tooltip: {
+                    suffix: [' Minute']
+                },
+
+                trendLine: {
+                    show: true
+                },
+
+                targetLine: {
+                    show      : true,
+                    value     : 240,
+                    name      : 'Target Pencapaian ≤',
+                    suffix    : 'Menit',
+                    color     : '#E53935',
+                    dashArray : 5,
+                    yAxisIndex: 0
+                }
+            });
         },
 
         complete: function () {
@@ -1146,25 +1740,57 @@ function waktutunggumasukranap(){
                 });
             })();
 
-            renderchartarea(
-                "grafikkpiwaktumasukranap",
-                chartgrafikmonthlykpi,
-                "Bulan",
-                "Persentase (%)",
-                [
-                    "Persentase ≤ 1 jam",
-                    "Tercapai",
-                    "Tidak Tercapai",
-                    "Avg Menit"
+            renderChartArea({
+                chart: {
+                    elementId: 'grafikkpiwaktumasukranap',
+                    height: 350
+                },
+
+                data: {
+                    categories: chartgrafikmonthlykpi.map(item => item.periode),
+                    series: [
+                        {
+                            name: 'Avg Waktu Tunggu Rawat Inap',
+                            type: 'area',
+                            yAxisIndex: 0,
+                            data: chartgrafikmonthlykpi.map(item => item.Value5)
+                        }                 
+                    ]
+                },
+
+                xAxis: {
+                    title: 'Admission Date'
+                },
+
+                yAxes: [
+                    {
+                        title: 'Avg Waktu Tunggu Rawat Inap',
+                        min: 0,
+                        suffix: ' Minute',
+                        decimals: 0,
+                        opposite: false,
+                        headroom: 0.10
+                    }
                 ],
-                ["Value4", "Value2", "Value3", "Value5"],
-                true,
-                "Jumlah",
-                null,
-                "",
-                null,
-                ["Value2"]
-            );
+
+                tooltip: {
+                    suffix: [' Minute']
+                },
+
+                trendLine: {
+                    show: true
+                },
+
+                targetLine: {
+                    show      : true,
+                    value     : 60,
+                    name      : 'Target Pencapaian ≤',
+                    suffix    : 'Menit',
+                    color     : '#E53935',
+                    dashArray : 5,
+                    yAxisIndex: 0
+                }
+            });
         },
 
         complete: function () {

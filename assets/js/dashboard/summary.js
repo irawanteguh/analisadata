@@ -415,51 +415,107 @@ function dataantrianhelpdesk(){
 
             const result = Array.isArray(response.responResult) ? response.responResult : [];
             globaldatahelpdesk = result;
-            const chartMap = {};
 
-            result.forEach(item => {
+            const DailyData = {};
 
-                const tanggal = item.TANGGAL;
+            const chartgrafikdailykpi = (() => {
+                const dailyData = {};
 
-                if (!tanggal) return;
+                result.forEach(item => {
+                    if (!item.PERIODE) return;
 
-                if (!chartMap[tanggal]) {
-                    chartMap[tanggal] = {
-                        periode: tanggal,
-                        value_1: 0,
-                        value_2: 0,
-                        value_3: 0
+                    const [tanggal, bulan, tahun] = item.PERIODE.split('.');
+                    if (!tanggal || !bulan || !tahun) return;
+
+                    const periode = item.PERIODE;
+
+                    const Value1 = Number(item.KODE_A) || 0;
+                    const Value2 = Number(item.KODE_B) || 0;
+                    const Value3 = Number(item.KODE_C) || 0;
+
+                    dailyData[periode] = {
+                        periode,
+                        Value1,
+                        Value2,
+                        Value3,
+                        _sortDate: new Date(
+                            Number(tahun),
+                            Number(bulan) - 1,
+                            Number(tanggal)
+                        ).getTime()
                     };
-                }
+                });
 
-                chartMap[tanggal].value_1 += Number(item.KODE_A || 0);
-                chartMap[tanggal].value_2 += Number(item.KODE_B || 0);
-                chartMap[tanggal].value_3 += Number(item.KODE_C || 0);
+                Object.assign(DailyData, dailyData);
 
-            });
+                return Object.values(dailyData)
+                    .sort((a, b) => a._sortDate - b._sortDate)
+                    .map(({ _sortDate, ...item }) => item);
+            })();
 
-            const chartDataHarian = Object.values(chartMap);
+            renderChartArea({
+                chart: {
+                    elementId: 'grafikantrianhelpdesk',
+                    height: 350
+                },
 
-            renderChartStackedBar(
-                "grafikantrianhelpdesk",
-                chartDataHarian.map(item => item.periode),
-                [
+                data: {
+                    categories: chartgrafikdailykpi.map(item => item.periode),
+                    series: [
+                        {
+                            name: 'PRIORITAS / DISABILITAS',
+                            type: 'area',
+                            yAxisIndex: 0,
+                            data: chartgrafikdailykpi.map(item => item.Value1)
+                        },
+                        {
+                            name: 'BPJS',
+                            type: 'area',
+                            yAxisIndex: 0,
+                            data: chartgrafikdailykpi.map(item => item.Value2)
+                        },
+                        {
+                            name: 'HELP DESK',
+                            type: 'area',
+                            yAxisIndex: 0,
+                            data: chartgrafikdailykpi.map(item => item.Value3)
+                        }              
+                    ]
+                },
+
+                xAxis: {
+                    title: 'Admission Date'
+                },
+
+                yAxes: [
                     {
-                        name: "PRIORITAS / DISABILITAS",
-                        data: chartDataHarian.map(item => item.value_1)
-                    },
-                    {
-                        name: "BPJS",
-                        data: chartDataHarian.map(item => item.value_2)
-                    },
-                    {
-                        name: "HELP DESK",
-                        data: chartDataHarian.map(item => item.value_3)
+                        title: 'Jml Pasien',
+                        min: 0,
+                        suffix: ' Px',
+                        decimals: 0,
+                        opposite: false,
+                        headroom: 0.10
                     }
                 ],
-                "Tanggal Kunjungan",
-                "Jumlah"
-            );
+
+                tooltip: {
+                    suffix: [' px']
+                },
+
+                trendLine: {
+                    show: false
+                },
+
+                targetLine: {
+                    show      : false,
+                    value     : 90,
+                    name      : 'Target Pencapaian ≥',
+                    suffix    : '%',
+                    color     : '#E53935',
+                    dashArray : 5,
+                    yAxisIndex: 0
+                }
+            });
         },
         complete: function () {
             Swal.close();

@@ -1,39 +1,596 @@
 const chartInstances = {};
 
-const resourceConfig = {
-    "REGISTRASI": {
-        x: 1,
-        color: "#0d6efd"
-    },
-    "JASA DOKTER": {
-        x: 2,
-        color: "#6610f2"
-    },
-    "OBAT": {
-        x: 3,
-        color: "#20c997"
-    },
-    "LABORATORIUM": {
-        x: 4,
-        color: "#fd7e14"
-    },
-    "RADIOLOGI": {
-        x: 5,
-        color: "#dc3545"
-    },
-    "RADIOTERAPI": {
-        x: 6,
-        color: "#6f42c1"
-    },
-    "TINDAKAN": {
-        x: 7,
-        color: "#198754"
-    },
-    "AMBULAN": {
-        x: 8,
-        color: "#d63384"
+function renderChartArea(config = {}) {
+    const defaults = {
+        chart: {
+            elementId: '',
+            id: '',
+            type: 'area',
+            height: 350,
+            toolbar: true,
+            zoom: false,
+            animations: true
+        },
+
+        data: {
+            categories: [],
+            series: []
+        },
+
+        series: {
+            colors: [
+                '#008FFB', '#00E396', '#FEB019', '#775DD0',
+                '#00B8D9', '#26A69A', '#A5978B', '#546E7A',
+                '#FF9800', '#5C6BC0'
+            ],
+            curve: 'smooth',
+            strokeWidth: 3,
+            fillOpacity: 0.18,
+            showMarkers: true,
+            markerSize: 3,
+            showDataLabels: true
+        },
+
+        title: {
+            text: '',
+            subtitle: '',
+            align: 'left'
+        },
+
+        xAxis: {
+            title: 'Tanggal',
+            rotate: -45
+        },
+
+        yAxes: [
+            {
+                title: '',
+                min: 0,
+                max: undefined,
+                decimals: 0,
+                prefix: '',
+                suffix: '',
+                tickAmount: 5,
+                headroom: 0.10,
+                opposite: false
+            }
+        ],
+
+        tooltip: {
+            enabled: true,
+            shared: true,
+            decimals: undefined,
+            prefix: '',
+            suffix: ''
+        },
+
+        legend: {
+            show: true,
+            position: 'bottom',
+            horizontalAlign: 'center'
+        },
+
+        trendLine: {
+            show       : false,
+            name       : 'Simple Linear Regression',
+            color      : '#7C3AED',
+            strokeWidth: 2,
+            dashArray  : 6
+        },
+
+        targetLine: {
+            show: false,
+            value: null,
+            name: 'Target',
+            color: '#E53935',
+            dashArray: 5,
+            labelColor: '#FFFFFF',
+            labelBackground: '#E53935',
+            yAxisIndex: 0,
+            suffix: ''
+        },
+
+        display: {
+            noDataText: 'Tidak ada data',
+            responsive: true
+        }
+    };
+
+    // Deep merge; array dari konfigurasi baru menggantikan array default.
+    function mergeConfig(base, custom) {
+        const result = { ...base };
+
+        Object.keys(custom || {}).forEach(key => {
+            const b = base[key];
+            const c = custom[key];
+
+            if (
+                b && c &&
+                typeof b === 'object' &&
+                typeof c === 'object' &&
+                !Array.isArray(b) &&
+                !Array.isArray(c)
+            ) {
+                result[key] = mergeConfig(b, c);
+            } else {
+                result[key] = c;
+            }
+        });
+
+        return result;
     }
-};
+
+    const cfg = mergeConfig(defaults, config);
+
+    if (!Array.isArray(cfg.yAxes) || cfg.yAxes.length === 0) {
+        cfg.yAxes = defaults.yAxes.map(axis => ({ ...axis }));
+    }
+
+    // Validasi konfigurasi axis.
+    cfg.yAxes = cfg.yAxes.map(axis => ({
+        ...defaults.yAxes[0],
+        ...(axis || {})
+    }));
+
+    const element = document.getElementById(cfg.chart.elementId);
+
+    if (!element) {
+        console.warn(
+            `Chart element #${cfg.chart.elementId} tidak ditemukan.`
+        );
+        return;
+    }
+
+    if (element._apexChart) {
+        element._apexChart.destroy();
+        element._apexChart = null;
+    }
+
+    const categories = Array.isArray(cfg.data.categories)
+        ? cfg.data.categories
+        : [];
+
+    const inputSeries = Array.isArray(cfg.data.series)
+        ? cfg.data.series
+        : [];
+
+    // Normalisasi data series.
+    const series = inputSeries.map((item, index) => ({
+        name      : item.name || `Series ${index + 1}`,
+        type      : item.type || cfg.chart.type || 'area',
+        yAxisIndex: Number.isInteger(Number(item.yAxisIndex)) ? Math.max(0, Number(item.yAxisIndex)): 0,
+        data      : (Array.isArray(item.data) ? item.data : []).map(value => {if (value === null || value === undefined || value === '') {return null;} const number = Number(value); return Number.isFinite(number) ? number : null;})
+    }));
+
+    // Pastikan indeks axis series valid.
+    series.forEach(item => {
+        if (item.yAxisIndex >= cfg.yAxes.length) {
+            console.warn(
+                `Axis ${item.yAxisIndex} tidak tersedia untuk series "${item.name}".`
+            );
+            item.yAxisIndex = 0;
+        }
+    });
+
+    // Garis tren regresi linear.
+    let trendSeriesName = null;
+
+    if (cfg.trendLine.show) {
+        const sourceIndex = series.findIndex(
+            item => item.type === 'area' || item.type === 'line'
+        );
+
+        if (sourceIndex !== -1) {
+            const source = series[sourceIndex];
+
+            const points = source.data
+                .map((y, x) => ({ x, y }))
+                .filter(p => p.y !== null && Number.isFinite(p.y));
+
+            if (points.length >= 2) {
+                const n = points.length;
+
+                const sumX = points.reduce((s, p) => s + p.x, 0);
+                const sumY = points.reduce((s, p) => s + p.y, 0);
+                const sumXY = points.reduce((s, p) => s + p.x * p.y, 0);
+                const sumXX = points.reduce((s, p) => s + p.x * p.x, 0);
+
+                const denominator = n * sumXX - sumX * sumX;
+
+                const slope = denominator !== 0
+                    ? (n * sumXY - sumX * sumY) / denominator
+                    : 0;
+
+                const intercept = (sumY - slope * sumX) / n;
+
+                const trendData = source.data.map((_, index) =>
+                    Number((slope * index + intercept).toFixed(4))
+                );
+
+                trendSeriesName = cfg.trendLine.name;
+
+                // Hindari nama trend yang sama dengan series lain.
+                if (series.some(item => item.name === trendSeriesName)) {
+                    trendSeriesName = `${cfg.trendLine.name} (Linear)`;
+                }
+
+                series.push({
+                    name      : trendSeriesName,
+                    type      : 'line',
+                    yAxisIndex: source.yAxisIndex,
+                    data      : trendData,
+                    isTrend   : true
+                });
+            } else {
+                console.warn(
+                    'Garis tren membutuhkan minimal 2 data numerik.'
+                );
+            }
+        }
+    }
+
+    // Target SLA.
+    const isTargetEnabled =
+        cfg.targetLine.show &&
+        cfg.targetLine.value !== null &&
+        cfg.targetLine.value !== '' &&
+        Number.isFinite(Number(cfg.targetLine.value));
+
+    const targetValue = isTargetEnabled
+        ? Number(cfg.targetLine.value)
+        : null;
+
+    const targetAxisIndex = Number.isInteger(
+        Number(cfg.targetLine.yAxisIndex)
+    )
+        ? Math.max(0, Number(cfg.targetLine.yAxisIndex))
+        : 0;
+
+    if (isTargetEnabled && targetAxisIndex >= cfg.yAxes.length) {
+        console.warn('Target SLA menggunakan yAxisIndex yang tidak tersedia.');
+    }
+
+    const validTarget = isTargetEnabled &&
+        targetAxisIndex < cfg.yAxes.length;
+
+    // Anotasi target SLA.
+    const targetAnnotations = validTarget
+        ? {
+            yaxis: [{
+                y: targetValue,
+                yAxisIndex: targetAxisIndex,
+                borderColor: cfg.targetLine.color,
+                strokeDashArray: cfg.targetLine.dashArray,
+                borderWidth: 2,
+                label: {
+                    text: `${cfg.targetLine.name} (${targetValue}${cfg.targetLine.suffix ? ' ' + cfg.targetLine.suffix : ''})`,
+                    position: 'right',
+                    borderColor: cfg.targetLine.color,
+                    style: {
+                        color: cfg.targetLine.labelColor,
+                        background: cfg.targetLine.labelBackground,
+                        fontSize: '11px',
+                        fontWeight: 600
+                    }
+                }
+            }]
+        }
+        : {};
+
+    // Hitung batas setiap axis berdasarkan series dan target.
+    const axisConfigs = cfg.yAxes.map((axis, axisIndex) => {
+        const axisSeries = series.filter(
+            item => item.yAxisIndex === axisIndex
+        );
+
+        const values = axisSeries.flatMap(item =>
+            item.data.filter(value =>
+                value !== null && Number.isFinite(value)
+            )
+        );
+
+        const dataMin = values.length ? Math.min(...values) : 0;
+        const dataMax = values.length ? Math.max(...values) : 0;
+
+        const axisTarget = validTarget && axisIndex === targetAxisIndex
+            ? targetValue
+            : null;
+
+        const lowest = Math.min(
+            dataMin,
+            axisTarget !== null ? axisTarget : dataMin
+        );
+
+        const highest = Math.max(
+            dataMax,
+            axisTarget !== null ? axisTarget : dataMax
+        );
+
+        const configuredMin = axis.min !== undefined
+            ? Number(axis.min)
+            : undefined;
+
+        const minValue = configuredMin !== undefined
+            ? Math.min(configuredMin, lowest)
+            : lowest;
+
+        const range = Math.max(
+            highest - minValue,
+            Math.abs(highest) * 0.1,
+            1
+        );
+
+        const rawMax = highest + range * (axis.headroom ?? 0.10);
+        const decimals = Math.max(0, Number(axis.decimals) || 0);
+        const factor = Math.pow(10, decimals);
+
+        const calculatedMax = Math.ceil(rawMax * factor) / factor;
+
+        const axisMax = axis.max !== undefined
+            ? Math.max(Number(axis.max), calculatedMax)
+            : calculatedMax;
+
+        const axisSeriesNames = axisSeries.map(item => item.name);
+
+        return {
+            seriesName     : axisSeriesNames.length ? axisSeriesNames: undefined,
+            min            : minValue,
+            max            : axisMax,
+            opposite       : axis.opposite ?? axisIndex > 0,
+            forceNiceScale : true,
+            tickAmount     : axis.tickAmount ?? 5,
+            decimalsInFloat: decimals,
+            title          : {text: axis.title || undefined},
+            labels         : {
+                formatter: value =>
+                    (axis.prefix || '') +
+                    Number(value).toLocaleString('id-ID', {
+                        maximumFractionDigits: decimals
+                    }) +
+                    (axis.suffix || '')
+            }
+        };
+    });
+
+    // Warna dipetakan berdasarkan urutan series asli.
+    const colors = series.map((item, index) => {
+        if (item.name === trendSeriesName) {
+            return cfg.trendLine.color || '#7C3AED';
+        }
+
+        if (item.type === 'line') {
+            return '#64748B';
+        }
+
+        const areaIndex = series
+            .slice(0, index + 1)
+            .filter(s => s.type !== 'line').length - 1;
+
+        const palette = cfg.series.colors;
+
+        return Array.isArray(palette) && palette.length
+            ? palette[areaIndex % palette.length]
+            : '#008FFB';
+    });
+
+    // Gaya garis per series.
+    const strokeWidths = series.map(item =>
+        item.name === trendSeriesName
+            ? (Number(cfg.trendLine.strokeWidth) || 3)
+            : item.type === 'line'
+                ? 2
+                : (Number(cfg.series.strokeWidth) || 3)
+    );
+
+    const dashArrays = series.map(item =>
+        item.name === trendSeriesName
+            ? Number(cfg.trendLine.dashArray ?? 6)
+            : 0
+    );
+
+    const markerSizes = series.map(item =>
+        item.name === trendSeriesName || !cfg.series.showMarkers
+            ? 0
+            : (Number(cfg.series.markerSize) || 0)
+    );
+
+    const fillTypes = series.map(item =>
+        item.type === 'line' ? 'solid' : 'gradient'
+    );
+
+    const fillOpacities = series.map(item =>
+        item.type === 'line'
+            ? 1
+            : (Number(cfg.series.fillOpacity) || 0.18)
+    );
+
+    const dataLabelsSeries = series
+        .map((item, index) =>
+            item.name === trendSeriesName ? -1 : index
+        )
+        .filter(index => index >= 0);
+
+    const chartOptions = {
+        chart: {
+            id: cfg.chart.id || cfg.chart.elementId,
+            type: 'line',
+            height: cfg.chart.height,
+            toolbar: {
+                show: cfg.chart.toolbar
+            },
+            zoom: {
+                enabled: cfg.chart.zoom
+            },
+            animations: {
+                enabled: cfg.chart.animations
+            }
+        },
+
+        series,
+
+        colors,
+
+        stroke: {
+            curve    : cfg.series.curve || 'smooth',
+            width    : strokeWidths,
+            dashArray: dashArrays,
+            lineCap  : 'round'
+        },
+
+        grid: {
+            borderColor: '#E0E0E0',
+            strokeDashArray: 5,
+            xaxis: {
+                lines: {
+                    show: false
+                }
+            },
+            yaxis: {
+                lines: {
+                    show: true
+                }
+            }
+        },
+
+        fill: {
+            type    : fillTypes,
+            opacity : fillOpacities,
+            gradient: {
+                shade         : 'light',
+                type          : 'vertical',
+                shadeIntensity: 0,
+                inverseColors : false,
+                opacityFrom   : 0.9,
+                opacityTo     : 0.1,
+                stops         : [0, 100]
+            }
+        },
+
+        markers: {
+            size: markerSizes,
+            strokeWidth: 3,
+            hover: {
+                sizeOffset: 3
+            }
+        },
+
+        dataLabels: {
+            enabled: cfg.series.showDataLabels,
+            enabledOnSeries: dataLabelsSeries,
+            formatter: function (value) {
+                if (
+                    value === null ||
+                    value === undefined ||
+                    !Number.isFinite(Number(value))
+                ) {
+                    return '';
+                }
+
+                const number = Number(value);
+
+                return number.toLocaleString('id-ID', {
+                    minimumFractionDigits: Number.isInteger(number) ? 0 : 2,
+                    maximumFractionDigits: 2
+                });
+            }
+        },
+
+        ...(cfg.title.text ? {
+            title: {
+                text: cfg.title.text,
+                align: cfg.title.align
+            }
+        } : {}),
+
+        ...(cfg.title.subtitle ? {
+            subtitle: {
+                text: cfg.title.subtitle,
+                align: cfg.title.align
+            }
+        } : {}),
+
+        xaxis: {
+            categories,
+            title: {
+                text: cfg.xAxis.title || undefined
+            },
+            labels: {
+                rotate: cfg.xAxis.rotate,
+                rotateAlways: false
+            }
+        },
+
+        yaxis: axisConfigs,
+
+        annotations: targetAnnotations,
+
+        tooltip: {
+            enabled: cfg.tooltip.enabled,
+            shared: cfg.tooltip.shared,
+            y: {
+                formatter: function (value, { seriesIndex }) {
+                    if (
+                        value === null ||
+                        value === undefined ||
+                        !Number.isFinite(Number(value))
+                    ) {
+                        return '-';
+                    }
+
+                    const decimals = cfg.tooltip.decimals ??
+                        cfg.yAxes[series[seriesIndex]?.yAxisIndex ?? 0]?.decimals ??
+                        0;
+
+                    const suffix = Array.isArray(cfg.tooltip.suffix)
+                        ? (cfg.tooltip.suffix[seriesIndex] ?? '')
+                        : (cfg.tooltip.suffix ?? '');
+
+                    const prefix = Array.isArray(cfg.tooltip.prefix)
+                        ? (cfg.tooltip.prefix[seriesIndex] ?? '')
+                        : (cfg.tooltip.prefix ?? '');
+
+                    return prefix +
+                        Number(value).toLocaleString('id-ID', {
+                            maximumFractionDigits: decimals,
+                            minimumFractionDigits: decimals
+                        }) +
+                        suffix;
+                }
+            }
+        },
+
+        legend: {
+            show: cfg.legend.show,
+            position: cfg.legend.position,
+            horizontalAlign: cfg.legend.horizontalAlign
+        },
+
+        noData: {
+            text: cfg.display.noDataText
+        },
+
+        responsive: cfg.display.responsive
+            ? [{
+                breakpoint: 768,
+                options: {
+                    chart: {
+                        height: 300
+                    },
+                    legend: {
+                        position: 'bottom'
+                    }
+                }
+            }]
+            : []
+    };
+
+    const chart = new ApexCharts(element, chartOptions);
+    element._apexChart = chart;
+
+    chart.render();
+
+    return chart;
+}
 
 function renderchartheatmap(
     name,
@@ -287,1226 +844,5 @@ function renderchartheatmap(
 
     chartInstances[name] = new ApexCharts(chartEl, options);
 
-    chartInstances[name].render();
-}
-
-function renderchartarea(name, data, titleX, titleY, seriesName, fieldName, rightAxisIndex = null, rightAxisLabel = "", avgField = null, avgLabel = "Rata-rata", annotationValue = null,trendField = []) {
-
-    if (chartInstances[name]) {
-        chartInstances[name].destroy();
-        chartInstances[name] = null;
-    }
-
-    const chartEl = document.getElementById(name);
-    if (!chartEl) {
-        console.error("Chart element tidak ditemukan:", name);
-        return;
-    }
-
-    data = Array.isArray(data) ? data : [];
-
-    const trendFields = Array.isArray(trendField)
-        ? trendField
-        : (trendField ? [trendField] : []);
-
-    const isMultiSeries =
-        Array.isArray(seriesName) && Array.isArray(fieldName);
-
-    const names = isMultiSeries ? seriesName : [seriesName];
-    const fields = isMultiSeries ? fieldName : [fieldName];
-
-    // Data series utama
-    const series = names.map((nm, index) => ({
-        name: nm,
-        type: "area",
-        data: data.map(item => {
-            const value = parseFloat(item[fields[index]]);
-            return Number.isFinite(value) ? value : null;
-        })
-    }));
-
-    // Menentukan seri yang menggunakan sumbu kanan
-    const hasRightAxis =
-        rightAxisIndex !== null &&
-        rightAxisIndex !== undefined &&
-        rightAxisIndex !== false;
-
-    // Menghitung regresi linear untuk seri yang dipilih
-    const trendSeries = [];
-
-    fields.forEach((field, index) => {
-        if (!trendFields.includes(field)) return;
-
-        const points = series[index].data
-            .map((value, i) => ({
-                x: i,
-                y: value
-            }))
-            .filter(point => point.y !== null);
-
-        if (points.length < 2) {
-            console.warn("Data tren tidak cukup:", field);
-            return;
-        }
-
-        const n = points.length;
-        const sumX = points.reduce((sum, p) => sum + p.x, 0);
-        const sumY = points.reduce((sum, p) => sum + p.y, 0);
-        const sumXY = points.reduce((sum, p) => sum + p.x * p.y, 0);
-        const sumX2 = points.reduce((sum, p) => sum + p.x * p.x, 0);
-
-        const denominator = n * sumX2 - sumX * sumX;
-        if (denominator === 0) return;
-
-        const slope =
-            (n * sumXY - sumX * sumY) / denominator;
-
-        const intercept = (sumY - slope * sumX) / n;
-
-        // Pertahankan posisi data sesuai kategori X
-        const trendData = series[index].data.map((_, i) => {
-            const value = intercept + slope * i;
-            return Number(value.toFixed(2));
-        });
-
-        trendSeries.push({
-            name: "Tren " + names[index],
-            type: "line",
-            data: trendData
-        });
-    });
-
-    // Data rata-rata
-    let avgValue = null;
-
-    if (avgField) {
-        const values = data
-            .map(item => parseFloat(item[avgField]))
-            .filter(value => Number.isFinite(value) && value > 0);
-
-        if (values.length > 0) {
-            avgValue =
-                values.reduce((sum, value) => sum + value, 0) /
-                values.length;
-        }
-    }
-
-    const finalAnnotation =
-        annotationValue !== null && annotationValue !== undefined
-            ? annotationValue
-            : avgValue;
-
-    const finalLabel =
-        annotationValue !== null && annotationValue !== undefined
-            ? avgLabel
-            : avgValue !== null
-                ? `${avgLabel} (${Math.round(avgValue).toLocaleString("id-ID")})`
-                : "";
-
-    // Gabungkan series utama dan garis tren
-    const allSeries = [
-        ...series,
-        ...trendSeries
-    ];
-
-    const mainSeriesCount = series.length;
-
-    const options = {
-        chart: {
-            type: "line",
-            height: 350,
-            toolbar: {
-                show: true
-            },
-            zoom: {
-                enabled: false
-            },
-            animations: {
-                enabled: true
-            }
-        },
-
-        series: allSeries,
-
-        xaxis: {
-            categories: data.map(item => item.periode),
-            title: {
-                text: titleX
-            },
-            tickPlacement: "on",
-            axisBorder: {
-                show: true
-            },
-            axisTicks: {
-                show: true
-            }
-        },
-
-        yaxis: hasRightAxis
-            ? [
-                {
-                    seriesName: names.filter(
-                        (_, index) => index !== rightAxisIndex
-                    ),
-                    title: {
-                        text: titleY
-                    },
-                    min: 0,
-                    forceNiceScale: true,
-                    labels: {
-                        formatter: value =>
-                            Number(value).toLocaleString("id-ID")
-                    }
-                },
-                {
-                    seriesName: [
-                        names[rightAxisIndex],
-                        ...trendSeries
-                            .filter(s =>
-                                s.name === "Tren " + names[rightAxisIndex]
-                            )
-                            .map(s => s.name)
-                    ],
-                    opposite: true,
-                    title: {
-                        text: rightAxisLabel
-                    },
-                    forceNiceScale: true,
-                    labels: {
-                        formatter: value =>
-                            Number(value).toLocaleString("id-ID")
-                    }
-                }
-            ]
-            : {
-                title: {
-                    text: titleY
-                },
-                min: 0,
-                forceNiceScale: true,
-                labels: {
-                    formatter: value =>
-                        Number(value).toLocaleString("id-ID")
-                }
-            },
-
-        stroke: {
-            curve: "smooth",
-            width: allSeries.map((s, index) =>
-                index >= mainSeriesCount ? 3 : 2
-            ),
-            dashArray: allSeries.map((s, index) =>
-                index >= mainSeriesCount ? 6 : 0
-            )
-        },
-
-        markers: {
-            size: allSeries.map((s, index) =>
-                index >= mainSeriesCount ? 5 : 3
-            ),
-            strokeWidth: 2,
-            hover: {
-                sizeOffset: 2
-            }
-        },
-
-        fill: {
-            type: allSeries.map((s, index) =>
-                index >= mainSeriesCount ? "solid" : "gradient"
-            ),
-            opacity: allSeries.map((s, index) =>
-                index >= mainSeriesCount ? 1 : 0.25
-            ),
-            gradient: {
-                shadeIntensity: 0,
-                opacityFrom: 0.45,
-                opacityTo: 0.05,
-                stops: [0, 100]
-            }
-        },
-
-        dataLabels: {
-            enabled: true,
-            enabledOnSeries: series.map((_, index) => index),
-            formatter: value =>
-                value === null || value === undefined
-                    ? ""
-                    : Number(value).toLocaleString("id-ID")
-        },
-
-        tooltip: {
-            shared: true,
-            intersect: false,
-            y: {
-                formatter: value =>
-                    value === null || value === undefined
-                        ? "-"
-                        : Number(value).toLocaleString("id-ID")
-            }
-        },
-
-        grid: {
-            strokeDashArray: 4
-        },
-
-        legend: {
-            position: "top"
-        },
-
-        annotations:
-            finalAnnotation !== null &&
-            finalAnnotation !== undefined &&
-            Number.isFinite(Number(finalAnnotation))
-                ? {
-                    yaxis: [{
-                        y: Number(finalAnnotation),
-                        borderColor: "#FF0000",
-                        strokeDashArray: 3,
-                        label: {
-                            text: finalLabel,
-                            style: {
-                                background: "#FF0000",
-                                color: "#FFFFFF"
-                            }
-                        }
-                    }]
-                }
-                : {},
-
-        noData: {
-            text: "Tidak ada data"
-        }
-    };
-
-    chartEl.innerHTML = "";
-
-    chartInstances[name] = new ApexCharts(chartEl, options);
-    chartInstances[name].render();
-}
-
-function renderChartStackedBar(elementId,categories,series,titleX = "",titleY = "",options = {}){
-
-    const chartElement = document.getElementById(elementId);
-
-    if (!chartElement) return;
-
-    if (chartElement.chart) {
-        chartElement.chart.destroy();
-    }
-
-    const config = {
-
-        chart: {
-            type: "bar",
-            height: options.height || 350,
-            stacked: true,
-            toolbar: {
-                show: false
-            },
-            fontFamily: "inherit"
-        },
-
-        series: series,
-
-        xaxis: {
-            categories: categories,
-            title: {
-                text: titleX
-            }
-        },
-
-        yaxis: {
-            title: {
-                text: titleY
-            }
-        },
-
-        plotOptions: {
-            bar: {
-                horizontal: options.horizontal || false,
-                columnWidth: options.columnWidth || "55%",
-                borderRadius: options.borderRadius || 4,
-                borderRadiusApplication: "end"
-            }
-        },
-
-        stroke: {
-            width: 1,
-            colors: ["#fff"]
-        },
-
-        fill: {
-            opacity: 1
-        },
-
-        dataLabels: {
-            enabled: options.dataLabels ?? false
-        },
-
-        legend: {
-            position: options.legendPosition || "top",
-            horizontalAlign: options.legendAlign || "left"
-        },
-
-        tooltip: {
-            y: {
-                formatter: function(val) {
-                    return val.toLocaleString("id-ID");
-                }
-            }
-        },
-
-        grid: {
-            borderColor: "#e5e5e5",
-            strokeDashArray: 4
-        },
-
-        noData: {
-            text: "Tidak ada data"
-        }
-
-    };
-
-    Object.assign(config, options);
-
-    chartElement.chart = new ApexCharts(chartElement, config);
-    chartElement.chart.render();
-
-}
-
-function renderquadrant(container, data, revenueLine = 0, patientLine) {
-
-    $(container).empty();
-
-    //==================================================
-    // REVENUE SCALE
-    //==================================================
-    const revenueStep = 50000000;
-
-    const maxPositive = Math.max(
-        0,
-        ...data.filter(d => d.x > 0).map(d => d.x)
-    );
-
-    const revenuePadding = maxPositive * 0.05;
-
-    const revenueMax = maxPositive + revenuePadding;
-    const revenueMin = -(maxPositive + revenuePadding);
-
-    const tickAmount = Math.ceil(
-        (revenueMax - revenueMin) / revenueStep
-    );
-
-    //==================================================
-    // PREPARE DATA
-    //==================================================
-    const chartData = data.map(item => {
-
-        const clippedX = Math.max(
-            revenueMin,
-            Math.min(item.x, revenueMax)
-        );
-
-        return {
-            ...item,
-            realRevenue: item.x,
-            x: clippedX,
-            label: (item.nama || "")
-                .replace(/^DRG?\.\s*/i, "")
-                .replace(/^DR\s*/i, "")
-                .replace(/^drg?\.\s*/i, "")
-                .replace(/^dr\s*/i, "")
-                .split(",")[0]
-        };
-
-    });
-
-    //==================================================
-    // PATIENT SCALE
-    //==================================================
-    const minPatient = Math.min(...chartData.map(i => i.y));
-    const maxPatient = Math.max(...chartData.map(i => i.y));
-
-    const patientPadding = (maxPatient - minPatient) * 0.05;
-
-    const yMin = Math.max(
-        0,
-        Math.floor(minPatient - patientPadding)
-    );
-
-    const yMax = Math.ceil(
-        maxPatient + patientPadding
-    );
-
-    //==================================================
-    // QUADRANT
-    //==================================================
-    const q1 = [];
-    const q2 = [];
-    const q3 = [];
-    const q4 = [];
-
-    chartData.forEach(item => {
-
-        if (item.realRevenue >= revenueLine && item.y >= patientLine) {
-            q1.push(item);
-        }
-        else if (item.realRevenue >= revenueLine && item.y < patientLine) {
-            q2.push(item);
-        }
-        else if (item.realRevenue < revenueLine && item.y < patientLine) {
-            q3.push(item);
-        }
-        else {
-            q4.push(item);
-        }
-
-    });
-
-    //==================================================
-    // CHART
-    //==================================================
-    const options = {
-
-        chart: {
-            type: "scatter",
-            height: 700,
-            zoom: {
-                enabled: true
-            },
-            toolbar: {
-                show: false
-            }
-        },
-
-        colors: [
-            "#28a745",
-            "#0d6efd",
-            "#dc3545",
-            "#fd7e14"
-        ],
-
-        series: [
-            {
-                name: "Q1 (Revenue + | High Patient)",
-                data: q1
-            },
-            {
-                name: "Q2 (Revenue + | Low Patient)",
-                data: q2
-            },
-            {
-                name: "Q3 (Revenue - | Low Patient)",
-                data: q3
-            },
-            {
-                name: "Q4 (Revenue - | High Patient)",
-                data: q4
-            }
-        ],
-
-        markers: {
-            size: 7,
-            hover: {
-                size: 10
-            }
-        },
-
-        dataLabels: {
-
-            enabled: true,
-
-            offsetY: -10,
-
-            background: {
-                enabled: false
-            },
-
-            formatter: function(val, opts) {
-
-                return opts.w.config.series[
-                    opts.seriesIndex
-                ].data[
-                    opts.dataPointIndex
-                ].label;
-
-            }
-
-        },
-
-        xaxis: {
-
-            min: revenueMin,
-            max: revenueMax,
-
-            tickAmount: tickAmount,
-
-            forceNiceScale: false,
-
-            decimalsInFloat: 0,
-
-            title: {
-                text: "Revenue (INA-CBG - Tarif RS)"
-            },
-
-            labels: {
-
-                formatter: function(val) {
-
-                    if (Math.abs(val) < 1000000) {
-                        return "0";
-                    }
-
-                    return Math.round(val / 1000000) + " Jt";
-
-                }
-
-            }
-
-        },
-
-        yaxis: {
-
-            min: yMin,
-            max: yMax,
-
-            tickAmount: 8,
-
-            forceNiceScale: true,
-
-            title: {
-                text: "Jumlah Kunjungan"
-            },
-
-            labels: {
-
-                formatter: function(val) {
-                    return todesimal(Math.round(val));
-                }
-
-            }
-
-        },
-
-        annotations: {
-
-            xaxis: [{
-                x: revenueLine,
-                borderColor: "#dc3545",
-                strokeDashArray: 5,
-                label: {
-                    text: "Revenue",
-                    style: {
-                        background: "#dc3545",
-                        color: "#fff"
-                    }
-                }
-            }],
-
-            yaxis: [{
-                y: patientLine,
-                borderColor: "#0d6efd",
-                strokeDashArray: 5,
-                label: {
-                    text: "Kunjungan",
-                    style: {
-                        background: "#0d6efd",
-                        color: "#fff"
-                    }
-                }
-            }]
-
-        },
-
-        legend: {
-            position: "bottom"
-        },
-
-        tooltip: {
-
-            custom: function({ seriesIndex, dataPointIndex, w }) {
-
-                const d = w.config.series[seriesIndex].data[dataPointIndex];
-
-                return `
-                    <div style="padding:10px;min-width:260px">
-
-                        <div style="font-size:14px;font-weight:bold">
-                            ${d.nama}
-                        </div>
-
-                        <hr>
-
-                        <table style="width:100%">
-
-                            <tr>
-                                <td>Kunjungan</td>
-                                <td align="right">${todesimal(d.y)}</td>
-                            </tr>
-
-                            <tr>
-                                <td>Tarif RS</td>
-                                <td align="right">
-                                    Rp ${todesimal(d.tarifrs)}
-                                </td>
-                            </tr>
-
-                            <tr>
-                                <td>INA-CBG</td>
-                                <td align="right">
-                                    Rp ${todesimal(d.inacbg)}
-                                </td>
-                            </tr>
-
-                            <tr>
-                                <td><b>Revenue</b></td>
-                                <td align="right">
-                                    <b>Rp ${todesimal(d.realRevenue)}</b>
-                                </td>
-                            </tr>
-
-                        </table>
-
-                    </div>
-                `;
-
-            }
-
-        }
-
-    };
-
-    new ApexCharts(
-        document.querySelector(container),
-        options
-    ).render();
-
-}
-
-function renderscatterresource(container, data) {
-    $(container).empty();
-
-    const series = Object.entries(resourceConfig).map(([resourceName, config]) => {
-        const resourceData = data.filter(d => d.resourceTertinggi === resourceName);
-        const totalPoint = resourceData.length;
-
-        return {
-            name: resourceName,
-            color: config.color,
-            data: resourceData.map((d, index) => {
-                let offset = 0;
-
-                if (totalPoint > 1) {
-                    const spread = 0.32;
-                    offset = -spread + ((index / (totalPoint - 1)) * (spread * 2));
-                }
-
-                return {
-                    ...d,
-                    x: config.x + offset,
-                    y: Number(d.persentaseResource) || 0
-                };
-            })
-        };
-    });
-
-    const resourceXAnnotations = [];
-    const resourcePointAnnotations = [];
-
-    Object.entries(resourceConfig).forEach(([resourceName, config]) => {
-        resourceXAnnotations.push({
-            x: config.x,
-            borderColor: config.color,
-            strokeDashArray: 4,
-            borderWidth: 1
-        });
-
-        resourcePointAnnotations.push({
-            x: config.x,
-            y: 0,
-            marker: {
-                size: 0
-            },
-            label: {
-                text: resourceName,
-                borderColor: config.color,
-                offsetY: 28,
-                style: {
-                    background: config.color,
-                    color: "#fff",
-                    fontSize: "9px",
-                    fontWeight: 600,
-                    padding: {
-                        left: 5,
-                        right: 5,
-                        top: 3,
-                        bottom: 3
-                    }
-                }
-            }
-        });
-    });
-
-    const options = {
-        chart: {
-            type: "scatter",
-            height: 650,
-            toolbar: {
-                show: false
-            },
-            zoom: {
-                enabled: true
-            }
-        },
-
-        series: series,
-
-        plotOptions: {
-            scatter: {
-                jitter: {
-                    enabled: true,
-                    x: 0.35,
-                    y: 0
-                }
-            }
-        },
-
-        markers: {
-            size: 6,
-            strokeWidth: 2,
-            strokeColors: "#fff",
-            hover: {
-                size: 9
-            }
-        },
-
-        fill: {
-            opacity: 0.85
-        },
-
-        dataLabels: {
-            enabled: false
-        },
-
-        xaxis: {
-            type: "numeric",
-            min: 0.5,
-            max: 8.5,
-            tickAmount: 8,
-            forceNiceScale: false,
-            crosshairs: {
-                show: false
-            },
-            title: {
-                text: "Jenis Resource",
-                style: {
-                    fontSize: "12px",
-                    fontWeight: 600
-                }
-            },
-            labels: {
-                formatter: function() {
-                    return "";
-                }
-            }
-        },
-
-        yaxis: {
-            min: 0,
-            max: 100,
-            tickAmount: 10,
-            forceNiceScale: false,
-            title: {
-                text: "Persentase Resource",
-                style: {
-                    fontSize: "12px",
-                    fontWeight: 600
-                }
-            },
-            labels: {
-                formatter: function(val) {
-                    return Math.round(val) + "%";
-                }
-            }
-        },
-
-        annotations: {
-            xaxis: resourceXAnnotations,
-            points: resourcePointAnnotations
-        },
-
-        legend: {
-            position: "bottom",
-            horizontalAlign: "center"
-        },
-
-        tooltip: {
-            shared: false,
-            intersect: true,
-            custom: function({ seriesIndex, dataPointIndex, w }) {
-                const d = w.config.series[seriesIndex].data[dataPointIndex];
-
-                return `
-                    <div style="padding:10px;min-width:300px;">
-                        <div style="font-size:14px;font-weight:bold;margin-bottom:8px;">
-                            ${d.nama || "-"}
-                        </div>
-                        <table style="width:100%;font-size:12px;">
-                            <tr>
-                                <td>Resource Dominan</td>
-                                <td align="right">
-                                    <b>${d.resourceTertinggi}</b>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>Persentase</td>
-                                <td align="right">
-                                    <b>${d.persentaseResource.toFixed(2)}%</b>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>Nilai Resource</td>
-                                <td align="right">
-                                    Rp ${todesimal(d.nilaiResourceTertinggi)}
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>Total Resource</td>
-                                <td align="right">
-                                    Rp ${todesimal(d.totalResource)}
-                                </td>
-                            </tr>
-                        </table>
-                    </div>
-                `;
-            }
-        },
-
-        grid: {
-            borderColor: "#e5e7eb",
-            padding: {
-                top: 20,
-                right: 20,
-                bottom: 55,
-                left: 20
-            }
-        }
-    };
-
-    new ApexCharts(
-        document.querySelector(container),
-        options
-    ).render();
-}
-
-function renderChartbarline(container,data,xTitle,yTitleBar,yTitleLine,seriesBar,seriesLine){
-
-    $("#" + container).empty();
-
-    const categories = data.map(x => x.periode);
-    const barData = data.map(x => Number(x.value1) || 0);
-    const lineData = data.map(x => Number(x.value2) || 0);
-
-    var options = {
-
-        chart: {
-            height: 350,
-            type: 'line',
-            toolbar: {
-                show: false
-            }
-        },
-
-        series: [
-            {
-                name: seriesBar,
-                type: 'column',
-                data: barData
-            },
-            {
-                name: seriesLine,
-                type: 'line',
-                data: lineData
-            }
-        ],
-
-        colors: [
-            "#0d6efd", // Tarif RS
-            "#28a745"  // Total Klaim
-        ],
-
-        stroke: {
-            width: [0,4],
-            curve: 'smooth'
-        },
-
-        plotOptions: {
-            bar: {
-                columnWidth: '80%',
-                borderRadius: 5
-            }
-        },
-
-        markers: {
-            size: 5
-        },
-
-        dataLabels: {
-            enabled: false
-        },
-
-        xaxis: {
-            categories: categories,
-            title: {
-                text: xTitle
-            }
-        },
-
-        yaxis: [
-
-            // Sumbu kiri = Jumlah Kasus
-            {
-                title: {
-                    text: yTitleBar
-                },
-                forceNiceScale: true,
-                labels: {
-                    formatter: function(val){
-                        return todesimal(Math.round(val));
-                    }
-                }
-            },
-
-            // Sumbu kanan = Rupiah
-            {
-                opposite: true,
-                title: {
-                    text: yTitleLine
-                },
-                forceNiceScale: true,
-                labels: {
-                    formatter: function(val){
-                        return "Rp " + todesimal(val);
-                    }
-                }
-            }
-
-        ],
-
-        tooltip: {
-            shared: true,
-            intersect: false,
-            y: [
-
-                {
-                    formatter: function(val){
-                        return todesimal(val);
-                    }
-                },
-
-                {
-                    formatter: function(val){
-                        return "Rp " + todesimal(val);
-                    }
-                }
-
-            ]
-        },
-
-        legend: {
-            position: 'bottom',
-            horizontalAlign: 'left'
-        },
-
-        grid: {
-            borderColor: '#e5e7eb',
-            strokeDashArray: 4
-        }
-
-    };
-
-    new ApexCharts(
-        document.querySelector("#" + container),
-        options
-    ).render();
-
-}
-
-function renderBarHorizontal(name, seriesConfig, data, categoryField = 'kategori') {
-    // Hapus chart sebelumnya jika ada
-    if (chartInstances[name]) {
-        chartInstances[name].destroy();
-        chartInstances[name] = null;
-    }
-
-    const categories = data.map(item => item[categoryField]);
-
-    const series = seriesConfig.map(s => ({
-        name: s.name,
-        data: data.map(item => Number(item[s.field] || 0))
-    }));
-
-    const options = {
-        series,
-
-        chart: {
-            type: 'bar',
-            stacked: true,
-            height: Math.max(350, data.length * 35),
-            toolbar: {
-                show: false
-            }
-        },
-
-        plotOptions: {
-            bar: {
-                horizontal: true,
-                borderRadius: 3,
-                barHeight: '70%',
-
-                dataLabels: {
-                    total: {
-                        enabled: true,
-                        offsetX: 10,
-
-                        style: {
-                            fontSize: '12px',
-                            fontWeight: 700
-                        },
-
-                        formatter: function (val) {
-                            return val.toLocaleString('id-ID');
-                        }
-                    }
-                }
-            }
-        },
-
-        stroke: {
-            width: 1,
-            colors: ['#fff']
-        },
-
-        fill: {
-            opacity: 1
-        },
-
-        xaxis: {
-            min: 0,
-            categories,
-
-            labels: {
-                formatter: function (val) {
-                    return Number(val).toLocaleString('id-ID');
-                }
-            }
-        },
-
-        yaxis: {
-            title: {
-                text: undefined
-            }
-        },
-
-        dataLabels: {
-            enabled: true,
-            formatter: function (val) {
-                return Number(val).toLocaleString('id-ID');
-            },
-            style: {
-                fontSize: '11px'
-            }
-        },
-
-        tooltip: {
-            shared: true,
-            intersect: false,
-
-            y: {
-                formatter: function (val) {
-                    return val.toLocaleString('id-ID');
-                }
-            }
-        },
-
-        legend: {
-            position: 'top',
-            horizontalAlign: 'left'
-        }
-    };
-
-    const chartEl = document.querySelector(`#${name}`);
-
-    if (!chartEl) {
-        // console.warn(`Element #${name} tidak ditemukan.`);
-        return;
-    }
-
-    chartEl.innerHTML = '';
-
-    chartInstances[name] = new ApexCharts(chartEl, options);
-    chartInstances[name].render();
-}
-
-function renderchartpie(name, data) {
-    if (chartInstances[name]) {
-        chartInstances[name].destroy();
-        chartInstances[name] = null;
-    }
-
-    const labels = [];
-    const series = [];
-
-    data.forEach(item => {
-        labels.push(
-            item.category ??
-            item.CATEGORY ??
-            item.label ??
-            item.LABEL ??
-            item.PROVIDER ??
-            "-"
-        );
-
-        series.push(
-            Number(
-                item.value ??
-                item.VALUE ??
-                item.total ??
-                item.TOTAL ??
-                0
-            )
-        );
-    });
-
-    const options = {
-        chart: {
-            type: "donut",
-            height: 395
-        },
-        labels: labels,
-        series: series,
-        legend: {
-            position: "bottom"
-        },
-        dataLabels: {
-            enabled: true,
-            formatter: function(val) {
-                return val.toFixed(1) + "%";
-            }
-        },
-        tooltip: {
-            y: {
-                formatter: function(val) {
-                    return val.toLocaleString("id-ID") + " Pasien";
-                }
-            }
-        }
-    };
-
-    const chartContainer = document.querySelector(`#${name}`);
-    if (!chartContainer) return;
-
-    chartContainer.innerHTML = "";
-    chartInstances[name] = new ApexCharts(chartContainer, options);
     chartInstances[name].render();
 }

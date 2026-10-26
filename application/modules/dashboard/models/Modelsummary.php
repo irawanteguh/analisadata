@@ -59,7 +59,7 @@
             $query =
                     "
                         SELECT
-                            TO_CHAR(A.TANGGAL,'DD.MM.YYYY') AS TANGGAL,
+                            TO_CHAR(A.TANGGAL,'DD.MM.YYYY') AS PERIODE,
                             SUM(CASE WHEN A.KODE = 'A' THEN 1 ELSE 0 END) AS KODE_A,
                             SUM(CASE WHEN A.KODE = 'B' THEN 1 ELSE 0 END) AS KODE_B,
                             SUM(CASE WHEN A.KODE = 'C' THEN 1 ELSE 0 END) AS KODE_C

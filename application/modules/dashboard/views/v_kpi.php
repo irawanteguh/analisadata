@@ -61,12 +61,12 @@
 		</div>
 
 		<div class="row gy-5 g-xl-8 mb-xl-8">
-			<div class="col-md-12">
+			<div class="col-md-6">
 				<div class="card card-flush">
 					<div class="card-header pt-5">
 						<h3 class="card-title align-items-start flex-column">
 							<span class="card-label fw-bolder fs-3 mb-1">Waktu Tunggu Rawat Jalan</span>
-							<span class="text-muted mt-1 fw-bold fs-7">≥80% di bawah 60 menit</span>
+							<span class="text-muted mt-1 fw-bold fs-7">Target ≥ 80% di bawah 60 menit</span>
 						</h3>
 					</div>
 					<div class="card-body py-3">
@@ -74,12 +74,12 @@
 					</div>
 				</div>
 			</div>
-			<div class="col-md-12">
+			<div class="col-md-6">
 				<div class="card card-flush">
 					<div class="card-header pt-5">
 						<h3 class="card-title align-items-start flex-column">
-							<span class="card-label fw-bolder fs-3 mb-1">Waktu Pelayanan Rawat Jalan Tanpa Pemeriksaan Penunjang</span>
-							<span class="text-muted mt-1 fw-bold fs-7">di bawah 120 menit</span>
+							<span class="card-label fw-bolder fs-3 mb-1">Waktu Pelayanan Rawat Jalan</span>
+							<span class="text-muted mt-1 fw-bold fs-7">Target ≥ 80% di bawah 120 menit</span>
 						</h3>
 					</div>
 					<div class="card-body py-3">
@@ -137,12 +137,12 @@
 			</div>
 		</div>
 		<div class="row gy-5 g-xl-8 mb-xl-8">
-			<div class="col-md-12">
+			<div class="col-md-6">
 				<div class="card card-flush">
 					<div class="card-header pt-5">
 						<h3 class="card-title align-items-start flex-column">
 							<span class="card-label fw-bolder fs-3 mb-1">Lama Layanan IGD</span>
-							<span class="text-muted mt-1 fw-bold fs-7">Target 90% di bawah ≤ 4 jam / 240 Menit</span>
+							<span class="text-muted mt-1 fw-bold fs-7">Target ≥ 90% di bawah ≤ 4 jam / 240 Menit</span>
 						</h3>
 					</div>
 					<div class="card-body py-3">
@@ -150,12 +150,12 @@
 					</div>
 				</div>
 			</div>
-			<div class="col-md-12">
+			<div class="col-md-6">
 				<div class="card card-flush">
 					<div class="card-header pt-5">
 						<h3 class="card-title align-items-start flex-column">
 							<span class="card-label fw-bolder fs-3 mb-1">Waktu Masuk Pasien Ranap</span>
-							<span class="text-muted mt-1 fw-bold fs-7">90% di bawah ≤ 60 menit</span>
+							<span class="text-muted mt-1 fw-bold fs-7">Target ≥ 90% di bawah ≤ 60 menit</span>
 						</h3>
 					</div>
 					<div class="card-body py-3">
@@ -195,7 +195,7 @@
 				<div class="card card-flush">
 					<div class="card-header pt-5">
 						<h3 class="card-title align-items-start flex-column">
-							<span class="card-label fw-bolder fs-3 mb-1">KPI Jam Pasien Pulang &lt; 12:00 WIB</span>
+							<span class="card-label fw-bolder fs-3 mb-1">Pasien Rawat Inap Pulang &lt; 12:00 WIB</span>
 							<span class="text-muted mt-1 fw-bold fs-7">Pasien yang direncanakan pulang pada H-1 ( pulang sebelum pukul ≤ 12,00 waktu setempat di hari berikutnya) Target: ≥90%</span>
 						</h3>
 						<div class="card-toolbar m-0">
@@ -392,7 +392,7 @@
 			<div class="card card-flush">
 				<div class="card-header pt-5">
 					<h3 class="card-title align-items-start flex-column">
-						<span class="card-label fw-bolder fs-3 mb-1">KPI Waktu Pelayanan Radiologi ≤ 60 Menit</span>
+						<span class="card-label fw-bolder fs-3 mb-1">Pemeriksaan Radiologi ≤ 60 Menit</span>
 						<span class="text-muted mt-1 fw-bold fs-7">Pemeriksaan Konvensional Non Kontras, dengan Target Penyelesaian ≤ 60 Menit</span>
 					</h3>
 				</div>
