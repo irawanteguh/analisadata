@@ -25,9 +25,63 @@
             return $data;
 		}
 
-        public function datakunjunganigdprovider(){
+        public function datakunjunganigd(){
             $periode = $this->input->post("selectperiode");
-            $result  = $this->md->datakunjunganigdprovider($periode);
+            $result  = $this->md->datakunjunganigd($periode);
+            
+			if(!empty($result)){
+				$json["responCode"]   = "00";
+				$json["responHead"]   = "success";
+				$json["responDesc"]   = "Data Di Temukan";
+				$json['responResult'] = $result;
+            }else{
+                $json["responCode"] = "01";
+                $json["responHead"] = "info";
+                $json["responDesc"] = "Data Tidak Di Temukan";
+            }
+
+            echo json_encode($json);
+        }
+
+        public function datakunjunganrj(){
+            $periode = $this->input->post("selectperiode");
+            $result  = $this->md->datakunjunganrj($periode);
+            
+			if(!empty($result)){
+				$json["responCode"]   = "00";
+				$json["responHead"]   = "success";
+				$json["responDesc"]   = "Data Di Temukan";
+				$json['responResult'] = $result;
+            }else{
+                $json["responCode"] = "01";
+                $json["responHead"] = "info";
+                $json["responDesc"] = "Data Tidak Di Temukan";
+            }
+
+            echo json_encode($json);
+        }
+
+        public function datakunjunganrjnonexe(){
+            $periode = $this->input->post("selectperiode");
+            $result  = $this->md->datakunjunganrjnonexe($periode);
+            
+			if(!empty($result)){
+				$json["responCode"]   = "00";
+				$json["responHead"]   = "success";
+				$json["responDesc"]   = "Data Di Temukan";
+				$json['responResult'] = $result;
+            }else{
+                $json["responCode"] = "01";
+                $json["responHead"] = "info";
+                $json["responDesc"] = "Data Tidak Di Temukan";
+            }
+
+            echo json_encode($json);
+        }
+
+        public function datakunjunganrjexe(){
+            $periode = $this->input->post("selectperiode");
+            $result  = $this->md->datakunjunganrjexe($periode);
             
 			if(!empty($result)){
 				$json["responCode"]   = "00";
@@ -97,10 +151,9 @@
             echo json_encode($json);
         }
 
-        //Non Executive
-        public function datakunjunganrjnonexecutivepoliklinik(){
+        public function datakunjunganmcu(){
             $periode = $this->input->post("selectperiode");
-            $result  = $this->md->datakunjunganrjnonexecutivepoliklinik($periode);
+            $result  = $this->md->datakunjunganmcu($periode);
             
 			if(!empty($result)){
 				$json["responCode"]   = "00";
@@ -116,9 +169,9 @@
             echo json_encode($json);
         }
 
-        public function datakunjunganrjdokternonexecutive(){
+        public function datakunjunganri(){
             $periode = $this->input->post("selectperiode");
-            $result  = $this->md->datakunjunganrjdokternonexecutive($periode);
+            $result  = $this->md->datakunjunganri($periode);
             
 			if(!empty($result)){
 				$json["responCode"]   = "00";
@@ -134,150 +187,241 @@
             echo json_encode($json);
         }
 
-        public function datakunjunganrjnonexecutiveprovider(){
-            $periode = $this->input->post("selectperiode");
-            $result  = $this->md->datakunjunganrjnonexecutiveprovider($periode);
+        // public function datakunjunganrjpoliklinik(){
+        //     $periode = $this->input->post("selectperiode");
+        //     $result  = $this->md->datakunjunganrjpoliklinik($periode);
             
-			if(!empty($result)){
-				$json["responCode"]   = "00";
-				$json["responHead"]   = "success";
-				$json["responDesc"]   = "Data Di Temukan";
-				$json['responResult'] = $result;
-            }else{
-                $json["responCode"] = "01";
-                $json["responHead"] = "info";
-                $json["responDesc"] = "Data Tidak Di Temukan";
-            }
+		// 	if(!empty($result)){
+		// 		$json["responCode"]   = "00";
+		// 		$json["responHead"]   = "success";
+		// 		$json["responDesc"]   = "Data Di Temukan";
+		// 		$json['responResult'] = $result;
+        //     }else{
+        //         $json["responCode"] = "01";
+        //         $json["responHead"] = "info";
+        //         $json["responDesc"] = "Data Tidak Di Temukan";
+        //     }
 
-            echo json_encode($json);
-        }
+        //     echo json_encode($json);
+        // }
 
-        //Executive
-        public function datakunjunganrjexecutivepoliklinik(){
-            $periode = $this->input->post("selectperiode");
-            $result  = $this->md->datakunjunganrjexecutivepoliklinik($periode);
+        // public function datakunjunganrjdokter(){
+        //     $periode = $this->input->post("selectperiode");
+        //     $result  = $this->md->datakunjunganrjdokter($periode);
             
-			if(!empty($result)){
-				$json["responCode"]   = "00";
-				$json["responHead"]   = "success";
-				$json["responDesc"]   = "Data Di Temukan";
-				$json['responResult'] = $result;
-            }else{
-                $json["responCode"] = "01";
-                $json["responHead"] = "info";
-                $json["responDesc"] = "Data Tidak Di Temukan";
-            }
+		// 	if(!empty($result)){
+		// 		$json["responCode"]   = "00";
+		// 		$json["responHead"]   = "success";
+		// 		$json["responDesc"]   = "Data Di Temukan";
+		// 		$json['responResult'] = $result;
+        //     }else{
+        //         $json["responCode"] = "01";
+        //         $json["responHead"] = "info";
+        //         $json["responDesc"] = "Data Tidak Di Temukan";
+        //     }
 
-            echo json_encode($json);
-        }
+        //     echo json_encode($json);
+        // }
 
-        public function datakunjunganrjdokterexecutive(){
-            $periode = $this->input->post("selectperiode");
-            $result  = $this->md->datakunjunganrjdokterexecutive($periode);
+        // public function datakunjunganrjprovider(){
+        //     $periode = $this->input->post("selectperiode");
+        //     $result  = $this->md->datakunjunganrjprovider($periode);
             
-			if(!empty($result)){
-				$json["responCode"]   = "00";
-				$json["responHead"]   = "success";
-				$json["responDesc"]   = "Data Di Temukan";
-				$json['responResult'] = $result;
-            }else{
-                $json["responCode"] = "01";
-                $json["responHead"] = "info";
-                $json["responDesc"] = "Data Tidak Di Temukan";
-            }
+		// 	if(!empty($result)){
+		// 		$json["responCode"]   = "00";
+		// 		$json["responHead"]   = "success";
+		// 		$json["responDesc"]   = "Data Di Temukan";
+		// 		$json['responResult'] = $result;
+        //     }else{
+        //         $json["responCode"] = "01";
+        //         $json["responHead"] = "info";
+        //         $json["responDesc"] = "Data Tidak Di Temukan";
+        //     }
 
-            echo json_encode($json);
-        }
+        //     echo json_encode($json);
+        // }
 
-        public function datakunjunganrjexecutiveprovider(){
-            $periode = $this->input->post("selectperiode");
-            $result  = $this->md->datakunjunganrjexecutiveprovider($periode);
+        // //Non Executive
+        // public function datakunjunganrjnonexecutivepoliklinik(){
+        //     $periode = $this->input->post("selectperiode");
+        //     $result  = $this->md->datakunjunganrjnonexecutivepoliklinik($periode);
             
-			if(!empty($result)){
-				$json["responCode"]   = "00";
-				$json["responHead"]   = "success";
-				$json["responDesc"]   = "Data Di Temukan";
-				$json['responResult'] = $result;
-            }else{
-                $json["responCode"] = "01";
-                $json["responHead"] = "info";
-                $json["responDesc"] = "Data Tidak Di Temukan";
-            }
+		// 	if(!empty($result)){
+		// 		$json["responCode"]   = "00";
+		// 		$json["responHead"]   = "success";
+		// 		$json["responDesc"]   = "Data Di Temukan";
+		// 		$json['responResult'] = $result;
+        //     }else{
+        //         $json["responCode"] = "01";
+        //         $json["responHead"] = "info";
+        //         $json["responDesc"] = "Data Tidak Di Temukan";
+        //     }
 
-            echo json_encode($json);
-        }
+        //     echo json_encode($json);
+        // }
 
-        public function datapaketmcu(){
-            $periode = $this->input->post("selectperiode");
-            $result  = $this->md->datapaketmcu($periode);
+        // public function datakunjunganrjdokternonexecutive(){
+        //     $periode = $this->input->post("selectperiode");
+        //     $result  = $this->md->datakunjunganrjdokternonexecutive($periode);
             
-			if(!empty($result)){
-				$json["responCode"]   = "00";
-				$json["responHead"]   = "success";
-				$json["responDesc"]   = "Data Di Temukan";
-				$json['responResult'] = $result;
-            }else{
-                $json["responCode"] = "01";
-                $json["responHead"] = "info";
-                $json["responDesc"] = "Data Tidak Di Temukan";
-            }
+		// 	if(!empty($result)){
+		// 		$json["responCode"]   = "00";
+		// 		$json["responHead"]   = "success";
+		// 		$json["responDesc"]   = "Data Di Temukan";
+		// 		$json['responResult'] = $result;
+        //     }else{
+        //         $json["responCode"] = "01";
+        //         $json["responHead"] = "info";
+        //         $json["responDesc"] = "Data Tidak Di Temukan";
+        //     }
 
-            echo json_encode($json);
-        }
+        //     echo json_encode($json);
+        // }
 
-        public function datakunjunganmcuprovider(){
-            $periode = $this->input->post("selectperiode");
-            $result  = $this->md->datakunjunganmcuprovider($periode);
+        // public function datakunjunganrjnonexecutiveprovider(){
+        //     $periode = $this->input->post("selectperiode");
+        //     $result  = $this->md->datakunjunganrjnonexecutiveprovider($periode);
             
-			if(!empty($result)){
-				$json["responCode"]   = "00";
-				$json["responHead"]   = "success";
-				$json["responDesc"]   = "Data Di Temukan";
-				$json['responResult'] = $result;
-            }else{
-                $json["responCode"] = "01";
-                $json["responHead"] = "info";
-                $json["responDesc"] = "Data Tidak Di Temukan";
-            }
+		// 	if(!empty($result)){
+		// 		$json["responCode"]   = "00";
+		// 		$json["responHead"]   = "success";
+		// 		$json["responDesc"]   = "Data Di Temukan";
+		// 		$json['responResult'] = $result;
+        //     }else{
+        //         $json["responCode"] = "01";
+        //         $json["responHead"] = "info";
+        //         $json["responDesc"] = "Data Tidak Di Temukan";
+        //     }
 
-            echo json_encode($json);
-        }
+        //     echo json_encode($json);
+        // }
 
-        public function datakunjunganriprovider(){
-            $periode = $this->input->post("selectperiode");
-            $result  = $this->md->datakunjunganriprovider($periode);
+        // //Executive
+        // public function datakunjunganrjexecutivepoliklinik(){
+        //     $periode = $this->input->post("selectperiode");
+        //     $result  = $this->md->datakunjunganrjexecutivepoliklinik($periode);
             
-			if(!empty($result)){
-				$json["responCode"]   = "00";
-				$json["responHead"]   = "success";
-				$json["responDesc"]   = "Data Di Temukan";
-				$json['responResult'] = $result;
-            }else{
-                $json["responCode"] = "01";
-                $json["responHead"] = "info";
-                $json["responDesc"] = "Data Tidak Di Temukan";
-            }
+		// 	if(!empty($result)){
+		// 		$json["responCode"]   = "00";
+		// 		$json["responHead"]   = "success";
+		// 		$json["responDesc"]   = "Data Di Temukan";
+		// 		$json['responResult'] = $result;
+        //     }else{
+        //         $json["responCode"] = "01";
+        //         $json["responHead"] = "info";
+        //         $json["responDesc"] = "Data Tidak Di Temukan";
+        //     }
 
-            echo json_encode($json);
-        }
+        //     echo json_encode($json);
+        // }
 
-        public function datakunjunganridokter(){
-            $periode = $this->input->post("selectperiode");
-            $result  = $this->md->datakunjunganridokter($periode);
+        // public function datakunjunganrjdokterexecutive(){
+        //     $periode = $this->input->post("selectperiode");
+        //     $result  = $this->md->datakunjunganrjdokterexecutive($periode);
             
-			if(!empty($result)){
-				$json["responCode"]   = "00";
-				$json["responHead"]   = "success";
-				$json["responDesc"]   = "Data Di Temukan";
-				$json['responResult'] = $result;
-            }else{
-                $json["responCode"] = "01";
-                $json["responHead"] = "info";
-                $json["responDesc"] = "Data Tidak Di Temukan";
-            }
+		// 	if(!empty($result)){
+		// 		$json["responCode"]   = "00";
+		// 		$json["responHead"]   = "success";
+		// 		$json["responDesc"]   = "Data Di Temukan";
+		// 		$json['responResult'] = $result;
+        //     }else{
+        //         $json["responCode"] = "01";
+        //         $json["responHead"] = "info";
+        //         $json["responDesc"] = "Data Tidak Di Temukan";
+        //     }
 
-            echo json_encode($json);
-        }
+        //     echo json_encode($json);
+        // }
+
+        // public function datakunjunganrjexecutiveprovider(){
+        //     $periode = $this->input->post("selectperiode");
+        //     $result  = $this->md->datakunjunganrjexecutiveprovider($periode);
+            
+		// 	if(!empty($result)){
+		// 		$json["responCode"]   = "00";
+		// 		$json["responHead"]   = "success";
+		// 		$json["responDesc"]   = "Data Di Temukan";
+		// 		$json['responResult'] = $result;
+        //     }else{
+        //         $json["responCode"] = "01";
+        //         $json["responHead"] = "info";
+        //         $json["responDesc"] = "Data Tidak Di Temukan";
+        //     }
+
+        //     echo json_encode($json);
+        // }
+
+        // public function datapaketmcu(){
+        //     $periode = $this->input->post("selectperiode");
+        //     $result  = $this->md->datapaketmcu($periode);
+            
+		// 	if(!empty($result)){
+		// 		$json["responCode"]   = "00";
+		// 		$json["responHead"]   = "success";
+		// 		$json["responDesc"]   = "Data Di Temukan";
+		// 		$json['responResult'] = $result;
+        //     }else{
+        //         $json["responCode"] = "01";
+        //         $json["responHead"] = "info";
+        //         $json["responDesc"] = "Data Tidak Di Temukan";
+        //     }
+
+        //     echo json_encode($json);
+        // }
+
+        // public function datakunjunganmcuprovider(){
+        //     $periode = $this->input->post("selectperiode");
+        //     $result  = $this->md->datakunjunganmcuprovider($periode);
+            
+		// 	if(!empty($result)){
+		// 		$json["responCode"]   = "00";
+		// 		$json["responHead"]   = "success";
+		// 		$json["responDesc"]   = "Data Di Temukan";
+		// 		$json['responResult'] = $result;
+        //     }else{
+        //         $json["responCode"] = "01";
+        //         $json["responHead"] = "info";
+        //         $json["responDesc"] = "Data Tidak Di Temukan";
+        //     }
+
+        //     echo json_encode($json);
+        // }
+
+        // public function datakunjunganriprovider(){
+        //     $periode = $this->input->post("selectperiode");
+        //     $result  = $this->md->datakunjunganriprovider($periode);
+            
+		// 	if(!empty($result)){
+		// 		$json["responCode"]   = "00";
+		// 		$json["responHead"]   = "success";
+		// 		$json["responDesc"]   = "Data Di Temukan";
+		// 		$json['responResult'] = $result;
+        //     }else{
+        //         $json["responCode"] = "01";
+        //         $json["responHead"] = "info";
+        //         $json["responDesc"] = "Data Tidak Di Temukan";
+        //     }
+
+        //     echo json_encode($json);
+        // }
+
+        // public function datakunjunganridokter(){
+        //     $periode = $this->input->post("selectperiode");
+        //     $result  = $this->md->datakunjunganridokter($periode);
+            
+		// 	if(!empty($result)){
+		// 		$json["responCode"]   = "00";
+		// 		$json["responHead"]   = "success";
+		// 		$json["responDesc"]   = "Data Di Temukan";
+		// 		$json['responResult'] = $result;
+        //     }else{
+        //         $json["responCode"] = "01";
+        //         $json["responHead"] = "info";
+        //         $json["responDesc"] = "Data Tidak Di Temukan";
+        //     }
+
+        //     echo json_encode($json);
+        // }
         
 	}
 ?>

@@ -7,4 +7,4 @@
 	</div>
 </div>
 
-<a href="https://rsudpasarminggu.jakarta.go.id/bi/index.php/View_21" class="btn btn-sm btn-primary me-2" target="_blank"><i class="bi bi-hospital"></i> View Management Bed</a>
+<a href="https://rsudpasarminggu.jakarta.go.id/bi/index.php/View_21" class="btn btn-sm btn-primary" target="_blank"><i class="bi bi-hospital"></i> View Management Bed</a>

@@ -237,7 +237,8 @@ function rawatjalanwaktutunggu(){
                         Value1: 0,
                         Value2: 0,
                         Value3: 0,
-                        Value4: 0
+                        Value4: 0,
+                        Value5: 0
                     };
                 });
 
@@ -250,13 +251,15 @@ function rawatjalanwaktutunggu(){
                     const Value2 = Number(item.JUMLAH_PASIEN_KURANG_SAMA_60_MENIT) || 0;
                     const Value3 = Number(item.JUMLAH_PASIEN_LEBIH_60_MENIT) || 0;
                     const Value4 = Number(item.PERSENTASE_PASIEN_KURANG_SAMA_60_MENIT) || 0;
+                    const Value5 = Number(item.RATA_RATA_WAKTU_MENIT) || 0;
 
                     monthlyData[bulan] = {
                         bulan,
                         Value1,
                         Value2,
                         Value3,
-                        Value4
+                        Value4,
+                        Value5
                     };
                 });
 
@@ -287,6 +290,12 @@ function rawatjalanwaktutunggu(){
                             data: chartgrafikmonthlykpi.map(item => item.Value4)
                         },
                         {
+                            name: 'Rata-rata Waktu (Menit)',
+                            type: 'line',
+                            yAxisIndex: 2,
+                            data: chartgrafikmonthlykpi.map(item => item.Value5)
+                        },
+                        {
                             name: '≤ 60 Menit',
                             type: 'area',
                             yAxisIndex: 1,
@@ -297,7 +306,7 @@ function rawatjalanwaktutunggu(){
                             type: 'area',
                             yAxisIndex: 1,
                             data: chartgrafikmonthlykpi.map(item => item.Value3)
-                        }              
+                        }            
                     ]
                 },
 
@@ -320,6 +329,14 @@ function rawatjalanwaktutunggu(){
                         suffix: ' Px',
                         decimals: 0,
                         opposite: true,
+                        headroom: 0.10
+                    },
+                    {
+                        title: 'Rata-rata Waktu (Menit)',
+                        min: 0,
+                        suffix: ' Menit',
+                        decimals: 0,
+                        opposite: false,
                         headroom: 0.10
                     }
                 ],

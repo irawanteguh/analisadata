@@ -266,7 +266,7 @@
 						<div class="menu-content text-muted pb-2 px-3 fs-7 text-uppercase">More Actions</div>
 					</div>
 					<div class="menu-item px-3">
-						<a href="#" class="menu-link px-3" id="btndownloaddatadetailrj_table">Download Excel</a>
+						<a href="#" class="menu-link px-3" id="datapoliklinik_table_downloadexcel">Download Excel</a>
 					</div>
 				</div>
 			</div>
