@@ -128,7 +128,7 @@
                 <div class="text-center">
                     <button type="submit" id="kt_sign_in_submit" class="btn btn-lg btn-primary w-100 mb-5">
                         <span class="indicator-label">Continue</span>
-                        <span class="indicator-progress">Please wait...
+                        <span class="indicator-progress">Please wait....
                         <span class="spinner-border spinner-border-sm align-middle ms-2"></span></span>
                     </button>
                 </div>
