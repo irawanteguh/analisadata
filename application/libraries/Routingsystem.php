@@ -23,6 +23,8 @@ class Routingsystem {
 		'generateresume',
 		'Whatsapp',
 
+		'rujukanbpjs',
+
 		'listpasienrencanapulang',
 		'listpasientransit',
 		'listpasienbelumclossing',

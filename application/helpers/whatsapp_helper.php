@@ -25,8 +25,7 @@
         return $formatted . PHP_EOL;
     }
 
-    function normalizeNLP($message)
-    {
+    function normalizeNLP($message){
         $text = trim($message);
 
         if ($text == '') {
@@ -107,8 +106,7 @@
         return trim($text);
     }
 
-    function hasKeyword($text, $keywords)
-    {
+    function hasKeyword($text, $keywords){
         foreach($keywords as $keyword){
 
             $keyword = strtoupper(trim($keyword));
@@ -127,8 +125,7 @@
         return false;
     }
 
-    function hasPhrase($text, $phrases)
-    {
+    function hasPhrase($text, $phrases){
         foreach($phrases as $phrase){
 
             $phrase = strtoupper(trim($phrase));

@@ -29,7 +29,7 @@
     switch ($env) {
         case 'production':
             define('BPJS_CID', '11148');
-            define('BPJS_CKEY', '1uADAB4568');
+            define('BPJS_CKEY', 'NSvl8ORbIx7nRcVGrkSF');
             define('BPJS_USER_KEY', 'f76a89365f8c920aa05712ef77e0ea51');
             define('BPJS_BASE_URL_VCLAIM', 'https://apijkn.bpjs-kesehatan.go.id/vclaim-rest');
             define('OPENWA_SESSION_ID_PEO', '3124f4aa-4f6f-436f-a9bb-9c5e98c88932');

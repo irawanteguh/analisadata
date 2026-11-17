@@ -34,12 +34,12 @@
 
         public function __construct(){
             parent::__construct();
-            $this->load->model("Modelrujukankeluar","md");
-            bpjs::init();
-            headerlog();
+            $this->load->model("Modelrujukankeluar","md");            
         }
 
         public function rujukanbpjs_GET(){
+            headerlogrujukanbpjs();
+
             $resultperiode = $this->md->periode();
 
             if(empty($resultperiode)){
@@ -53,7 +53,6 @@
                 $statusMsg   = "";
 
                 $response = bpjs::listrujukabydate($a->PERIODE, $a->PERIODE);
-
 
                 if (isset($response['metaData']) && $response['metaData']['code'] === "201") {
                     $statusColor = "red";

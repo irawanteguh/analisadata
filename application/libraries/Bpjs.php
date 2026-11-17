@@ -3,11 +3,26 @@
 
     class bpjs{
 
-        protected static $app;
-        public static $clientid;
-        public static $secretkey;
-        public static $userkey;
-        public static $baseurl;
+        protected $CI;
+
+        private static $clientid = BPJS_CID;
+        private static $secretkey = BPJS_CKEY;
+        private static $userkey = BPJS_USER_KEY;
+        private static $baseurl = BPJS_BASE_URL_VCLAIM;
+
+        public function __construct(){
+            $this->CI =& get_instance();
+        }
+
+        // public static function init(){
+        //     self::$app = &get_instance();
+        //     self::$app->load->helper('curl');
+
+        //     self::$clientid  = BPJS_CID;
+        //     self::$secretkey = BPJS_CKEY;
+        //     self::$userkey   = BPJS_USER_KEY;
+        //     self::$baseurl   = BPJS_BASE_URL_VCLAIM;
+        // }
 
         protected static function stringDecrypt($key, $string){
             $encrypt_method = 'AES-256-CBC';
@@ -25,7 +40,7 @@
         protected static function getheader(){
             date_default_timezone_set('UTC');
 
-            $timestamp        = strval(time()-strtotime('1970-01-01 00:00:00'));
+            $timestamp        = strval(time() - strtotime('1970-01-01 00:00:00'));
             $data             = self::$clientid.'&'.$timestamp;
             $signature        = hash_hmac('sha256',$data,self::$secretkey,true);
             $encodedSignature = base64_encode($signature);
@@ -43,16 +58,6 @@
             }
 
             return $formattedHeaders;
-        }
-
-        public static function init(){
-            self::$app = &get_instance();
-            self::$app->load->helper('curl');
-
-            self::$clientid  = BPJS_CID;
-            self::$secretkey = BPJS_CKEY;
-            self::$userkey   = BPJS_USER_KEY;
-            self::$baseurl   = BPJS_BASE_URL_VCLAIM;
         }
 
         public static function srbbydate($parameter1,$parameter2){
@@ -97,6 +102,66 @@
                 'body'    => "",
                 'savelog' => true,
                 'source'  => "LIST-PERSETUJUAN-SEP"
+            ]);
+
+            $result = json_decode($responsecurl,TRUE);
+
+            if(intval($result['metaData']['code']) == 200){
+                $restresponse = self::stringdecrypt(self::$clientid.self::$secretkey.str_replace("X-timestamp: ","",$header[1]),$result["response"]);
+                $restresponse = self::decompress($restresponse);
+                $restresponse = json_decode($restresponse, true);
+    
+                $result["metaData"]["code"]    = $result["metaData"]["code"];
+                $result["metaData"]["message"] = $result["metaData"]["message"];
+                $result["response"]            = $restresponse;
+            }else{
+                $result["metaData"]["code"]    = $result["metaData"]["code"];
+                $result["metaData"]["message"] = $result["metaData"]["message"];
+            }
+
+            return $result;
+        }
+
+        public static function listrujukabydate($parameter1,$parameter2){
+            $header = self::getheader();
+
+            $responsecurl = curl([
+                'url'     => self::$baseurl."/Rujukan/Keluar/List/tglMulai/".$parameter1."/tglAkhir/".$parameter2,
+                'method'  => "GET",
+                'header'  => $header,
+                'body'    => "",
+                'savelog' => false,
+                'source'  => "LIST-RUJUKAN"
+            ]);
+
+            $result = json_decode($responsecurl,TRUE);
+
+            if(intval($result['metaData']['code']) == 200){
+                $restresponse = self::stringdecrypt(self::$clientid.self::$secretkey.str_replace("X-timestamp: ","",$header[1]),$result["response"]);
+                $restresponse = self::decompress($restresponse);
+                $restresponse = json_decode($restresponse, true);
+    
+                $result["metaData"]["code"]    = $result["metaData"]["code"];
+                $result["metaData"]["message"] = $result["metaData"]["message"];
+                $result["response"]            = $restresponse;
+            }else{
+                $result["metaData"]["code"]    = $result["metaData"]["code"];
+                $result["metaData"]["message"] = $result["metaData"]["message"];
+            }
+
+            return $result;
+        }
+
+        public static function listrujukabynomorrujukan($parameter1){
+            $header = self::getheader();
+
+            $responsecurl = curl([
+                'url'     => self::$baseurl."/Rujukan/Keluar/".$parameter1,
+                'method'  => "GET",
+                'header'  => $header,
+                'body'    => "",
+                'savelog' => false,
+                'source'  => "LIST-RUJUKAN"
             ]);
 
             $result = json_decode($responsecurl,TRUE);
