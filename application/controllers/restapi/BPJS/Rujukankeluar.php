@@ -112,6 +112,19 @@
                                 echo formatlog($a->PERIODE,$datadetail['noKartu'],$datadetail['noSep'],$datadetail['noRujukan'],$statusMsg,'cyan','cyan','cyan','cyan',$statusColor);
                                 continue;
                             }
+                        }else{
+                            $statusColor  = "yellow";
+                            $statusMsg    = "Data rujukan sudah tersimpan";
+
+                            echo formatlog(
+                                $a->PERIODE,
+                                $dataexisting->NO_KARTU ?? '',
+                                $dataexisting->NO_SEP ?? '',
+                                $dataexisting->NO_RUJUKAN ?? $row['noRujukan'],
+                                $statusMsg,
+                                'cyan','cyan','cyan','cyan',$statusColor
+                            );
+                            continue;
                         }
                     }
                 }
